@@ -1,0 +1,171 @@
+import { useEffect, useState, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  CheckIn,
+  PressureReading,
+  SymptomReport,
+  UserProfile,
+  CheckInStatus,
+  PressureClassification,
+} from "@/lib/types";
+
+const STORAGE_KEYS = {
+  PROFILE: "health:profile",
+  CHECK_INS: "health:check-ins",
+  PRESSURE_READINGS: "health:pressure-readings",
+  SYMPTOM_REPORTS: "health:symptom-reports",
+};
+
+export function useHealthData() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [pressureReadings, setPressureReadings] = useState<PressureReading[]>([]);
+  const [symptomReports, setSymptomReports] = useState<SymptomReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar dados ao inicializar
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    try {
+      setIsLoading(true);
+      const [profileData, checkInsData, pressureData, symptomsData] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.PROFILE),
+        AsyncStorage.getItem(STORAGE_KEYS.CHECK_INS),
+        AsyncStorage.getItem(STORAGE_KEYS.PRESSURE_READINGS),
+        AsyncStorage.getItem(STORAGE_KEYS.SYMPTOM_REPORTS),
+      ]);
+
+      if (profileData) setProfile(JSON.parse(profileData));
+      if (checkInsData) setCheckIns(JSON.parse(checkInsData));
+      if (pressureData) setPressureReadings(JSON.parse(pressureData));
+      if (symptomsData) setSymptomReports(JSON.parse(symptomsData));
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Salvar perfil do usuário
+  const saveProfile = useCallback(async (newProfile: UserProfile) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
+      setProfile(newProfile);
+    } catch (error) {
+      console.error("Erro ao salvar perfil:", error);
+    }
+  }, []);
+
+  // Adicionar check-in
+  const addCheckIn = useCallback(async (status: CheckInStatus) => {
+    try {
+      const newCheckIn: CheckIn = {
+        id: Date.now().toString(),
+        date: new Date().toISOString().split("T")[0],
+        status,
+        timestamp: Date.now(),
+      };
+
+      const updated = [...checkIns, newCheckIn];
+      await AsyncStorage.setItem(STORAGE_KEYS.CHECK_INS, JSON.stringify(updated));
+      setCheckIns(updated);
+      return newCheckIn;
+    } catch (error) {
+      console.error("Erro ao adicionar check-in:", error);
+    }
+  }, [checkIns]);
+
+  // Adicionar leitura de pressão
+  const addPressureReading = useCallback(
+    async (systolic: number, diastolic: number) => {
+      try {
+        const newReading: PressureReading = {
+          id: Date.now().toString(),
+          date: new Date().toISOString().split("T")[0],
+          systolic,
+          diastolic,
+          timestamp: Date.now(),
+        };
+
+        const updated = [...pressureReadings, newReading];
+        await AsyncStorage.setItem(STORAGE_KEYS.PRESSURE_READINGS, JSON.stringify(updated));
+        setPressureReadings(updated);
+        return newReading;
+      } catch (error) {
+        console.error("Erro ao adicionar leitura de pressão:", error);
+      }
+    },
+    [pressureReadings]
+  );
+
+  // Adicionar relatório de sintomas
+  const addSymptomReport = useCallback(
+    async (symptoms: string[]) => {
+      try {
+        const newReport: SymptomReport = {
+          id: Date.now().toString(),
+          date: new Date().toISOString().split("T")[0],
+          symptoms,
+          timestamp: Date.now(),
+        };
+
+        const updated = [...symptomReports, newReport];
+        await AsyncStorage.setItem(STORAGE_KEYS.SYMPTOM_REPORTS, JSON.stringify(updated));
+        setSymptomReports(updated);
+        return newReport;
+      } catch (error) {
+        console.error("Erro ao adicionar relatório de sintomas:", error);
+      }
+    },
+    [symptomReports]
+  );
+
+  // Classificar pressão arterial
+  const classifyPressure = (systolic: number, diastolic: number): PressureClassification => {
+    if (systolic <= 120 && diastolic <= 80) return "normal";
+    if (systolic <= 129 && diastolic < 80) return "normal";
+    if (systolic < 140 && diastolic < 90) return "pre-hipertensao";
+    return "hipertensao";
+  };
+
+  // Obter última leitura de pressão
+  const getLatestPressure = () => {
+    return pressureReadings.length > 0 ? pressureReadings[pressureReadings.length - 1] : null;
+  };
+
+  // Obter check-ins dos últimos 7 dias
+  const getLastSevenDaysCheckIns = () => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    return checkIns.filter((checkIn) => {
+      const checkInDate = new Date(checkIn.date);
+      return checkInDate >= sevenDaysAgo && checkInDate <= today;
+    });
+  };
+
+  // Obter check-in de hoje
+  const getTodayCheckIn = () => {
+    const today = new Date().toISOString().split("T")[0];
+    return checkIns.find((checkIn) => checkIn.date === today);
+  };
+
+  return {
+    profile,
+    checkIns,
+    pressureReadings,
+    symptomReports,
+    isLoading,
+    saveProfile,
+    addCheckIn,
+    addPressureReading,
+    addSymptomReport,
+    classifyPressure,
+    getLatestPressure,
+    getLastSevenDaysCheckIns,
+    getTodayCheckIn,
+  };
+}
