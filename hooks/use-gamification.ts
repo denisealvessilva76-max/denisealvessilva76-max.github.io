@@ -11,10 +11,12 @@ import {
   getNextMedal,
   getProgressToNextMedal,
 } from "@/lib/gamification";
+import { useMedalNotifications } from "./use-medal-notifications";
 
 const GAMIFICATION_STORAGE_KEY = "gamification_data";
 
 export function useGamification(checkIns: CheckIn[]) {
+  const { sendMedalNotification } = useMedalNotifications();
   const [stats, setStats] = useState<GamificationStats>({
     totalCheckIns: 0,
     weeklyCheckIns: 0,
@@ -25,6 +27,7 @@ export function useGamification(checkIns: CheckIn[]) {
     totalPoints: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [previousMedalCount, setPreviousMedalCount] = useState(0);
 
   // Carregar dados de gamificação ao iniciar
   useEffect(() => {
@@ -36,7 +39,7 @@ export function useGamification(checkIns: CheckIn[]) {
     if (!isLoading) {
       calculateStats();
     }
-  }, [checkIns, isLoading]);
+  }, [checkIns, isLoading, sendMedalNotification]);
 
   const loadGamificationData = async () => {
     try {
@@ -60,7 +63,7 @@ export function useGamification(checkIns: CheckIn[]) {
     }
   };
 
-  const calculateStats = () => {
+  const calculateStats = async () => {
     const now = new Date();
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - now.getDay()); // Início da semana (domingo)
@@ -109,6 +112,16 @@ export function useGamification(checkIns: CheckIn[]) {
     // Calcular medalhas desbloqueadas
     const unlockedMedals = calculateUnlockedMedals(weeklyCheckIns);
 
+    // Detectar novas medalhas desbloqueadas
+    const newMedals = unlockedMedals.filter(
+      (medal) => !stats.unlockedMedals.some((m) => m.id === medal.id)
+    );
+
+    // Enviar notificação para cada medalha nova
+    for (const medal of newMedals) {
+      await sendMedalNotification(medal);
+    }
+
     // Calcular pontos
     const previousUnlockedCount = stats.unlockedMedals.length;
     const newMedalsUnlocked = Math.max(0, unlockedMedals.length - previousUnlockedCount);
@@ -126,7 +139,8 @@ export function useGamification(checkIns: CheckIn[]) {
     };
 
     setStats(newStats);
-    saveGamificationData(newStats);
+    setPreviousMedalCount(unlockedMedals.length);
+    await saveGamificationData(newStats);
   };
 
   const getNextMedalInfo = () => {
@@ -147,6 +161,7 @@ export function useGamification(checkIns: CheckIn[]) {
       unlockedMedals: [],
     };
     setStats(newStats);
+    setPreviousMedalCount(0);
     await saveGamificationData(newStats);
   };
 
@@ -155,5 +170,6 @@ export function useGamification(checkIns: CheckIn[]) {
     isLoading,
     getNextMedalInfo,
     resetWeeklyStats,
+    sendMedalNotification,
   };
 }

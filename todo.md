@@ -133,3 +133,13 @@
 - [x] Animação ao desbloquear medalha
 - [x] Histórico de conquistas
 - [x] Integrar gamificação com Home screen
+
+---
+
+## Notificações de Medalhas (Implementado)
+- [x] Detectar quando nova medalha é desbloqueada
+- [x] Enviar notificação push ao desbloquear medalha
+- [x] Personalizar mensagem com nome da medalha
+- [x] Adicionar som especial para notificação de medalha
+- [x] Armazenar histórico de notificações de medalhas
+- [ ] Testar notificações em dispositivo real
