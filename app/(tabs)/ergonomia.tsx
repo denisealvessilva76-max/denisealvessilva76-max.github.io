@@ -1,15 +1,17 @@
-import { ScrollView, Text, View, TouchableOpacity, Pressable } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Pressable, Image, ImageSourcePropType } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
-import { EXERCISES } from "@/lib/types";
+import { EXERCISES } from "@/lib/exercise-types";
 import * as Haptics from "expo-haptics";
+import { useColors } from "@/hooks/use-colors";
 
 type TabType = "alongamento" | "postura" | "respiracao";
 
 export default function ErgonomiaScreen() {
   const router = useRouter();
+  const colors = useColors();
   const [activeTab, setActiveTab] = useState<TabType>("alongamento");
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
 
@@ -28,7 +30,7 @@ export default function ErgonomiaScreen() {
 
   const handleFazerAgora = (exerciseId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/exercise-detail?id=${exerciseId}`);
+    router.push(`/exercise-screen?exerciseId=${exerciseId}`);
   };
 
   return (
@@ -96,7 +98,7 @@ export default function ErgonomiaScreen() {
                   <View className="gap-2">
                     <View className="flex-row items-center justify-between">
                       <Text className="flex-1 text-lg font-semibold text-foreground">
-                        {exercise.title}
+                        {exercise.emoji} {exercise.name}
                       </Text>
                       <Text className="text-2xl">
                         {selectedExercise === exercise.id ? "▼" : "▶"}
@@ -104,7 +106,7 @@ export default function ErgonomiaScreen() {
                     </View>
                     <Text className="text-sm text-muted">{exercise.description}</Text>
                     <Text className="text-xs text-muted">
-                      ⏱️ {exercise.duration} segundos
+                      ⏱️ {exercise.totalDuration}s • {exercise.difficulty}
                     </Text>
                   </View>
                 </Pressable>
@@ -112,9 +114,17 @@ export default function ErgonomiaScreen() {
                 {/* Detalhes do Exercício */}
                 {selectedExercise === exercise.id && (
                   <View className="gap-3 pt-3 border-t border-border">
+                    {exercise.phases[0] && (
+                      <Image
+                        source={exercise.phases[0].image as ImageSourcePropType}
+                        style={{ width: "100%", height: 200, borderRadius: 8 }}
+                        resizeMode="contain"
+                      />
+                    )}
+
                     <View className="gap-2">
                       <Text className="text-sm font-semibold text-foreground">Instruções:</Text>
-                      {exercise.instructions.map((instruction, index) => (
+                      {exercise.phases[0]?.instructions.map((instruction, index) => (
                         <View key={index} className="flex-row gap-2">
                           <Text className="text-primary font-bold">{index + 1}.</Text>
                           <Text className="flex-1 text-sm text-foreground leading-relaxed">
@@ -124,12 +134,21 @@ export default function ErgonomiaScreen() {
                       ))}
                     </View>
 
+                    <View className="gap-2">
+                      <Text className="text-sm font-semibold text-foreground">Benefícios:</Text>
+                      {exercise.benefits.map((benefit, index) => (
+                        <Text key={index} className="text-sm text-muted">
+                          ✓ {benefit}
+                        </Text>
+                      ))}
+                    </View>
+
                     <TouchableOpacity
                       className="bg-primary rounded-lg py-3 active:opacity-80"
                       onPress={() => handleFazerAgora(exercise.id)}
                     >
                       <Text className="text-center font-semibold text-white">
-                        Fazer Agora
+                        ▶️ Fazer Agora
                       </Text>
                     </TouchableOpacity>
                   </View>

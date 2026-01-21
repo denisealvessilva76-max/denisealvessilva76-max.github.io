@@ -184,3 +184,14 @@
 - [x] Rastrear consumo de água
 - [x] Exibir histórico de hidratação
 - [x] Alertas para baixa hidratação
+
+---
+
+## Imagens e Vídeos Ilustrativos (Implementado)
+- [x] Gerar imagens dos alongamentos
+- [ ] Gerar vídeos demonstrativos dos movimentos (opcional)
+- [x] Implementar exibição de imagens na tela de exercício
+- [ ] Implementar player de vídeo (opcional)
+- [x] Adicionar avisos de troca de lado
+- [x] Sincronizar avisos com contagem regressiva
+- [ ] Testar em dispositivo real
