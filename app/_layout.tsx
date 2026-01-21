@@ -95,6 +95,7 @@ export default function RootLayout() {
             <Stack.Screen name="exercise-detail" />
             <Stack.Screen name="respiracao-guiada" />
             <Stack.Screen name="notification-settings" />
+            <Stack.Screen name="achievements" />
           </Stack>
           <StatusBar style="auto" />
         </QueryClientProvider>

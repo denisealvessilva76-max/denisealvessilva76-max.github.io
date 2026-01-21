@@ -122,3 +122,14 @@
 - [x] Tela de configuração de horários de notificação
 - [x] Persistir preferências de notificação
 - [ ] Testar notificações em dispositivo real
+
+---
+
+## Sistema de Gamificação (Implementado)
+- [x] Criar tipos para medalhas e conquistas
+- [x] Implementar lógica de cálculo de pontos
+- [x] Criar medalhas por check-ins semanais (3, 5, 7 dias)
+- [x] Tela de Conquistas com exibição de medalhas
+- [x] Animação ao desbloquear medalha
+- [x] Histórico de conquistas
+- [x] Integrar gamificação com Home screen

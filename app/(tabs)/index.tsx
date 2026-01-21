@@ -4,9 +4,12 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { MedalCard } from "@/components/ui/medal-card";
 import { useHealthData } from "@/hooks/use-health-data";
+import { useGamification } from "@/hooks/use-gamification";
 import { CheckInStatus } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { getProgressToNextMedal } from "@/lib/gamification";
 import * as Haptics from "expo-haptics";
 
 const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: string; color: string }> = [
@@ -18,14 +21,15 @@ const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: str
 export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { addCheckIn, getTodayCheckIn, getLastSevenDaysCheckIns, isLoading } = useHealthData();
+  const { addCheckIn, getTodayCheckIn, getLastSevenDaysCheckIns, isLoading, checkIns } = useHealthData();
+  const { stats, getNextMedalInfo } = useGamification(checkIns);
   const [todayCheckIn, setTodayCheckIn] = useState(getTodayCheckIn());
   const [lastSevenDays, setLastSevenDays] = useState(getLastSevenDaysCheckIns());
 
   useEffect(() => {
     setTodayCheckIn(getTodayCheckIn());
     setLastSevenDays(getLastSevenDaysCheckIns());
-  }, []);
+  }, [checkIns]);
 
   const handleCheckIn = async (status: CheckInStatus) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -34,6 +38,8 @@ export default function HomeScreen() {
       setTodayCheckIn(result);
     }
   };
+
+  const nextMedalInfo = getNextMedalInfo();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -51,6 +57,14 @@ export default function HomeScreen() {
     const option = CHECK_IN_OPTIONS.find((o) => o.status === status);
     return option?.label || "Desconhecido";
   };
+
+  if (isLoading) {
+    return (
+      <ScreenContainer className="p-4 items-center justify-center">
+        <Text className="text-foreground">Carregando...</Text>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer className="p-4">
@@ -156,6 +170,53 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Medalhas e Gamificação */}
+          <Card className="gap-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-foreground">🏆 Suas Medalhas</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/achievements");
+                }}
+              >
+                <Text className="text-primary font-semibold">Ver Tudo →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {stats.unlockedMedals.length > 0 ? (
+              <View className="flex-row gap-2">
+                {stats.unlockedMedals.slice(0, 3).map((medal) => (
+                  <View key={medal.id} className="flex-1">
+                    <MedalCard medal={medal} isUnlocked={true} />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text className="text-center text-muted py-4">
+                Comece a fazer check-ins para desbloquear medalhas!
+              </Text>
+            )}
+
+            {/* Próxima Medalha */}
+            {nextMedalInfo.medal && (
+              <View className="gap-2 pt-3 border-t border-border">
+                <Text className="text-sm text-muted">Próxima Medalha:</Text>
+                <View className="flex-row items-center gap-3">
+                  <Text className="text-3xl">{nextMedalInfo.medal?.emoji}</Text>
+                  <View className="flex-1">
+                    <Text className="text-sm font-semibold text-foreground">
+                      {nextMedalInfo.medal?.name}
+                    </Text>
+                    <Text className="text-xs text-muted">
+                      Faltam {nextMedalInfo.checkInsNeeded} check-ins
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          </Card>
 
           {/* Dica do Dia */}
           <Card className="bg-primary/10 border border-primary gap-2">
