@@ -195,3 +195,21 @@
 - [x] Adicionar avisos de troca de lado
 - [x] Sincronizar avisos com contagem regressiva
 - [ ] Testar em dispositivo real
+
+---
+
+## Formulário Detalhado de Queixa (Planejado)
+- [ ] Expandir formulário ao clicar em "Dor" ou "Sintomas"
+- [ ] Campos: tipo de dor, localização, severidade, descrição
+- [ ] Indicação visual para procurar SESMT
+- [ ] Botão direto para contatar SESMT
+- [ ] Salvamento automático da queixa
+
+## Dashboard Administrativo (Implementado)
+- [x] Tela de login com email/senha
+- [x] Autenticação segura no servidor
+- [x] Dashboard visual com gráficos
+- [x] Visualizar dados agregados dos empregados
+- [x] Listar queixas e empregados em risco
+- [ ] Filtros por período e tipo de queixa (interface)
+- [ ] Exportação de relatórios (interface)

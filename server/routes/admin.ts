@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { getDb } from "../db";
-import { healthReferrals, adminUsers } from "../../drizzle/schema";
+import { healthReferrals, adminUsers, healthDataSync, aggregatedHealthData } from "../../drizzle/schema";
 import { eq, desc, gte } from "drizzle-orm";
 import { createHash } from "crypto";
 
@@ -12,10 +12,44 @@ const router = Router();
  */
 router.post("/login", async (req: Request, res: Response) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: "Username e password são obrigatórios" });
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email e password são obrigatórios" });
+    }
+
+    // Credenciais padrão (em produção, usar banco de dados com bcrypt)
+    const ADMIN_EMAIL = "admin@obra.com";
+    const ADMIN_PASSWORD = "senha123";
+
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ message: "Email ou senha incorretos" });
+    }
+
+    // Gerar token simples
+    const token = Buffer.from(`admin:${Date.now()}`).toString("base64");
+
+    res.json({
+      success: true,
+      token,
+      email,
+      message: "Login realizado com sucesso",
+    });
+  } catch (error) {
+    console.error("Erro ao fazer login:", error);
+    res.status(500).json({ error: "Erro ao fazer login" });
+  }
+});
+
+/**
+ * GET /api/admin/dashboard
+ * Obter dados agregados do dashboard
+ */
+router.get("/dashboard", async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Não autorizado" });
     }
 
     const db = await getDb();
@@ -23,45 +57,63 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Banco de dados não disponível" });
     }
 
-    const admin = await db
+    // Obter dados agregados
+    const aggregated = await db
       .select()
-      .from(adminUsers)
-      .where(eq(adminUsers.username, username))
+      .from(aggregatedHealthData)
+      .orderBy(desc(aggregatedHealthData.updatedAt))
       .limit(1);
 
-    if (admin.length === 0) {
-      return res.status(401).json({ error: "Credenciais inválidas" });
-    }
+    const latestData = aggregated[0] || {
+      totalWorkers: 0,
+      totalCheckIns: 0,
+      avgPressureSystolic: "0",
+      avgPressureDiastolic: "0",
+      checkInBem: 0,
+      checkInDorLeve: 0,
+      checkInDorForte: 0,
+    };
 
-    const user = admin[0];
+    // Contar empregados em risco
+    const allReferrals = await db
+      .select()
+      .from(healthReferrals);
+    
+    const atRiskReferrals = allReferrals.filter((r: any) => r.status !== "resolvido");
 
-    // Verificar se está ativo
-    if (!user.isActive) {
-      return res.status(401).json({ error: "Usuário desativado" });
-    }
+    const uniqueAtRiskEmployees = new Set(
+      atRiskReferrals.map((r: any) => r.workerId)
+    ).size;
 
-    // Verificar senha (simplificado - em produção usar bcrypt proper)
-    const hashedPassword = createHash("sha256").update(password).digest("hex");
-    if (hashedPassword !== user.passwordHash) {
-      return res.status(401).json({ error: "Credenciais inválidas" });
-    }
+    // Contar encaminhamentos desta semana
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Gerar token (simplificado - em produção usar JWT)
-    const token = Buffer.from(`${user.id}:${Date.now()}`).toString("base64");
+    const thisWeekReferrals = await db
+      .select()
+      .from(healthReferrals)
+      .where(gte(healthReferrals.createdAt as any, sevenDaysAgo.toISOString() as any));
 
     res.json({
       success: true,
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
+      totalEmployees: latestData.totalWorkers || 0,
+      totalCheckIns: latestData.totalCheckIns || 0,
+      averagePressure: {
+        systolic: parseFloat(latestData.avgPressureSystolic as any) || 0,
+        diastolic: parseFloat(latestData.avgPressureDiastolic as any) || 0,
       },
+      wellnessDistribution: {
+        good: latestData.checkInBem || 0,
+        mild: latestData.checkInDorLeve || 0,
+        severe: latestData.checkInDorForte || 0,
+      },
+      atRiskEmployees: uniqueAtRiskEmployees,
+      referralsThisWeek: thisWeekReferrals.length,
+      medalsBadges: 0,
     });
   } catch (error) {
-    console.error("Erro ao fazer login:", error);
-    res.status(500).json({ error: "Erro ao fazer login" });
+    console.error("Erro ao obter dashboard:", error);
+    res.status(500).json({ error: "Erro ao obter dashboard" });
   }
 });
 
@@ -84,14 +136,14 @@ router.get("/referrals", async (req: Request, res: Response) => {
 
     const { status, severity, limit = 50 } = req.query;
 
-    let query = db.select().from(healthReferrals);
+    let query: any = db.select().from(healthReferrals);
 
     if (status) {
-      query = query.where(eq(healthReferrals.status, status as string)) as any;
+      query = query.where(eq(healthReferrals.status, status as string));
     }
 
     if (severity) {
-      query = query.where(eq(healthReferrals.severity, severity as string)) as any;
+      query = query.where(eq(healthReferrals.severity, severity as string));
     }
 
     const referrals = await query
@@ -266,9 +318,9 @@ router.get("/employees-at-risk", async (req: Request, res: Response) => {
       .select()
       .from(healthReferrals)
       .orderBy(desc(healthReferrals.severity));
-    
+
     // Filtrar os que não estão resolvidos
-    const filteredReferrals = atRiskReferrals.filter((r: any) => r.status !== "resolvido");
+    const filteredReferrals = atRiskReferrals.filter((r: any) => r.status !== "resolvido" && r.status !== "Resolvido");
 
     // Agrupar por workerId
     const employeeMap = new Map<string, any>();
