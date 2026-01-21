@@ -143,3 +143,15 @@
 - [x] Adicionar som especial para notificação de medalha
 - [x] Armazenar histórico de notificações de medalhas
 - [ ] Testar notificações em dispositivo real
+
+---
+
+## Sincronização com Servidor (Implementado)
+- [x] Criar API para receber dados de saúde
+- [x] Implementar sincronização automática no app
+- [x] Criar tabelas de banco de dados para dados agregados
+- [ ] Implementar dashboard SESMT (tela web)
+- [ ] Adicionar gráficos de tendências
+- [ ] Criar exportação de relatórios (PDF/Excel)
+- [ ] Implementar autenticação SESMT
+- [ ] Testar sincronização em produção
