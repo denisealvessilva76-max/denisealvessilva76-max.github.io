@@ -99,4 +99,49 @@ export type InsertWeeklyReport = typeof weeklyReports.$inferInsert;
 export type MonthlyReport = typeof monthlyReports.$inferSelect;
 export type InsertMonthlyReport = typeof monthlyReports.$inferInsert;
 
+/**
+ * Tabelas para encaminhamentos e hidratação
+ */
+export const healthReferrals = mysqlTable("health_referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  workerId: varchar("workerId", { length: 64 }).notNull(),
+  complaintType: varchar("complaintType", { length: 50 }).notNull(), // dor-leve, dor-forte, outro
+  description: text("description").notNull(),
+  severity: varchar("severity", { length: 20 }).notNull(), // leve, moderada, grave
+  status: varchar("status", { length: 20 }).default("pendente").notNull(), // pendente, em-atendimento, resolvido
+  referredTo: varchar("referredTo", { length: 100 }), // SESMT, Médico, Fisioterapeuta
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const hydrationTracking = mysqlTable("hydration_tracking", {
+  id: int("id").autoincrement().primaryKey(),
+  workerId: varchar("workerId", { length: 64 }).notNull(),
+  date: date("date").notNull(),
+  waterIntake: int("waterIntake").default(0), // em ml
+  glassesConsumed: int("glassesConsumed").default(0), // número de copos
+  lastReminderTime: timestamp("lastReminderTime"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const adminUsers = mysqlTable("admin_users", {
+  id: int("id").autoincrement().primaryKey(),
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  role: varchar("role", { length: 50 }).default("sesmt").notNull(), // sesmt, gerente, admin
+  isActive: int("isActive").default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type HealthReferral = typeof healthReferrals.$inferSelect;
+export type InsertHealthReferral = typeof healthReferrals.$inferInsert;
+export type HydrationTracking = typeof hydrationTracking.$inferSelect;
+export type InsertHydrationTracking = typeof hydrationTracking.$inferInsert;
+export type AdminUser = typeof adminUsers.$inferSelect;
+export type InsertAdminUser = typeof adminUsers.$inferInsert;
+
 // TODO: Add your tables here

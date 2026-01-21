@@ -15,6 +15,13 @@
       "when": 1769002215216,
       "tag": "0001_military_sinister_six",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769002405942,
+      "tag": "0002_faithful_the_call",
+      "breakpoints": true
     }
   ]
 }

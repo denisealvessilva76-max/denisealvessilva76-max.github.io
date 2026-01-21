@@ -155,3 +155,32 @@
 - [ ] Criar exportação de relatórios (PDF/Excel)
 - [ ] Implementar autenticação SESMT
 - [ ] Testar sincronização em produção
+
+---
+
+## Sistema de Encaminhamento de Dores (Implementado)
+- [x] Criar tabela de encaminhamentos no banco de dados
+- [x] Implementar formulário de descrição de dor no app
+- [x] Encaminhar automaticamente ao setor de saúde
+- [x] Notificar SESMT sobre novo encaminhamento
+- [x] Armazenar histórico de encaminhamentos
+
+---
+
+## Dashboard Administrativo Protegido (Implementado)
+- [x] Criar tela de login/senha para admin
+- [x] Implementar autenticação no servidor
+- [ ] Criar dashboard web para SESMT (interface visual)
+- [x] Visualizar queixas e encaminhamentos
+- [x] Listar empregados que precisam de atenção
+- [ ] Filtrar por tipo de queixa e data (interface)
+- [ ] Exportar relatórios (interface)
+
+---
+
+## Controle de Hidratação (Implementado)
+- [x] Adicionar campo de hidratação no check-in
+- [x] Criar lembretes de hidratação (a cada 2 horas)
+- [x] Rastrear consumo de água
+- [x] Exibir histórico de hidratação
+- [x] Alertas para baixa hidratação
