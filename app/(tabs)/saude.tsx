@@ -5,12 +5,14 @@ import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { Badge, getPressureBadgeVariant, getPressureLabel } from "@/components/ui/badge";
 import { useHealthData } from "@/hooks/use-health-data";
+import { useAdminNotifications } from "@/hooks/use-admin-notifications";
 import { SYMPTOMS } from "@/lib/types";
 import * as Haptics from "expo-haptics";
 
 export default function SaudeScreen() {
   const router = useRouter();
   const { addPressureReading, addSymptomReport, classifyPressure, getLatestPressure, pressureReadings } = useHealthData();
+  const { sendPainNotification } = useAdminNotifications();
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
@@ -66,6 +68,14 @@ export default function SaudeScreen() {
   const handleReportSymptoms = async () => {
     if (selectedSymptoms.length > 0) {
       await addSymptomReport(selectedSymptoms);
+      
+      // Enviar notificação ao admin se houver dor
+      const hasPain = selectedSymptoms.some(s => s.includes("dor"));
+      if (hasPain) {
+        const painLevel = selectedSymptoms.some(s => s.includes("Forte")) ? "dor-forte" : "dor-leve";
+        await sendPainNotification("worker-" + Date.now(), painLevel, selectedSymptoms.join(", "));
+      }
+      
       setSelectedSymptoms([]);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Sucesso", "Sintomas reportados com sucesso!");

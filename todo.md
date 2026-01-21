@@ -225,3 +225,16 @@
 - [x] Filtrar por período (semana/mês)
 - [x] Incluir resumo executivo
 - [ ] Testar geração de PDF em produção
+
+---
+
+## Notificações em Tempo Real para Admin (Implementado)
+- [x] Criar sistema de notificações push para admin
+- [x] Enviar notificação ao registrar dor leve
+- [x] Enviar notificação ao registrar dor moderada/forte
+- [x] Incluir dados do empregado na notificação
+- [x] API de notificações no servidor
+- [x] Histórico de notificações
+- [x] Marcar notificação como lida
+- [ ] Tela de notificações no dashboard admin (interface visual)
+- [ ] Testar notificações em tempo real

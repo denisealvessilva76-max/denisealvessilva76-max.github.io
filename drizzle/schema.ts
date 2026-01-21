@@ -144,4 +144,21 @@ export type InsertHydrationTracking = typeof hydrationTracking.$inferInsert;
 export type AdminUser = typeof adminUsers.$inferSelect;
 export type InsertAdminUser = typeof adminUsers.$inferInsert;
 
+/**
+ * Tabela para notificações do admin
+ */
+export const adminNotifications = mysqlTable("admin_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  employeeId: varchar("employeeId", { length: 64 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // pain-report, referral-created, critical-alert
+  severity: varchar("severity", { length: 20 }).default("normal").notNull(), // low, normal, high, critical
+  message: text("message").notNull(),
+  data: json("data"), // dados adicionais em JSON
+  isRead: int("isRead").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AdminNotification = typeof adminNotifications.$inferSelect;
+export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
+
 // TODO: Add your tables here
