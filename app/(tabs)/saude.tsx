@@ -1,5 +1,6 @@
-import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable } from "react-native";
-import { useState } from "react";
+import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable, Alert } from "react-native";
+import { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { Badge, getPressureBadgeVariant, getPressureLabel } from "@/components/ui/badge";
@@ -8,30 +9,52 @@ import { SYMPTOMS } from "@/lib/types";
 import * as Haptics from "expo-haptics";
 
 export default function SaudeScreen() {
+  const router = useRouter();
   const { addPressureReading, addSymptomReport, classifyPressure, getLatestPressure, pressureReadings } = useHealthData();
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [showPressureForm, setShowPressureForm] = useState(false);
+  const [latestPressure, setLatestPressure] = useState(getLatestPressure());
+  const [latestClassification, setLatestClassification] = useState(
+    latestPressure ? classifyPressure(latestPressure.systolic, latestPressure.diastolic) : null
+  );
 
-  const latestPressure = getLatestPressure();
-  const latestClassification = latestPressure
-    ? classifyPressure(latestPressure.systolic, latestPressure.diastolic)
-    : null;
+  useEffect(() => {
+    const latest = getLatestPressure();
+    setLatestPressure(latest);
+    if (latest) {
+      setLatestClassification(classifyPressure(latest.systolic, latest.diastolic));
+    }
+  }, [pressureReadings]);
 
   const handleAddPressure = async () => {
-    if (systolic && diastolic) {
-      const sys = parseInt(systolic);
-      const dia = parseInt(diastolic);
-
-      if (sys > 0 && dia > 0) {
-        await addPressureReading(sys, dia);
-        setSystolic("");
-        setDiastolic("");
-        setShowPressureForm(false);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+    if (!systolic || !diastolic) {
+      Alert.alert("Erro", "Preencha os valores de pressão arterial");
+      return;
     }
+
+    const sys = parseInt(systolic);
+    const dia = parseInt(diastolic);
+
+    if (sys <= 0 || dia <= 0) {
+      Alert.alert("Erro", "Os valores devem ser maiores que zero");
+      return;
+    }
+
+    await addPressureReading(sys, dia);
+    setSystolic("");
+    setDiastolic("");
+    setShowPressureForm(false);
+    
+    const latest = getLatestPressure();
+    setLatestPressure(latest);
+    if (latest) {
+      setLatestClassification(classifyPressure(latest.systolic, latest.diastolic));
+    }
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Sucesso", "Pressão arterial registrada com sucesso!");
   };
 
   const handleToggleSymptom = (symptomId: string) => {
@@ -45,7 +68,13 @@ export default function SaudeScreen() {
       await addSymptomReport(selectedSymptoms);
       setSelectedSymptoms([]);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert("Sucesso", "Sintomas reportados com sucesso!");
     }
+  };
+
+  const handleRespiracaoGuiada = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push("/respiracao-guiada");
   };
 
   return (
@@ -202,9 +231,7 @@ export default function SaudeScreen() {
             </Text>
             <TouchableOpacity
               className="bg-primary rounded-lg py-3 active:opacity-80"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
+              onPress={handleRespiracaoGuiada}
             >
               <Text className="text-center font-semibold text-white">
                 Iniciar Respiração Guiada

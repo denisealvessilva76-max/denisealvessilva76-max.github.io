@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, Pressable } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { EXERCISES } from "@/lib/types";
@@ -8,6 +9,7 @@ import * as Haptics from "expo-haptics";
 type TabType = "alongamento" | "postura" | "respiracao";
 
 export default function ErgonomiaScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("alongamento");
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
 
@@ -22,6 +24,11 @@ export default function ErgonomiaScreen() {
   const handleSelectExercise = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedExercise(selectedExercise === id ? null : id);
+  };
+
+  const handleFazerAgora = (exerciseId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push(`/exercise-detail?id=${exerciseId}`);
   };
 
   return (
@@ -119,9 +126,7 @@ export default function ErgonomiaScreen() {
 
                     <TouchableOpacity
                       className="bg-primary rounded-lg py-3 active:opacity-80"
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      }}
+                      onPress={() => handleFazerAgora(exercise.id)}
                     >
                       <Text className="text-center font-semibold text-white">
                         Fazer Agora

@@ -1,10 +1,13 @@
-import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable, Alert, Linking } from "react-native";
 import { useState, useEffect } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
 import { UserProfile } from "@/lib/types";
 import * as Haptics from "expo-haptics";
+
+const SESMT_PHONE = "21998225493";
+const SESMT_NAME = "Saúde Ocupacional";
 
 export default function PerfilScreen() {
   const { profile, saveProfile } = useHealthData();
@@ -19,24 +22,30 @@ export default function PerfilScreen() {
   useEffect(() => {
     if (profile) {
       setFormData(profile);
+    } else {
+      setIsEditing(true);
     }
   }, [profile]);
 
   const handleSaveProfile = async () => {
-    if (formData.name && formData.cpf && formData.cargo && formData.turno) {
-      const newProfile: UserProfile = {
-        id: profile?.id || Date.now().toString(),
-        name: formData.name,
-        cpf: formData.cpf,
-        cargo: formData.cargo,
-        turno: formData.turno as "matutino" | "vespertino" | "noturno",
-        createdAt: profile?.createdAt || Date.now(),
-        updatedAt: Date.now(),
-      };
-      await saveProfile(newProfile);
-      setIsEditing(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (!formData.name || !formData.cpf || !formData.cargo || !formData.turno) {
+      Alert.alert("Erro", "Preencha todos os campos");
+      return;
     }
+
+    const newProfile: UserProfile = {
+      id: profile?.id || Date.now().toString(),
+      name: formData.name,
+      cpf: formData.cpf,
+      cargo: formData.cargo,
+      turno: formData.turno as "matutino" | "vespertino" | "noturno",
+      createdAt: profile?.createdAt || Date.now(),
+      updatedAt: Date.now(),
+    };
+    await saveProfile(newProfile);
+    setIsEditing(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Sucesso", "Perfil salvo com sucesso!");
   };
 
   const getTurnoLabel = (turno: string) => {
@@ -49,6 +58,31 @@ export default function PerfilScreen() {
         return "Noturno (22h - 6h)";
       default:
         return "Desconhecido";
+    }
+  };
+
+  const handleContatoSESMT = async () => {
+    const message = `Olá, sou trabalhador da Obra 345 e gostaria de falar sobre saúde ocupacional.`;
+    const url = `whatsapp://send?phone=${SESMT_PHONE}&text=${encodeURIComponent(message)}`;
+
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("WhatsApp não instalado", "Por favor, instale o WhatsApp para enviar mensagem");
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível abrir o WhatsApp");
+    }
+  };
+
+  const handleLigarSESMT = async () => {
+    const url = `tel:+55${SESMT_PHONE}`;
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível fazer a chamada");
     }
   };
 
@@ -66,7 +100,7 @@ export default function PerfilScreen() {
           <Card className="gap-4">
             <View className="flex-row items-center justify-between">
               <Text className="text-lg font-semibold text-foreground">Dados Pessoais</Text>
-              {!isEditing && (
+              {!isEditing && profile && (
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -190,24 +224,23 @@ export default function PerfilScreen() {
             </Text>
             <TouchableOpacity
               className="bg-primary rounded-lg py-3 active:opacity-80"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
+              onPress={handleLigarSESMT}
             >
               <Text className="text-center font-semibold text-white">
                 📞 Ligar para SESMT
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="bg-primary/20 rounded-lg py-3 active:opacity-80 border border-primary"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }}
+              className="bg-green-500 rounded-lg py-3 active:opacity-80"
+              onPress={handleContatoSESMT}
             >
-              <Text className="text-center font-semibold text-primary">
-                💬 Enviar Mensagem
+              <Text className="text-center font-semibold text-white">
+                💬 Enviar Mensagem WhatsApp
               </Text>
             </TouchableOpacity>
+            <Text className="text-xs text-muted text-center">
+              Saúde Ocupacional: (21) 99822-5493
+            </Text>
           </Card>
 
           {/* Sobre o App */}
@@ -220,7 +253,11 @@ export default function PerfilScreen() {
               </View>
               <View className="flex-row justify-between">
                 <Text className="text-sm text-muted">Desenvolvido por</Text>
-                <Text className="text-sm text-foreground font-semibold">Seu Canteiro</Text>
+                <Text className="text-sm text-foreground font-semibold">Denise Alves</Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-sm text-muted">Obra</Text>
+                <Text className="text-sm text-foreground font-semibold">345</Text>
               </View>
             </View>
           </Card>

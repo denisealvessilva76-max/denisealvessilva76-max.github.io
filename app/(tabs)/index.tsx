@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, Pressable } from "react-native";
 import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: str
 
 export default function HomeScreen() {
   const colors = useColors();
+  const router = useRouter();
   const { addCheckIn, getTodayCheckIn, getLastSevenDaysCheckIns, isLoading } = useHealthData();
   const [todayCheckIn, setTodayCheckIn] = useState(getTodayCheckIn());
   const [lastSevenDays, setLastSevenDays] = useState(getLastSevenDaysCheckIns());
@@ -135,6 +137,7 @@ export default function HomeScreen() {
               className="bg-primary rounded-xl p-4 active:opacity-80"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/(tabs)/saude");
               }}
             >
               <Text className="text-center font-semibold text-white">
@@ -145,6 +148,7 @@ export default function HomeScreen() {
               className="bg-primary/20 rounded-xl p-4 active:opacity-80 border border-primary"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/(tabs)/ergonomia");
               }}
             >
               <Text className="text-center font-semibold text-primary">

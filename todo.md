@@ -78,8 +78,28 @@
 
 ---
 
-## Bugs Conhecidos
-(Nenhum no momento)
+## Bugs Corrigidos
+- [x] Botão de pressão arterial em Home não abre formulário
+- [x] Botão "Fazer Pausa Ativa" em Home não funciona
+- [x] Botão "Fazer Agora" em Ergonomia não abre exercício
+- [x] Dados de pressão não salvam em Saúde
+- [x] Botão "Iniciar Respiração Guiada" não funciona
+- [x] Perfil não salva em Dados Pessoais
+- [x] Botão "Ligar SESMT" não funciona
+- [x] Botão "Enviar Mensagem" não funciona
+
+---
+
+## Melhorias Implementadas
+- [x] Validar e exibir status da pressão (Boa/Pré-hipertensão/Crítica) com cores
+- [x] Adicionar ilustrações e emojis para alongamentos
+- [x] Implementar contagem regressiva visual para exercícios
+- [x] Botão "Concluído" ao final de cada exercício
+- [x] Respiração guiada com instruções visuais e contagem regressiva
+- [x] Integrar WhatsApp SESMT (21 99822-5493) com link direto
+- [x] Salvar perfil do trabalhador permanentemente
+- [x] Sistema de extração de gráficos mensais de saúde
+- [x] Créditos: "Desenvolvido por Denise Alves - Obra 345"
 
 ---
 
