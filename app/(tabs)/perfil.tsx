@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable, Alert, Linking } from "react-native";
 import { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
@@ -10,6 +11,7 @@ const SESMT_PHONE = "21998225493";
 const SESMT_NAME = "Saúde Ocupacional";
 
 export default function PerfilScreen() {
+  const router = useRouter();
   const { profile, saveProfile } = useHealthData();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
@@ -214,6 +216,25 @@ export default function PerfilScreen() {
                 </View>
               </View>
             )}
+          </Card>
+
+          {/* Configuração de Notificações */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">🔔 Notificações</Text>
+            <Text className="text-sm text-muted">
+              Configure lembretes de check-in e pausas ativas
+            </Text>
+            <TouchableOpacity
+              className="bg-primary rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/notification-settings");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Configurar Notificações
+              </Text>
+            </TouchableOpacity>
           </Card>
 
           {/* Contato SESMT */}

@@ -111,3 +111,14 @@
 - [ ] Relatórios PDF para SESMT
 - [ ] Gamificação (pontos, badges)
 - [ ] Integração com WhatsApp para contato SESMT
+
+---
+
+## Sistema de Notificações Push (Implementado)
+- [x] Criar hook para gerenciar notificações
+- [x] Configurar permissões de notificação no iOS e Android
+- [x] Implementar lembretes de check-in diário (8h, 12h, 16h)
+- [x] Implementar lembretes de pausa ativa (10h, 14h, 17h)
+- [x] Tela de configuração de horários de notificação
+- [x] Persistir preferências de notificação
+- [ ] Testar notificações em dispositivo real
