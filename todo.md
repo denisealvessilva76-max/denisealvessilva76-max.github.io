@@ -213,3 +213,15 @@
 - [x] Listar queixas e empregados em risco
 - [ ] Filtros por período e tipo de queixa (interface)
 - [ ] Exportação de relatórios (interface)
+
+---
+
+## Exportação de Relatórios em PDF (Implementado)
+- [x] Criar API para gerar PDF com dados de saúde
+- [x] Implementar análises de tendências (pressão, bem-estar)
+- [x] Calcular recomendações baseadas em dados
+- [x] Adicionar gráficos ao PDF
+- [x] Botão de exportação no dashboard
+- [x] Filtrar por período (semana/mês)
+- [x] Incluir resumo executivo
+- [ ] Testar geração de PDF em produção

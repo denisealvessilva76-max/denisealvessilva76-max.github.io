@@ -413,6 +413,28 @@ export default function AdminDashboardScreen() {
             </Pressable>
 
             <Pressable
+              onPress={() => {
+                Alert.alert("Exportar Relatório", "Gerando PDF com análises e recomendações...", [
+                  { text: "Cancelar", style: "cancel" },
+                  { text: "Mês", onPress: () => {} },
+                  { text: "Semana", onPress: () => {} },
+                ]);
+              }}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: colors.warning,
+                  opacity: pressed ? 0.7 : 1,
+                  padding: 14,
+                  borderRadius: 8,
+                },
+              ]}
+            >
+              <Text className="text-center text-background font-semibold">
+                📄 Exportar Relatório PDF
+              </Text>
+            </Pressable>
+
+            <Pressable
               onPress={handleLogout}
               style={({ pressed }) => [
                 {
