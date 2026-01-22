@@ -238,3 +238,8 @@
 - [x] Marcar notificação como lida
 - [ ] Tela de notificações no dashboard admin (interface visual)
 - [ ] Testar notificações em tempo real
+
+---
+
+## Bugs Corrigidos
+- [x] Corrigir "Maximum update depth exceeded" - loop infinito de renderização

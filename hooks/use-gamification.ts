@@ -36,10 +36,10 @@ export function useGamification(checkIns: CheckIn[]) {
 
   // Recalcular stats quando check-ins mudam
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && checkIns.length > 0) {
       calculateStats();
     }
-  }, [checkIns, isLoading, sendMedalNotification]);
+  }, [checkIns.length, isLoading]);
 
   const loadGamificationData = async () => {
     try {

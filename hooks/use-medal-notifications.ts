@@ -53,7 +53,7 @@ export function useMedalNotifications() {
   /**
    * Enviar notificação ao desbloquear medalha
    */
-  const sendMedalNotification = async (medal: Medal): Promise<void> => {
+  const sendMedalNotification = useCallback(async (medal: Medal): Promise<void> => {
     try {
       // Verificar se já foi enviada notificação para esta medalha
       if (hasNotificationBeenSent(medal.id)) {
@@ -125,7 +125,7 @@ export function useMedalNotifications() {
     } catch (error) {
       console.error("Erro ao enviar notificação de medalha:", error);
     }
-  };
+  }, [notificationHistory]);
 
   /**
    * Enviar notificação de parabéns genérica
