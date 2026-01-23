@@ -862,3 +862,22 @@
 - [x] Testar botão "Começar" na última página
 - [x] Verificar se completeOnboarding está sendo chamado corretamente
 - [x] Remover loop de redirecionamento no _layout.tsx
+
+---
+
+## Bug: Onboarding Reabrindo ao Trocar de Aba (RESOLVIDO)
+- [x] Investigar por que useEffect dispara ao mudar de aba
+- [x] Remover dependência de segments do useEffect
+- [x] Corrigir dependências do useEffect (apenas isOnboardingCompleted e isLoading)
+- [x] Testar troca de abas sem reabrir onboarding
+
+---
+
+## Bug: Tela Preta em Check-in e Desafios (RESOLVIDO)
+- [x] Investigar rota de "Fazer Check-in"
+- [x] Investigar rota de "Iniciar um Desafio"
+- [x] Verificar se arquivos existem
+- [x] Criar tela /health-check para check-in diário
+- [x] Verificar tela /hydration-tracker (já existia)
+- [x] Criar tela /desafios para iniciar desafios
+- [x] Testar navegação completa
