@@ -1,8 +1,14 @@
 import { Router, Request, Response } from "express";
-import { getDb } from "../db";
 import { healthReferrals, adminUsers, healthDataSync, aggregatedHealthData } from "../../drizzle/schema";
-import { eq, desc, gte } from "drizzle-orm";
-import { createHash } from "crypto";
+import { eq, gte, and, desc, sql } from "drizzle-orm";
+import { getDb } from "../db";
+
+// Helper para converter Date para string ISO de forma segura
+function toISOString(date: Date | string): string {
+  if (typeof date === 'string') return date;
+  if (date instanceof Date) return date.toISOString();
+  return new Date(date).toISOString();
+}
 
 const router = Router();
 
@@ -92,7 +98,7 @@ router.get("/dashboard", async (req: Request, res: Response) => {
     const thisWeekReferrals = await db
       .select()
       .from(healthReferrals)
-      .where(gte(healthReferrals.createdAt as any, sevenDaysAgo.toISOString() as any));
+      .where(gte(healthReferrals.createdAt as any, sevenDaysAgo as any));
 
     res.json({
       success: true,
@@ -224,7 +230,7 @@ router.get("/referrals/stats", async (req: Request, res: Response) => {
     const allReferrals = await db
       .select()
       .from(healthReferrals)
-      .where(gte(healthReferrals.createdAt as any, thirtyDaysAgo.toISOString() as any));
+      .where(gte(healthReferrals.createdAt as any, thirtyDaysAgo as any));
 
     const stats = {
       total: allReferrals.length,
@@ -247,8 +253,8 @@ router.get("/referrals/stats", async (req: Request, res: Response) => {
       success: true,
       data: stats,
       period: {
-        startDate: thirtyDaysAgo.toISOString(),
-        endDate: new Date().toISOString(),
+        startDate: toISOString(thirtyDaysAgo),
+        endDate: toISOString(new Date()),
       },
     });
   } catch (error) {
@@ -402,7 +408,7 @@ router.get("/analytics", async (req: Request, res: Response) => {
     const referrals = await db
       .select()
       .from(healthReferrals)
-      .where(gte(healthReferrals.createdAt as any, startDate.toISOString() as any))
+      .where(gte(healthReferrals.createdAt as any, startDate as any))
       .orderBy(healthReferrals.createdAt);
 
     // 1. Queixas mais comuns (top 10)
@@ -504,8 +510,8 @@ router.get("/analytics", async (req: Request, res: Response) => {
     res.json({
       success: true,
       period,
-      startDate: startDate.toISOString(),
-      endDate: now.toISOString(),
+      startDate: toISOString(startDate),
+      endDate: toISOString(now),
       summary: {
         totalReferrals,
         resolvedReferrals,

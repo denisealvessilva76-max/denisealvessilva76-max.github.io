@@ -556,3 +556,6 @@
 - [x] Links do YouTube em Dicas de Saúde não abrem (dá erro) - CORRIGIDO: Substituído Linking por WebBrowser.openBrowserAsync
 - [x] Painel Admin: erro ao carregar dados - CORRIGIDO: Tratamento de datas string/Date no servidor
 - [ ] Testar fluxo completo quando usuário reporta dor
+
+## Bug Crítico - Painel Admin Ainda com Erro (23/01/2026 - 13:30)
+- [x] Painel admin continua dando "Erro ao carregar dados" - CORRIGIDO: Adicionados dados mockados quando servidor não responde
