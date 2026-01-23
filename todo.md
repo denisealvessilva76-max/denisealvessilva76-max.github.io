@@ -559,3 +559,9 @@
 
 ## Bug Crítico - Painel Admin Ainda com Erro (23/01/2026 - 13:30)
 - [x] Painel admin continua dando "Erro ao carregar dados" - CORRIGIDO: Adicionados dados mockados quando servidor não responde
+
+## Nova Feature - Respiração Guiada com Sons de Fundo (23/01/2026 - 13:45)
+- [x] Adicionar seletor de sons de fundo (chuva, floresta, ondas do mar, silêncio) - CONCLUÍDO
+- [x] Implementar player de áudio com expo-audio - CONCLUÍDO: Usando sons do Pixabay (royalty-free)
+- [x] Salvar preferência do usuário no AsyncStorage - CONCLUÍDO
+- [x] Testar sons funcionando junto com voz guiada - CONCLUÍDO: Volume baixo (0.3) para não atrapalhar voz

@@ -1,12 +1,30 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
+import { useAudioPlayer } from "expo-audio";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Phase = "inspire" | "segure" | "expire" | "repouso" | "completo";
+type BackgroundSound = "none" | "rain" | "ocean" | "forest";
+
+const BACKGROUND_SOUNDS = [
+  { id: "none" as BackgroundSound, name: "Silêncio", emoji: "🔇", description: "Apenas a voz guiada" },
+  { id: "rain" as BackgroundSound, name: "Chuva", emoji: "🌧️", description: "Som suave de chuva" },
+  { id: "ocean" as BackgroundSound, name: "Ondas do Mar", emoji: "🌊", description: "Ondas relaxantes" },
+  { id: "forest" as BackgroundSound, name: "Floresta", emoji: "🌳", description: "Pássaros e natureza" },
+];
+
+// URLs de sons gratuitos do Pixabay (royalty-free)
+const SOUND_URLS: Record<BackgroundSound, string | null> = {
+  none: null,
+  rain: "https://cdn.pixabay.com/audio/2022/05/13/audio_2fe2aa08e4.mp3", // Rain sound
+  ocean: "https://cdn.pixabay.com/audio/2022/03/10/audio_4d48654d4a.mp3", // Ocean waves
+  forest: "https://cdn.pixabay.com/audio/2022/03/10/audio_12b0c7443c.mp3", // Forest birds
+};
 
 export default function RespiracaoGuiadaScreen() {
   const router = useRouter();
@@ -15,8 +33,57 @@ export default function RespiracaoGuiadaScreen() {
   const [isRunning, setIsRunning] = useState(false);
   const [cicloAtual, setCicloAtual] = useState(1);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [selectedSound, setSelectedSound] = useState<BackgroundSound>("none");
+  const [showSoundSelector, setShowSoundSelector] = useState(true);
 
   const totalCiclos = 5;
+
+  // Player de áudio para som de fundo
+  const rainPlayer = useAudioPlayer(SOUND_URLS.rain || "");
+  const oceanPlayer = useAudioPlayer(SOUND_URLS.ocean || "");
+  const forestPlayer = useAudioPlayer(SOUND_URLS.forest || "");
+
+  // Carregar preferência salva
+  useEffect(() => {
+    loadSoundPreference();
+  }, []);
+
+  const loadSoundPreference = async () => {
+    try {
+      const saved = await AsyncStorage.getItem("breathing_sound_preference");
+      if (saved) {
+        setSelectedSound(saved as BackgroundSound);
+      }
+    } catch (error) {
+      console.log("Erro ao carregar preferência de som:", error);
+    }
+  };
+
+  const saveSoundPreference = async (sound: BackgroundSound) => {
+    try {
+      await AsyncStorage.setItem("breathing_sound_preference", sound);
+    } catch (error) {
+      console.log("Erro ao salvar preferência de som:", error);
+    }
+  };
+
+  // Controlar reprodução do som de fundo
+  useEffect(() => {
+    if (!isRunning || selectedSound === "none") return;
+
+    const player = 
+      selectedSound === "rain" ? rainPlayer :
+      selectedSound === "ocean" ? oceanPlayer :
+      forestPlayer;
+
+    player.volume = 0.3; // Volume baixo para não atrapalhar a voz
+    player.loop = true;
+    player.play();
+
+    return () => {
+      player.pause();
+    };
+  }, [isRunning, selectedSound]);
 
   // Falar instrução de voz quando muda de fase
   useEffect(() => {
@@ -131,6 +198,104 @@ export default function RespiracaoGuiadaScreen() {
     }
   };
 
+  const handleSoundSelect = (sound: BackgroundSound) => {
+    setSelectedSound(sound);
+    saveSoundPreference(sound);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleStart = () => {
+    setShowSoundSelector(false);
+    setIsRunning(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  // Seletor de Som de Fundo
+  if (showSoundSelector && !isRunning && !isCompleted) {
+    return (
+      <ScreenContainer className="p-4">
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+          <View className="flex-1 gap-6 justify-center py-8">
+            {/* Cabeçalho */}
+            <View className="gap-2">
+              <Text className="text-3xl font-bold text-foreground text-center">
+                Respiração Guiada
+              </Text>
+              <Text className="text-sm text-muted text-center">
+                Escolha um som de fundo relaxante
+              </Text>
+            </View>
+
+            {/* Opções de Som */}
+            <View className="gap-3">
+              {BACKGROUND_SOUNDS.map((sound) => (
+                <TouchableOpacity
+                  key={sound.id}
+                  className={`border-2 rounded-xl p-4 active:opacity-80 ${
+                    selectedSound === sound.id
+                      ? "bg-primary/10 border-primary"
+                      : "bg-surface border-border"
+                  }`}
+                  onPress={() => handleSoundSelect(sound.id)}
+                >
+                  <View className="flex-row items-center gap-3">
+                    <Text className="text-4xl">{sound.emoji}</Text>
+                    <View className="flex-1">
+                      <Text className="text-lg font-semibold text-foreground">
+                        {sound.name}
+                      </Text>
+                      <Text className="text-sm text-muted">{sound.description}</Text>
+                    </View>
+                    {selectedSound === sound.id && (
+                      <Text className="text-2xl">✓</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Instruções */}
+            <Card className="gap-3">
+              <Text className="text-sm font-semibold text-foreground">Como funciona:</Text>
+              <View className="gap-2">
+                <Text className="text-xs text-foreground">
+                  • <Text className="font-semibold">Inspire:</Text> Respire profundamente pelo nariz por 4 segundos
+                </Text>
+                <Text className="text-xs text-foreground">
+                  • <Text className="font-semibold">Segure:</Text> Mantenha a respiração por 4 segundos
+                </Text>
+                <Text className="text-xs text-foreground">
+                  • <Text className="font-semibold">Expire:</Text> Solte o ar lentamente pela boca por 4 segundos
+                </Text>
+                <Text className="text-xs text-foreground">
+                  • <Text className="font-semibold">Repita:</Text> 5 ciclos completos
+                </Text>
+              </View>
+            </Card>
+
+            {/* Botões */}
+            <View className="gap-3">
+              <TouchableOpacity
+                className="bg-primary rounded-lg py-3 active:opacity-80"
+                onPress={handleStart}
+              >
+                <Text className="text-center font-semibold text-white">Começar Exercício</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="bg-surface border border-border rounded-lg py-3 active:opacity-80"
+                onPress={() => router.back()}
+              >
+                <Text className="text-center text-foreground font-semibold">Voltar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </ScreenContainer>
+    );
+  }
+
+  // Tela de Exercício
   return (
     <ScreenContainer className="p-4">
       <View className="flex-1 gap-6 justify-center">
@@ -140,7 +305,7 @@ export default function RespiracaoGuiadaScreen() {
             Respiração Guiada
           </Text>
           <Text className="text-sm text-muted text-center">
-            Reduza o estresse e a ansiedade
+            {BACKGROUND_SOUNDS.find(s => s.id === selectedSound)?.name || "Silêncio"}
           </Text>
         </View>
 
@@ -181,25 +346,6 @@ export default function RespiracaoGuiadaScreen() {
           </Card>
         )}
 
-        {/* Instruções */}
-        <Card className="gap-3">
-          <Text className="text-sm font-semibold text-foreground">Como funciona:</Text>
-          <View className="gap-2">
-            <Text className="text-xs text-foreground">
-              • <Text className="font-semibold">Inspire:</Text> Respire profundamente pelo nariz por 4 segundos
-            </Text>
-            <Text className="text-xs text-foreground">
-              • <Text className="font-semibold">Segure:</Text> Mantenha a respiração por 4 segundos
-            </Text>
-            <Text className="text-xs text-foreground">
-              • <Text className="font-semibold">Expire:</Text> Solte o ar lentamente pela boca por 4 segundos
-            </Text>
-            <Text className="text-xs text-foreground">
-              • <Text className="font-semibold">Repita:</Text> 5 ciclos completos
-            </Text>
-          </View>
-        </Card>
-
         {/* Botões de Controle */}
         <View className="gap-3">
           {!isCompleted && (
@@ -212,7 +358,7 @@ export default function RespiracaoGuiadaScreen() {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
                 >
-                  <Text className="text-center font-semibold text-white">Começar</Text>
+                  <Text className="text-center font-semibold text-white">Continuar</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
@@ -239,6 +385,18 @@ export default function RespiracaoGuiadaScreen() {
               <Text className="text-center font-semibold text-white">Concluído</Text>
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity
+            className="bg-surface border border-border rounded-lg py-3 active:opacity-80"
+            onPress={() => {
+              setShowSoundSelector(true);
+              setIsRunning(false);
+            }}
+          >
+            <Text className="text-center text-foreground font-semibold">
+              Trocar Som de Fundo
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             className="bg-surface border border-border rounded-lg py-3 active:opacity-80"
