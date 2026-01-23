@@ -98,6 +98,38 @@ export default function PerfilScreen() {
             <Text className="text-base text-muted">Seus dados e preferências</Text>
           </View>
 
+          {/* Avatar */}
+          <Card className="gap-4">
+            <View className="items-center gap-3">
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/select-avatar");
+                }}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
+                  backgroundColor: "#E6F4FE",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderWidth: 3,
+                  borderColor: "#0a7ea4",
+                }}
+              >
+                <Text style={{ fontSize: 60 }}>{profile?.avatar || "\ud83d\udc77"}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/select-avatar");
+                }}
+              >
+                <Text className="text-primary font-semibold">Alterar Avatar</Text>
+              </TouchableOpacity>
+            </View>
+          </Card>
+
           {/* Dados Pessoais */}
           <Card className="gap-4">
             <View className="flex-row items-center justify-between">

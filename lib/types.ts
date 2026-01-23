@@ -47,8 +47,9 @@ export interface UserProfile {
   id: string;
   name: string;
   cpf: string;
-  cargo: string; // Função/cargo
+  cargo: string; // Cargo/função na obra
   turno: "matutino" | "vespertino" | "noturno"; // Turno de trabalho
+  avatar?: string; // Avatar do usuário (emoji)
   createdAt: number;
   updatedAt: number;
 }

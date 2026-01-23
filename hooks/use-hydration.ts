@@ -57,7 +57,8 @@ export function useHydration() {
   const saveHydrationData = async (data: Record<string, HydrationEntry>) => {
     try {
       await AsyncStorage.setItem(HYDRATION_KEY, JSON.stringify(data));
-      setHydrationData(data);
+      // Forçar atualização do estado
+      setHydrationData({...data});
     } catch (error) {
       console.error("Erro ao salvar dados de hidratação:", error);
     }

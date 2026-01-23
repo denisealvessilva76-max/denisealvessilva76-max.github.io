@@ -57,9 +57,11 @@ export function useHealthReferrals() {
     severity: "leve" | "moderada" | "grave"
   ): Promise<HealthReferral | null> => {
     try {
-      const workerId = await SecureStore.getItemAsync("worker_id");
+      let workerId = await SecureStore.getItemAsync("worker_id");
       if (!workerId) {
-        throw new Error("Worker ID não encontrado");
+        // Gerar novo Worker ID se não existir
+        workerId = `worker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        await SecureStore.setItemAsync("worker_id", workerId);
       }
 
       const newReferral: HealthReferral = {

@@ -286,3 +286,11 @@
 - [x] Aviso de sigilo profissional garantido por lei
 - [x] Mapa da Saúde Mental (recursos nacionais)
 - [x] Dicas para o dia a dia
+
+---
+
+## Bugs Críticos - Teste Real (23/01/2026)
+- [x] Hidratação: salva mas não atualiza na tela (contador fica em 0ml)
+- [x] Envio de queixa: erro "Worker ID não encontrado" 
+- [x] Login admin: erro de autenticação
+- [x] Adicionar avatares para o empregado escolher no perfil
