@@ -788,3 +788,23 @@
 - [ ] Sincronizar ranking com servidor (multi-usuário)
 - [ ] Notificações ao desbloquear novas conquistas
 - [ ] Sistema de recompensas tangíveis (sorteios, brindes)
+
+---
+
+## Sistema de Recompensas (Implementado)
+- [x] Criar tipos e estrutura de dados para recompensas
+- [x] Criar hook de gerenciamento de recompensas (use-rewards.ts)
+- [x] Criar tela de catálogo de recompensas (recompensas.tsx)
+- [x] Implementar sistema de resgate com confirmação
+- [x] Validar pontos suficientes antes do resgate
+- [x] Deduzir pontos após resgate confirmado
+- [x] Criar histórico de resgates do usuário
+- [x] Exibir status do resgate (pendente/aprovado/entregue)
+- [x] Integrar com painel admin para gestão de resgates
+- [x] Adicionar botão de acesso às recompensas na Home
+- [x] Criar catálogo de prêmios (vale-compras, brindes, folgas)
+- [x] Sistema de aprovação de resgates pelo admin
+- [x] Filtros por categoria de recompensa
+- [x] Filtros por status de resgate no painel admin
+- [ ] Notificar SESMT quando houver novo resgate (push notification)
+- [ ] Indicador de "Novos Prêmios" disponíveis

@@ -165,35 +165,56 @@ export default function HomeScreen() {
             </Card>
           )}
 
-          {/* Gamificação - Ranking e Conquistas */}
-          <View className="flex-row gap-3">
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/ranking");
-              }}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-              className="flex-1"
-            >
-              <Card className="bg-warning/10 border border-warning items-center gap-2">
-                <Text className="text-3xl">🏆</Text>
-                <Text className="text-sm font-semibold text-foreground">Ranking</Text>
-                <Text className="text-xs text-muted text-center">Veja sua posição</Text>
-              </Card>
-            </Pressable>
+          {/* Gamificação - Ranking, Conquistas e Recompensas */}
+          <View className="gap-3">
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/ranking");
+                }}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                className="flex-1"
+              >
+                <Card className="bg-warning/10 border border-warning items-center gap-2">
+                  <Text className="text-3xl">🏆</Text>
+                  <Text className="text-sm font-semibold text-foreground">Ranking</Text>
+                  <Text className="text-xs text-muted text-center">Veja sua posição</Text>
+                </Card>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/conquistas");
+                }}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                className="flex-1"
+              >
+                <Card className="bg-primary/10 border border-primary items-center gap-2">
+                  <Text className="text-3xl">🎖️</Text>
+                  <Text className="text-sm font-semibold text-foreground">Conquistas</Text>
+                  <Text className="text-xs text-muted text-center">Desbloqueie medalhas</Text>
+                </Card>
+              </Pressable>
+            </View>
 
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/conquistas");
+                router.push("/recompensas");
               }}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-              className="flex-1"
             >
-              <Card className="bg-primary/10 border border-primary items-center gap-2">
-                <Text className="text-3xl">🎖️</Text>
-                <Text className="text-sm font-semibold text-foreground">Conquistas</Text>
-                <Text className="text-xs text-muted text-center">Desbloqueie medalhas</Text>
+              <Card className="bg-success/10 border border-success flex-row items-center justify-between px-4 py-3">
+                <View className="flex-row items-center gap-3">
+                  <Text className="text-3xl">🎁</Text>
+                  <View>
+                    <Text className="text-sm font-semibold text-foreground">Recompensas</Text>
+                    <Text className="text-xs text-muted">Resgate prêmios com seus pontos</Text>
+                  </View>
+                </View>
+                <Text className="text-2xl">→</Text>
               </Card>
             </Pressable>
           </View>
