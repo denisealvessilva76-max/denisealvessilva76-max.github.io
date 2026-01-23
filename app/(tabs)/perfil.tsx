@@ -5,6 +5,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
 import { UserProfile } from "@/lib/types";
+import { useOnboarding } from "@/hooks/use-onboarding";
 import * as Haptics from "expo-haptics";
 
 const SESMT_PHONE = "21998225493";
@@ -13,6 +14,7 @@ const SESMT_NAME = "Saúde Ocupacional";
 export default function PerfilScreen() {
   const router = useRouter();
   const { profile, saveProfile } = useHealthData();
+  const { resetOnboarding } = useOnboarding();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: "",
@@ -303,6 +305,26 @@ export default function PerfilScreen() {
             >
               <Text className="text-center font-semibold text-white">
                 Configurar Notificações
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
+          {/* Rever Tutorial */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">🎓 Tutorial</Text>
+            <Text className="text-sm text-muted">
+              Quer rever como usar o aplicativo? Assista ao tutorial novamente
+            </Text>
+            <TouchableOpacity
+              className="bg-purple-500 rounded-lg py-3 active:opacity-80"
+              onPress={async () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                await resetOnboarding();
+                router.replace("/onboarding");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                🔄 Rever Tutorial
               </Text>
             </TouchableOpacity>
           </Card>

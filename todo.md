@@ -835,3 +835,19 @@
 - [x] Testar navegação em todas as abas
 - [x] Verificar se ícones estão mapeados corretamente
 - [x] Reiniciar servidor para limpar cache
+
+---
+
+## Splash Screen e Onboarding (Implementado)
+- [x] Gerar logo profissional do Canteiro Saudável
+- [x] Configurar splash screen com logo personalizado
+- [x] Atualizar app.config.ts com nova splash screen
+- [x] Criar hook de gerenciamento de onboarding (use-onboarding.ts)
+- [x] Criar tela 1 de onboarding (Check-in e Saúde)
+- [x] Criar tela 2 de onboarding (Ergonomia e Exercícios)
+- [x] Criar tela 3 de onboarding (Gamificação e Recompensas)
+- [x] Criar componente de navegação entre telas de onboarding
+- [x] Integrar onboarding no _layout.tsx principal
+- [x] Salvar flag de "onboarding completo" em AsyncStorage
+- [x] Testar fluxo completo de primeira abertura
+- [x] Adicionar botão "Rever Tutorial" na tela de perfil
