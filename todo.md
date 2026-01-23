@@ -467,3 +467,16 @@
 - [ ] Envio automático de relatório por email (funcionalidade preparada)
 - [ ] Gráfico de hidratação média da equipe (dados não disponíveis no backend)
 - [ ] Gráfico de pressão arterial (dados não disponíveis no backend)
+
+---
+
+## 📋 Créditos e Propriedade Intelectual (Nova Solicitação)
+- [x] Criar tela "Sobre o App" com créditos da criadora (app/sobre.tsx)
+- [x] Adicionar nome completo: Denise Alves da Silva
+- [x] Adicionar título: Técnica de Enfermagem do Trabalho
+- [x] Gerar selo de propriedade intelectual profissional (assets/images/selo-propriedade.png)
+- [x] Adicionar selo na tela Sobre
+- [x] Adicionar botão de acesso no Perfil
+- [x] Adicionar aviso de direitos autorais (Lei nº 9.610/98)
+- [x] Incluir informações de contato (denise.silva@mip.com.br)
+- [x] Adicionar missão, funcionalidades e sobre o app

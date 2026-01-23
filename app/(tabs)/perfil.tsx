@@ -336,15 +336,29 @@ export default function PerfilScreen() {
 
           {/* Sobre o App */}
           <Card className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Sobre</Text>
+            <Text className="text-lg font-semibold text-foreground">🌱 Sobre o App</Text>
+            <Text className="text-sm text-muted">
+              Conheça a criadora, propriedade intelectual e funcionalidades do Canteiro Saudável
+            </Text>
+            <TouchableOpacity
+              className="bg-primary rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/sobre");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Ver Informações Completas
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
+          {/* Versão e Obra */}
+          <Card className="gap-3">
             <View className="gap-2">
               <View className="flex-row justify-between">
                 <Text className="text-sm text-muted">Versão</Text>
                 <Text className="text-sm text-foreground font-semibold">1.0.0</Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-sm text-muted">Desenvolvido por</Text>
-                <Text className="text-sm text-foreground font-semibold">Denise Alves</Text>
               </View>
               <View className="flex-row justify-between">
                 <Text className="text-sm text-muted">Obra</Text>
