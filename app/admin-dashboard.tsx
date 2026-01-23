@@ -7,7 +7,6 @@ import * as SecureStore from "expo-secure-store";
 import * as Haptics from "expo-haptics";
 import { LineChart } from "@/components/charts/line-chart";
 import { BarChart } from "@/components/charts/bar-chart";
-import { generateHealthReport } from "@/lib/generate-health-report";
 
 interface AnalyticsData {
   period: string;
@@ -246,9 +245,11 @@ export default function AdminDashboardScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (data) {
                     try {
+                      const { generateHealthReport } = await import("@/lib/generate-health-report");
                       await generateHealthReport(data, email);
                     } catch (error) {
                       console.error("Erro ao exportar:", error);
+                      Alert.alert("Erro", "Falha ao gerar relatório PDF");
                     }
                   }
                 }}
