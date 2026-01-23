@@ -808,3 +808,20 @@
 - [x] Filtros por status de resgate no painel admin
 - [ ] Notificar SESMT quando houver novo resgate (push notification)
 - [ ] Indicador de "Novos Prêmios" disponíveis
+
+---
+
+## Gestão de Catálogo de Prêmios pelo Admin (Implementado)
+- [x] Modificar hook use-rewards para suportar CRUD de prêmios
+- [x] Criar tela de gestão de catálogo (admin-catalogo-premios.tsx)
+- [x] Implementar formulário de adição de novo prêmio
+- [x] Implementar formulário de edição de prêmio existente
+- [x] Adicionar função de exclusão de prêmio
+- [x] Adicionar função de ajuste de estoque
+- [x] Adicionar função de ativar/desativar prêmio
+- [x] Sincronizar catálogo entre admin e usuários
+- [x] Salvar catálogo personalizado em AsyncStorage
+- [x] Botão de acesso no painel admin
+- [x] Validação de campos obrigatórios
+- [x] Confirmação antes de excluir prêmio
+- [x] Função de restaurar catálogo padrão

@@ -4,6 +4,7 @@ import { Reward, Redemption, RewardCategory, RedemptionStatus, UserRewardsStats 
 
 const REWARDS_STORAGE_KEY = "user_rewards";
 const REDEMPTIONS_STORAGE_KEY = "user_redemptions";
+const CUSTOM_REWARDS_STORAGE_KEY = "custom_rewards_catalog";
 
 // Catálogo de recompensas disponíveis
 const REWARDS_CATALOG: Reward[] = [
@@ -127,7 +128,7 @@ const REWARDS_CATALOG: Reward[] = [
 ];
 
 export function useRewards(availablePoints: number) {
-  const [rewards, setRewards] = useState<Reward[]>(REWARDS_CATALOG);
+  const [rewards, setRewards] = useState<Reward[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [stats, setStats] = useState<UserRewardsStats>({
     totalRedemptions: 0,
@@ -138,12 +139,29 @@ export function useRewards(availablePoints: number) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    loadRewards();
     loadRedemptions();
   }, []);
 
   useEffect(() => {
     calculateStats();
   }, [redemptions, availablePoints]);
+
+  const loadRewards = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(CUSTOM_REWARDS_STORAGE_KEY);
+      if (stored) {
+        const customRewards = JSON.parse(stored);
+        setRewards(customRewards);
+      } else {
+        // Usar catálogo padrão se não houver customização
+        setRewards(REWARDS_CATALOG);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar catálogo:", error);
+      setRewards(REWARDS_CATALOG);
+    }
+  };
 
   const loadRedemptions = async () => {
     try {
@@ -257,6 +275,74 @@ export function useRewards(availablePoints: number) {
     return redemptions.filter((r) => r.status === "entregue");
   };
 
+  // Funções CRUD para gestão do catálogo (admin)
+  const saveRewardsCatalog = async (newCatalog: Reward[]) => {
+    try {
+      await AsyncStorage.setItem(CUSTOM_REWARDS_STORAGE_KEY, JSON.stringify(newCatalog));
+      setRewards(newCatalog);
+    } catch (error) {
+      console.error("Erro ao salvar catálogo:", error);
+    }
+  };
+
+  const addReward = async (reward: Omit<Reward, "id">): Promise<{ success: boolean; message: string }> => {
+    try {
+      const newReward: Reward = {
+        ...reward,
+        id: `reward-${Date.now()}`,
+      };
+      const updatedCatalog = [...rewards, newReward];
+      await saveRewardsCatalog(updatedCatalog);
+      return { success: true, message: "Prêmio adicionado com sucesso!" };
+    } catch (error) {
+      return { success: false, message: "Erro ao adicionar prêmio" };
+    }
+  };
+
+  const updateReward = async (rewardId: string, updates: Partial<Reward>): Promise<{ success: boolean; message: string }> => {
+    try {
+      const updatedCatalog = rewards.map((r) =>
+        r.id === rewardId ? { ...r, ...updates } : r
+      );
+      await saveRewardsCatalog(updatedCatalog);
+      return { success: true, message: "Prêmio atualizado com sucesso!" };
+    } catch (error) {
+      return { success: false, message: "Erro ao atualizar prêmio" };
+    }
+  };
+
+  const deleteReward = async (rewardId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const updatedCatalog = rewards.filter((r) => r.id !== rewardId);
+      await saveRewardsCatalog(updatedCatalog);
+      return { success: true, message: "Prêmio removido com sucesso!" };
+    } catch (error) {
+      return { success: false, message: "Erro ao remover prêmio" };
+    }
+  };
+
+  const adjustStock = async (rewardId: string, newStock: number): Promise<{ success: boolean; message: string }> => {
+    try {
+      const updatedCatalog = rewards.map((r) =>
+        r.id === rewardId ? { ...r, stock: newStock, status: newStock === 0 ? "esgotado" as const : "disponivel" as const } : r
+      );
+      await saveRewardsCatalog(updatedCatalog);
+      return { success: true, message: "Estoque atualizado com sucesso!" };
+    } catch (error) {
+      return { success: false, message: "Erro ao atualizar estoque" };
+    }
+  };
+
+  const resetCatalog = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      await AsyncStorage.removeItem(CUSTOM_REWARDS_STORAGE_KEY);
+      setRewards(REWARDS_CATALOG);
+      return { success: true, message: "Catálogo restaurado para o padrão!" };
+    } catch (error) {
+      return { success: false, message: "Erro ao restaurar catálogo" };
+    }
+  };
+
   return {
     rewards,
     redemptions,
@@ -268,5 +354,12 @@ export function useRewards(availablePoints: number) {
     getRedemptionsByStatus,
     getPendingRedemptions,
     getCompletedRedemptions,
+    // Funções CRUD para admin
+    addReward,
+    updateReward,
+    deleteReward,
+    adjustStock,
+    resetCatalog,
+    loadRewards,
   };
 }

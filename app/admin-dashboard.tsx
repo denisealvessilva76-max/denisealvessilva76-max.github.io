@@ -275,6 +275,18 @@ export default function AdminDashboardScreen() {
               <Text className="text-xl font-bold text-foreground">Ações</Text>
               
               <TouchableOpacity
+                className="bg-purple-500 rounded-xl p-4"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/admin-catalogo-premios" as any);
+                }}
+              >
+                <Text className="text-white font-semibold text-center text-base">
+                  🎯 Gerenciar Catálogo de Prêmios
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
                 className="bg-success rounded-xl p-4"
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
