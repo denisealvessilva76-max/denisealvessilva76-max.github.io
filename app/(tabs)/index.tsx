@@ -1,15 +1,13 @@
-import { ScrollView, Text, View, TouchableOpacity, Pressable } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, Pressable, RefreshControl } from "react-native";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MedalCard } from "@/components/ui/medal-card";
 import { useHealthData } from "@/hooks/use-health-data";
 import { useGamification } from "@/hooks/use-gamification";
+import { usePersonalDashboard } from "@/hooks/use-personal-dashboard";
 import { CheckInStatus } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
-import { getProgressToNextMedal } from "@/lib/gamification";
 import * as Haptics from "expo-haptics";
 
 const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: string; color: string }> = [
@@ -21,14 +19,14 @@ const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: str
 export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
-  const { addCheckIn, getTodayCheckIn, getLastSevenDaysCheckIns, isLoading, checkIns } = useHealthData();
-  const { stats, getNextMedalInfo } = useGamification(checkIns);
+  const { addCheckIn, getTodayCheckIn, isLoading, checkIns } = useHealthData();
+  const { stats: gamificationStats } = useGamification(checkIns);
+  const { stats: dashboardStats, loading: dashboardLoading, refresh } = usePersonalDashboard();
   const [todayCheckIn, setTodayCheckIn] = useState(getTodayCheckIn());
-  const [lastSevenDays, setLastSevenDays] = useState(getLastSevenDaysCheckIns());
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     setTodayCheckIn(getTodayCheckIn());
-    setLastSevenDays(getLastSevenDaysCheckIns());
   }, [checkIns]);
 
   const handleCheckIn = async (status: CheckInStatus) => {
@@ -46,10 +44,15 @@ export default function HomeScreen() {
     const result = await addCheckIn(status);
     if (result) {
       setTodayCheckIn(result);
+      refresh(); // Atualizar dashboard
     }
   };
 
-  const nextMedalInfo = getNextMedalInfo();
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -68,7 +71,34 @@ export default function HomeScreen() {
     return option?.label || "Desconhecido";
   };
 
-  if (isLoading) {
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case "improving": return "📈";
+      case "worsening": return "📉";
+      case "stable": return "➡️";
+      default: return "—";
+    }
+  };
+
+  const getTrendLabel = (trend: string) => {
+    switch (trend) {
+      case "improving": return "Melhorando";
+      case "worsening": return "Piorando";
+      case "stable": return "Estável";
+      default: return "Sem dados";
+    }
+  };
+
+  const getTrendColor = (trend: string) => {
+    switch (trend) {
+      case "improving": return colors.success;
+      case "worsening": return colors.error;
+      case "stable": return colors.warning;
+      default: return colors.muted;
+    }
+  };
+
+  if (isLoading || dashboardLoading) {
     return (
       <ScreenContainer className="p-4 items-center justify-center">
         <Text className="text-foreground">Carregando...</Text>
@@ -78,7 +108,13 @@ export default function HomeScreen() {
 
   return (
     <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
+        }
+      >
         <View className="gap-6">
           {/* Saudação */}
           <View className="gap-2">
@@ -129,30 +165,113 @@ export default function HomeScreen() {
             </Card>
           )}
 
-          {/* Histórico dos últimos 7 dias */}
-          <Card className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Últimos 7 dias</Text>
-            <View className="flex-row justify-between gap-2">
-              {Array.from({ length: 7 }).map((_, index) => {
-                const date = new Date();
-                date.setDate(date.getDate() - (6 - index));
-                const dateStr = date.toISOString().split("T")[0];
-                const checkIn = lastSevenDays.find((c) => c.date === dateStr);
+          {/* Dashboard Pessoal - Resumo Semanal */}
+          <Card className="gap-4">
+            <Text className="text-lg font-semibold text-foreground">📊 Resumo da Semana</Text>
+            
+            <View className="flex-row gap-3">
+              {/* Check-ins */}
+              <View className="flex-1 bg-primary/10 rounded-xl p-3 border border-primary">
+                <Text className="text-xs text-muted mb-1">Check-ins</Text>
+                <Text className="text-2xl font-bold text-foreground">{dashboardStats.checkIns.thisWeek}</Text>
+                <View className="flex-row items-center gap-1 mt-1">
+                  <Text className="text-xs text-muted">Sequência:</Text>
+                  <Text className="text-xs font-semibold text-primary">{dashboardStats.checkIns.streak} dias 🔥</Text>
+                </View>
+              </View>
+
+              {/* Hidratação */}
+              <View className="flex-1 bg-blue-500/10 rounded-xl p-3 border border-blue-500">
+                <Text className="text-xs text-muted mb-1">Hidratação</Text>
+                <Text className="text-2xl font-bold text-foreground">{dashboardStats.hydration.thisWeek}</Text>
+                <Text className="text-xs text-muted mt-1">
+                  Média: {dashboardStats.hydration.averagePerDay}/dia
+                </Text>
+              </View>
+
+              {/* Desafios */}
+              <View className="flex-1 bg-orange-500/10 rounded-xl p-3 border border-orange-500">
+                <Text className="text-xs text-muted mb-1">Desafios</Text>
+                <Text className="text-2xl font-bold text-foreground">{dashboardStats.challenges.completed}</Text>
+                <Text className="text-xs text-muted mt-1">
+                  {dashboardStats.challenges.completionRate}% completos
+                </Text>
+              </View>
+            </View>
+          </Card>
+
+          {/* Evolução de Sintomas */}
+          <Card className="gap-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-foreground">📈 Evolução de Sintomas</Text>
+              <View className="flex-row items-center gap-2">
+                <Text className="text-xl">{getTrendIcon(dashboardStats.symptoms.trend)}</Text>
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: getTrendColor(dashboardStats.symptoms.trend) }}
+                >
+                  {getTrendLabel(dashboardStats.symptoms.trend)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Gráfico Simples (últimos 7 dias) */}
+            <View className="flex-row items-end justify-between gap-2 h-24">
+              {dashboardStats.symptoms.lastSevenDays.map((day, index) => {
+                const maxLevel = 10;
+                const height = (day.level / maxLevel) * 100;
+                const barColor = day.level === 0 ? colors.success : day.level <= 3 ? colors.warning : colors.error;
 
                 return (
-                  <View
-                    key={index}
-                    className="flex-1 items-center gap-1 p-2 rounded-lg bg-surface border border-border"
-                  >
-                    <Text className="text-xs text-muted">{date.getDate()}</Text>
-                    <Text className="text-xl">
-                      {checkIn ? getCheckInEmoji(checkIn.status) : "—"}
+                  <View key={index} className="flex-1 items-center gap-1">
+                    <View className="flex-1 w-full justify-end">
+                      <View
+                        style={{
+                          height: `${height}%`,
+                          backgroundColor: barColor,
+                          borderRadius: 4,
+                        }}
+                      />
+                    </View>
+                    <Text className="text-xs text-muted">
+                      {new Date(day.date).getDate()}
                     </Text>
                   </View>
                 );
               })}
             </View>
+            <Text className="text-xs text-center text-muted">Últimos 7 dias</Text>
           </Card>
+
+          {/* Próximas Ações Sugeridas */}
+          {dashboardStats.suggestedActions.length > 0 && (
+            <Card className="gap-4">
+              <Text className="text-lg font-semibold text-foreground">✨ Próximas Ações</Text>
+              <View className="gap-3">
+                {dashboardStats.suggestedActions.slice(0, 3).map((action) => (
+                  <TouchableOpacity
+                    key={action.id}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push(action.action as any);
+                    }}
+                    className="flex-row items-center gap-3 p-3 rounded-xl bg-surface border border-border active:opacity-70"
+                  >
+                    <Text className="text-2xl">{action.icon}</Text>
+                    <View className="flex-1">
+                      <Text className="text-sm font-semibold text-foreground">{action.title}</Text>
+                      <Text className="text-xs text-muted mt-1">{action.description}</Text>
+                    </View>
+                    {action.priority === "high" && (
+                      <View className="bg-error/20 px-2 py-1 rounded">
+                        <Text className="text-xs font-semibold text-error">URGENTE</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </Card>
+          )}
 
           {/* Ações Rápidas */}
           <View className="gap-3">
@@ -169,108 +288,28 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="bg-primary/20 rounded-xl p-4 active:opacity-80 border border-primary"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/(tabs)/ergonomia");
-              }}
-            >
-              <Text className="text-center font-semibold text-primary">
-                Fazer Pausa Ativa
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="bg-blue-500/20 rounded-xl p-4 active:opacity-80 border border-blue-500"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/hydration-tracker");
-              }}
-            >
-              <Text className="text-center font-semibold text-blue-500">
-                💧 Registrar Hidratação
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               className="bg-purple-500/20 rounded-xl p-4 active:opacity-80 border border-purple-500"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/dicas-saude");
+                router.push("/videos-alongamento" as any);
               }}
             >
               <Text className="text-center font-semibold text-purple-500">
-                📚 Dicas de Saúde
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="bg-orange-500/20 rounded-xl p-4 active:opacity-80 border border-orange-500"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/desafios-saude");
-              }}
-            >
-              <Text className="text-center font-semibold text-orange-500">
-                🎯 Desafios de Saúde
+                🧘 Vídeos de Alongamento
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               className="bg-green-500/20 rounded-xl p-4 active:opacity-80 border border-green-500"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/orientacoes-nutricionais");
+                router.push("/checklist-epi" as any);
               }}
             >
               <Text className="text-center font-semibold text-green-500">
-                🍎 Orientações Nutricionais
+                🦺 Checklist de EPIs
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Medalhas e Gamificação */}
-          <Card className="gap-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-lg font-semibold text-foreground">🏆 Suas Medalhas</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/achievements");
-                }}
-              >
-                <Text className="text-primary font-semibold">Ver Tudo →</Text>
-              </TouchableOpacity>
-            </View>
-
-            {stats.unlockedMedals.length > 0 ? (
-              <View className="flex-row gap-2">
-                {stats.unlockedMedals.slice(0, 3).map((medal) => (
-                  <View key={medal.id} className="flex-1">
-                    <MedalCard medal={medal} isUnlocked={true} />
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text className="text-center text-muted py-4">
-                Comece a fazer check-ins para desbloquear medalhas!
-              </Text>
-            )}
-
-            {/* Próxima Medalha */}
-            {nextMedalInfo.medal && (
-              <View className="gap-2 pt-3 border-t border-border">
-                <Text className="text-sm text-muted">Próxima Medalha:</Text>
-                <View className="flex-row items-center gap-3">
-                  <Text className="text-3xl">{nextMedalInfo.medal?.emoji}</Text>
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-foreground">
-                      {nextMedalInfo.medal?.name}
-                    </Text>
-                    <Text className="text-xs text-muted">
-                      Faltam {nextMedalInfo.checkInsNeeded} check-ins
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            )}
-          </Card>
 
           {/* Dica do Dia */}
           <Card className="bg-primary/10 border border-primary gap-2">

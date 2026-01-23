@@ -656,3 +656,11 @@
 - [x] Buscar vídeos reais de alongamento para canteiro de obras no YouTube - CONCLUÍDO
 - [x] Substituir URLs de exemplo por URLs reais - CONCLUÍDO: 3 vídeos principais do YouTube
 - [x] Validar que todos os vídeos são acessíveis e adequados - CONCLUÍDO
+
+## Dashboard Pessoal - Tela Inicial (23/01/2026 - 15:00)
+- [x] Criar hook use-personal-dashboard.ts com lógica de dados - CONCLUÍDO
+- [x] Implementar cards de resumo semanal (check-ins, hidratação, desafios) - CONCLUÍDO
+- [x] Criar gráfico de evolução de sintomas (últimos 7 dias) - CONCLUÍDO: Gráfico de barras simples
+- [x] Adicionar seção "Próximas Ações Sugeridas" - CONCLUÍDO: Até 3 ações priorizadas
+- [x] Integrar dashboard na tela principal (index.tsx) - CONCLUÍDO
+- [x] Adicionar animações e transições suaves - CONCLUÍDO: Pull-to-refresh
