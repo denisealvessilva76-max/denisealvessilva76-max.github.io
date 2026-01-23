@@ -57,10 +57,12 @@ export function useHydration() {
   const saveHydrationData = async (data: Record<string, HydrationEntry>) => {
     try {
       await AsyncStorage.setItem(HYDRATION_KEY, JSON.stringify(data));
-      // Forçar atualização do estado
-      setHydrationData({...data});
+      // Forçar atualização do estado com novo objeto
+      setHydrationData(prev => ({...data}));
+      return true;
     } catch (error) {
       console.error("Erro ao salvar dados de hidratação:", error);
+      return false;
     }
   };
 
@@ -100,7 +102,10 @@ export function useHydration() {
         [today]: updatedEntry,
       };
 
-      await saveHydrationData(updatedData);
+      const saved = await saveHydrationData(updatedData);
+      if (!saved) {
+        throw new Error("Falha ao salvar dados");
+      }
 
       // Sincronizar com servidor
       await syncHydrationToServer(updatedEntry);

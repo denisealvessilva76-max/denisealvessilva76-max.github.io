@@ -8,29 +8,31 @@ import { useColors } from "@/hooks/use-colors";
 export default function HydrationTrackerScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { logWaterIntake, getTodayHydration, getDailyProgress, reminderSettings } =
+  const { logWaterIntake, getTodayHydration, getDailyProgress, reminderSettings, hydrationData } =
     useHydration();
   const [todayData, setTodayData] = useState(getTodayHydration());
   const [progress, setProgress] = useState(getDailyProgress());
   const [isLogging, setIsLogging] = useState(false);
 
+  // Atualizar quando hydrationData mudar
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTodayData(getTodayHydration());
-      setProgress(getDailyProgress());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+    setTodayData(getTodayHydration());
+    setProgress(getDailyProgress());
+  }, [hydrationData]);
 
   const handleLogWater = async (glasses: number) => {
     setIsLogging(true);
     try {
       const success = await logWaterIntake(glasses);
       if (success) {
-        setTodayData(getTodayHydration());
-        setProgress(getDailyProgress());
+        // Forçar atualização imediata
+        setTimeout(() => {
+          setTodayData(getTodayHydration());
+          setProgress(getDailyProgress());
+        }, 100);
         Alert.alert("Sucesso", `${glasses} copo(s) de água registrado(s)!`);
+      } else {
+        Alert.alert("Erro", "Não foi possível registrar o consumo de água.");
       }
     } catch (error) {
       Alert.alert("Erro", "Não foi possível registrar o consumo de água.");

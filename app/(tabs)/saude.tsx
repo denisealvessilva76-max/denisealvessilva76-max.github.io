@@ -17,6 +17,9 @@ export default function SaudeScreen() {
   const [diastolic, setDiastolic] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [showPressureForm, setShowPressureForm] = useState(false);
+  const [showSymptomDetails, setShowSymptomDetails] = useState(false);
+  const [symptomDetails, setSymptomDetails] = useState("");
+  const [symptomIntensity, setSymptomIntensity] = useState<"leve" | "moderada" | "forte">("leve");
   const [latestPressure, setLatestPressure] = useState(getLatestPressure());
   const [latestClassification, setLatestClassification] = useState(
     latestPressure ? classifyPressure(latestPressure.systolic, latestPressure.diastolic) : null
@@ -65,20 +68,31 @@ export default function SaudeScreen() {
     );
   };
 
+  const handleContinueToDetails = () => {
+    if (selectedSymptoms.length > 0) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setShowSymptomDetails(true);
+    }
+  };
+
   const handleReportSymptoms = async () => {
     if (selectedSymptoms.length > 0) {
       await addSymptomReport(selectedSymptoms);
       
-      // Enviar notificação ao admin se houver dor
-      const hasPain = selectedSymptoms.some(s => s.includes("dor"));
+      // Enviar notificação ao admin com detalhes
+      const hasPain = selectedSymptoms.some(s => s.includes("pain"));
       if (hasPain) {
-        const painLevel = selectedSymptoms.some(s => s.includes("Forte")) ? "dor-forte" : "dor-leve";
-        await sendPainNotification("worker-" + Date.now(), painLevel, selectedSymptoms.join(", "));
+        const painLevel = symptomIntensity === "forte" ? "dor-forte" : "dor-leve";
+        const fullDescription = `${selectedSymptoms.map(s => SYMPTOMS.find(sym => sym.id === s)?.label).join(", ")}. Intensidade: ${symptomIntensity}. Detalhes: ${symptomDetails}`;
+        await sendPainNotification("worker-" + Date.now(), painLevel, fullDescription);
       }
       
       setSelectedSymptoms([]);
+      setSymptomDetails("");
+      setSymptomIntensity("leve");
+      setShowSymptomDetails(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Sucesso", "Sintomas reportados com sucesso!");
+      Alert.alert("Sucesso", "Sintomas reportados com sucesso! O SESMT foi notificado.");
     }
   };
 
@@ -221,15 +235,90 @@ export default function SaudeScreen() {
               ))}
             </View>
 
-            {selectedSymptoms.length > 0 && (
+            {selectedSymptoms.length > 0 && !showSymptomDetails && (
               <TouchableOpacity
                 className="bg-primary rounded-lg py-3 active:opacity-80"
-                onPress={handleReportSymptoms}
+                onPress={handleContinueToDetails}
               >
                 <Text className="text-center font-semibold text-white">
-                  Relatar Sintomas
+                  Continuar
                 </Text>
               </TouchableOpacity>
+            )}
+
+            {showSymptomDetails && (
+              <View className="gap-4 mt-4 p-4 bg-surface rounded-lg border border-border">
+                <Text className="text-base font-semibold text-foreground">Detalhes do Sintoma</Text>
+                
+                <View className="gap-2">
+                  <Text className="text-sm text-muted">Intensidade:</Text>
+                  <View className="flex-row gap-2">
+                    {["leve", "moderada", "forte"].map((intensity) => (
+                      <Pressable
+                        key={intensity}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setSymptomIntensity(intensity as any);
+                        }}
+                        style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                      >
+                        <View
+                          className={`px-4 py-2 rounded-lg border ${
+                            symptomIntensity === intensity
+                              ? "bg-primary border-primary"
+                              : "bg-background border-border"
+                          }`}
+                        >
+                          <Text
+                            className={`text-sm font-medium ${
+                              symptomIntensity === intensity ? "text-white" : "text-foreground"
+                            }`}
+                          >
+                            {intensity.charAt(0).toUpperCase() + intensity.slice(1)}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                <View className="gap-2">
+                  <Text className="text-sm text-muted">Descreva o que está sentindo:</Text>
+                  <TextInput
+                    className="bg-background border border-border rounded-lg p-3 text-foreground min-h-[100px]"
+                    placeholder="Ex: Dor nas costas ao carregar peso, começou hoje de manhã..."
+                    placeholderTextColor="#687076"
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                    value={symptomDetails}
+                    onChangeText={setSymptomDetails}
+                  />
+                </View>
+
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    className="flex-1 bg-primary rounded-lg py-3 active:opacity-80"
+                    onPress={handleReportSymptoms}
+                  >
+                    <Text className="text-center font-semibold text-white">
+                      Enviar Relato
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-1 bg-surface border border-border rounded-lg py-3 active:opacity-80"
+                    onPress={() => {
+                      setShowSymptomDetails(false);
+                      setSymptomDetails("");
+                      setSymptomIntensity("leve");
+                    }}
+                  >
+                    <Text className="text-center font-semibold text-foreground">
+                      Voltar
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
           </Card>
 

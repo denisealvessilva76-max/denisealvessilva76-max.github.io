@@ -154,17 +154,7 @@ export function useNotifications() {
     type: "checkin" | "pause"
   ) => {
     try {
-      const now = new Date();
-      const scheduledTime = new Date();
-      scheduledTime.setHours(hours, minutes, 0, 0);
-
-      // Se o horário já passou hoje, agendar para amanhã
-      if (scheduledTime <= now) {
-        scheduledTime.setDate(scheduledTime.getDate() + 1);
-      }
-
-      // Agendar para repetir diariamente
-      const secondsUntilNotification = Math.floor((scheduledTime.getTime() - now.getTime()) / 1000);
+      // Usar trigger diário para melhor funcionamento em background
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
@@ -172,13 +162,17 @@ export function useNotifications() {
           sound: true,
           badge: 1,
           data: { type },
+          priority: Notifications.AndroidNotificationPriority.HIGH,
         },
         trigger: {
-          type: "time-interval",
-          seconds: Math.max(secondsUntilNotification, 60),
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
+          hour: hours,
+          minute: minutes,
           repeats: true,
         } as any,
       });
+      
+      console.log(`Notificação agendada para ${hours}:${minutes} (${title})`);
     } catch (error) {
       console.error(`Erro ao agendar notificação para ${hours}:${minutes}:`, error);
     }

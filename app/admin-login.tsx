@@ -24,6 +24,9 @@ export default function AdminLoginScreen() {
     try {
       // Chamar API de login
       const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:3000";
+      console.log("Tentando login em:", `${API_URL}/api/admin/login`);
+      console.log("Credenciais:", { email, password });
+      
       const response = await fetch(`${API_URL}/api/admin/login`, {
         method: "POST",
         headers: {
@@ -35,12 +38,22 @@ export default function AdminLoginScreen() {
         }),
       });
 
+      console.log("Response status:", response.status);
+      
       if (!response.ok) {
-        const error = await response.json();
+        const errorText = await response.text();
+        console.error("Erro da API:", errorText);
+        let error;
+        try {
+          error = JSON.parse(errorText);
+        } catch {
+          error = { message: errorText };
+        }
         throw new Error(error.message || "Erro ao fazer login");
       }
 
       const data = await response.json();
+      console.log("Login bem-sucedido:", data);
 
       // Salvar token seguro
       await SecureStore.setItemAsync("admin_token", data.token);

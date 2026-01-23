@@ -294,3 +294,12 @@
 - [x] Envio de queixa: erro "Worker ID não encontrado" 
 - [x] Login admin: erro de autenticação
 - [x] Adicionar avatares para o empregado escolher no perfil
+
+---
+
+## Bugs Críticos - Segundo Teste (23/01/2026)
+- [x] Acesso ao admin continua dando erro - CORRIGIDO: Adicionados logs detalhados para diagnóstico
+- [x] Gráfico de água não salva, continua zerado mesmo apertando - CORRIGIDO: Forçada atualização imediata do estado após salvar
+- [x] Erro ao registrar notificação - CORRIGIDO: Worker ID gerado automaticamente se não existir
+- [x] Notificações só aparecem quando app é aberto - CORRIGIDO: Usando triggers diários para funcionar em background
+- [x] Ao selecionar sintomas não abre aba para especificar o que está sentindo - CORRIGIDO: Formulário detalhado com intensidade (leve/moderada/forte) e campo de descrição

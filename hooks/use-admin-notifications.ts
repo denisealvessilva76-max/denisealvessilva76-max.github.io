@@ -1,5 +1,8 @@
 import { useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:3000";
 
 export interface AdminNotification {
   id?: number;
@@ -24,21 +27,32 @@ export function useAdminNotifications() {
       description?: string
     ) => {
       try {
+        // Gerar Worker ID se não existir
+        let finalWorkerId = workerId;
+        if (!finalWorkerId || finalWorkerId.includes("worker-")) {
+          let storedId = await SecureStore.getItemAsync("worker_id");
+          if (!storedId) {
+            storedId = `worker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            await SecureStore.setItemAsync("worker_id", storedId);
+          }
+          finalWorkerId = storedId;
+        }
+
         // Determinar severidade
         let severity: "low" | "high" | "critical" = "low";
         let message = "";
 
         if (painLevel === "dor-leve") {
           severity = "low";
-          message = `Empregado ${workerId} reportou dor leve`;
+          message = `Empregado ${finalWorkerId} reportou dor leve`;
         } else if (painLevel === "dor-forte") {
           severity = "high";
-          message = `ALERTA: Empregado ${workerId} reportou dor forte`;
+          message = `ALERTA: Empregado ${finalWorkerId} reportou dor forte`;
         }
 
         // Criar notificação
         const notification: AdminNotification = {
-          employeeId: workerId,
+          employeeId: finalWorkerId,
           type: "pain-report",
           severity,
           message,
@@ -49,8 +63,10 @@ export function useAdminNotifications() {
           },
         };
 
+        console.log("Enviando notificação ao admin:", notification);
+
         // Enviar para servidor
-        const response = await fetch("http://127.0.0.1:3000/api/admin/notifications", {
+        const response = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -101,7 +117,7 @@ export function useAdminNotifications() {
         };
 
         // Enviar para servidor
-        const response = await fetch("http://127.0.0.1:3000/api/admin/notifications", {
+        const response = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
