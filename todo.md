@@ -303,3 +303,16 @@
 - [x] Erro ao registrar notificação - CORRIGIDO: Worker ID gerado automaticamente se não existir
 - [x] Notificações só aparecem quando app é aberto - CORRIGIDO: Usando triggers diários para funcionar em background
 - [x] Ao selecionar sintomas não abre aba para especificar o que está sentindo - CORRIGIDO: Formulário detalhado com intensidade (leve/moderada/forte) e campo de descrição
+
+---
+
+## Seção de Dicas de Saúde (Nova Funcionalidade)
+- [x] Criar tipos para artigos e vídeos
+- [x] Buscar vídeos reais sobre ergonomia na construção civil (8 vídeos do YouTube)
+- [x] Implementar tela de listagem de dicas com busca e filtros
+- [x] Implementar tela de visualização de artigo com Markdown
+- [x] Implementar player de vídeo (abre YouTube)
+- [x] Adicionar categorias (Ergonomia, Prevenção, Segurança, Saúde Mental)
+- [x] Integrar com navegação principal (botão na Home)
+- [x] 5 artigos completos sobre ergonomia, prevenção, segurança e saúde mental
+- [ ] Testar em dispositivo real

@@ -190,6 +190,17 @@ export default function HomeScreen() {
                 💧 Registrar Hidratação
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-purple-500/20 rounded-xl p-4 active:opacity-80 border border-purple-500"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/dicas-saude");
+              }}
+            >
+              <Text className="text-center font-semibold text-purple-500">
+                📚 Dicas de Saúde
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Medalhas e Gamificação */}
