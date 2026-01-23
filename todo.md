@@ -480,3 +480,23 @@
 - [x] Adicionar aviso de direitos autorais (Lei nº 9.610/98)
 - [x] Incluir informações de contato (denise.silva@mip.com.br)
 - [x] Adicionar missão, funcionalidades e sobre o app
+
+---
+
+## 💬 Sistema de Feedback (Nova Funcionalidade)
+- [x] Criar tipos para feedback (sugestão, problema, elogio, outro)
+- [x] Implementar API de envio de feedback no servidor (server/routes/feedback.ts)
+- [x] Criar tela de envio de feedback com formulário (app/enviar-feedback.tsx)
+- [x] Adicionar categorias (App, Saúde, Segurança, Outro)
+- [x] Campo de descrição detalhada (1000 caracteres)
+- [x] Campo de título (100 caracteres)
+- [x] Identificação automática do usuário (nome e CPF)
+- [x] Visualização de feedbacks no painel admin (app/admin-feedbacks.tsx)
+- [x] Filtros por tipo e status (pendente/em_analise/resolvido/arquivado)
+- [x] Botão de acesso no Perfil
+- [x] Botão de acesso no Dashboard Admin
+- [x] Confirmação de envio com mensagem de agradecimento
+- [x] Sistema de atualização de status pelo admin
+- [x] Contadores e estatísticas de feedbacks
+- [ ] Opção de anexar foto (preparado mas não implementado)
+- [ ] Notificação push para admin quando novo feedback é enviado

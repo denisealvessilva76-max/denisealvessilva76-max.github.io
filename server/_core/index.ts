@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import adminRoutes from "../routes/admin";
+import feedbackRoutes from "../routes/feedback";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -59,6 +60,9 @@ async function startServer() {
 
   // Admin routes
   app.use("/api/admin", adminRoutes);
+
+  // Feedback routes
+  app.use("/api/feedback", feedbackRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });

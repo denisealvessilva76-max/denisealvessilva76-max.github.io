@@ -334,6 +334,25 @@ export default function PerfilScreen() {
             </Text>
           </Card>
 
+          {/* Enviar Feedback */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">💬 Enviar Feedback</Text>
+            <Text className="text-sm text-muted">
+              Ajude-nos a melhorar! Envie sugestões, relate problemas ou compartilhe elogios
+            </Text>
+            <TouchableOpacity
+              className="bg-primary rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/enviar-feedback");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                📤 Enviar Feedback
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
           {/* Sobre o App */}
           <Card className="gap-3">
             <Text className="text-lg font-semibold text-foreground">🌱 Sobre o App</Text>

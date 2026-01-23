@@ -268,6 +268,18 @@ export default function AdminDashboardScreen() {
                   📧 Enviar Relatório por Email
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                className="bg-purple-500 rounded-xl p-4"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/admin-feedbacks");
+                }}
+              >
+                <Text className="text-center font-semibold text-white">
+                  💬 Ver Feedbacks dos Usuários
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
