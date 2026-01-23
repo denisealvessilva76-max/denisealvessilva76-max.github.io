@@ -525,3 +525,11 @@
 - [x] Mensagem de confirmação após exportação
 - [x] Relatório formatado profissionalmente com CSS
 - [x] Rodapé com créditos e aviso de confidencialidade
+
+---
+
+## Bug Crítico - App Não Abre (23/01/2026 - 11:40)
+- [x] Erro "Something went wrong" no Expo Go - CORRIGIDO: Plugins expo-print e expo-sharing adicionados ao app.config.ts
+- [x] Verificar logs do servidor Metro - OK: Servidor rodando
+- [x] Identificar causa do erro - Plugins não estavam registrados no app.config.ts
+- [x] Corrigir e testar - Plugins adicionados e servidor reiniciado
