@@ -100,6 +100,25 @@ export type MonthlyReport = typeof monthlyReports.$inferSelect;
 export type InsertMonthlyReport = typeof monthlyReports.$inferInsert;
 
 /**
+ * Tabela para registro de hidratação dos trabalhadores
+ */
+export const hydrationRecords = mysqlTable("hydration_records", {
+  id: int("id").autoincrement().primaryKey(),
+  workerId: varchar("workerId", { length: 64 }).notNull(), // ID anônimo do trabalhador
+  date: date("date").notNull(),
+  waterIntake: int("waterIntake").notNull(), // ml
+  glassesConsumed: int("glassesConsumed").notNull(),
+  dailyGoal: int("dailyGoal").notNull(), // ml
+  weight: int("weight"), // kg
+  height: int("height"), // cm
+  workType: varchar("workType", { length: 20 }), // leve, moderado, pesado
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type HydrationRecord = typeof hydrationRecords.$inferSelect;
+export type InsertHydrationRecord = typeof hydrationRecords.$inferInsert;
+
+/**
  * Tabelas para encaminhamentos e hidratação
  */
 export const healthReferrals = mysqlTable("health_referrals", {

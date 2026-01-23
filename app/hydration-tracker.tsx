@@ -1,24 +1,122 @@
-import { ScrollView, Text, View, Pressable, Alert } from "react-native";
+import { ScrollView, Text, View, Pressable, Alert, TextInput, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useHydration } from "@/hooks/use-hydration";
 import { useEffect, useState } from "react";
 import { useColors } from "@/hooks/use-colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+type WorkType = "leve" | "moderado" | "pesado";
+
+interface UserProfile {
+  weight: number; // kg
+  height: number; // cm
+  workType: WorkType;
+  dailyGoalCalculated: number; // ml
+}
 
 export default function HydrationTrackerScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { logWaterIntake, getTodayHydration, getDailyProgress, reminderSettings, hydrationData } =
+  const { logWaterIntake, getTodayHydration, getDailyProgress, setDailyGoal, reminderSettings, hydrationData } =
     useHydration();
   const [todayData, setTodayData] = useState(getTodayHydration());
   const [progress, setProgress] = useState(getDailyProgress());
   const [isLogging, setIsLogging] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  // Form state
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [workType, setWorkType] = useState<WorkType>("moderado");
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
 
   // Atualizar quando hydrationData mudar
   useEffect(() => {
     setTodayData(getTodayHydration());
     setProgress(getDailyProgress());
   }, [hydrationData]);
+
+  const loadUserProfile = async () => {
+    try {
+      const profileData = await AsyncStorage.getItem("user_hydration_profile");
+      if (profileData) {
+        const profile = JSON.parse(profileData);
+        setUserProfile(profile);
+        // Atualizar meta se necessário
+        if (profile.dailyGoalCalculated !== reminderSettings.dailyGoal) {
+          await setDailyGoal(profile.dailyGoalCalculated);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao carregar perfil:", error);
+    }
+  };
+
+  const calculateHydrationGoal = (weight: number, height: number, workType: WorkType): number => {
+    // Fórmula base: 35ml por kg de peso corporal
+    let baseGoal = weight * 35;
+
+    // Ajuste por tipo de trabalho
+    const workMultiplier = {
+      leve: 1.0,      // Trabalho de escritório, pouco esforço
+      moderado: 1.3,  // Trabalho moderado, algum esforço físico
+      pesado: 1.6,    // Trabalho pesado, muito esforço físico (canteiro de obras)
+    };
+
+    baseGoal *= workMultiplier[workType];
+
+    // Ajuste por altura (pessoas mais altas tendem a precisar de mais água)
+    if (height > 180) {
+      baseGoal *= 1.1;
+    } else if (height < 160) {
+      baseGoal *= 0.95;
+    }
+
+    // Arredondar para múltiplo de 250ml (1 copo)
+    return Math.round(baseGoal / 250) * 250;
+  };
+
+  const handleSaveProfile = async () => {
+    const weightNum = parseFloat(weight);
+    const heightNum = parseFloat(height);
+
+    if (!weightNum || weightNum < 40 || weightNum > 200) {
+      Alert.alert("Erro", "Por favor, insira um peso válido (40-200 kg)");
+      return;
+    }
+
+    if (!heightNum || heightNum < 140 || heightNum > 220) {
+      Alert.alert("Erro", "Por favor, insira uma altura válida (140-220 cm)");
+      return;
+    }
+
+    const calculatedGoal = calculateHydrationGoal(weightNum, heightNum, workType);
+
+    const profile: UserProfile = {
+      weight: weightNum,
+      height: heightNum,
+      workType,
+      dailyGoalCalculated: calculatedGoal,
+    };
+
+    try {
+      await AsyncStorage.setItem("user_hydration_profile", JSON.stringify(profile));
+      await setDailyGoal(calculatedGoal);
+      setUserProfile(profile);
+      setShowProfileModal(false);
+      Alert.alert(
+        "Sucesso!",
+        `Sua meta diária foi calculada: ${calculatedGoal}ml (${calculatedGoal / 250} copos)`
+      );
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível salvar o perfil");
+    }
+  };
 
   const handleLogWater = async (glasses: number) => {
     setIsLogging(true);
@@ -46,6 +144,15 @@ export default function HydrationTrackerScreen() {
   const waterRemaining = Math.max(0, reminderSettings.dailyGoal - waterIntake);
   const glassesRemaining = Math.ceil(waterRemaining / 250);
 
+  const getWorkTypeLabel = (type: WorkType) => {
+    const labels = {
+      leve: "Trabalho Leve",
+      moderado: "Trabalho Moderado",
+      pesado: "Trabalho Pesado (Canteiro)",
+    };
+    return labels[type];
+  };
+
   return (
     <ScreenContainer className="p-4">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -55,6 +162,52 @@ export default function HydrationTrackerScreen() {
             <Text className="text-3xl font-bold text-foreground">💧 Hidratação</Text>
             <Text className="text-base text-muted">Acompanhe seu consumo de água diário</Text>
           </View>
+
+          {/* Perfil de Hidratação */}
+          {!userProfile ? (
+            <Pressable
+              onPress={() => setShowProfileModal(true)}
+              style={{
+                backgroundColor: colors.warning + "20",
+                borderColor: colors.warning,
+                borderWidth: 1,
+                padding: 16,
+                borderRadius: 12,
+              }}
+            >
+              <Text className="text-center font-semibold text-foreground mb-2">
+                ⚠️ Configure seu Perfil de Hidratação
+              </Text>
+              <Text className="text-center text-sm text-muted">
+                Calcule sua meta ideal baseada em peso, altura e tipo de trabalho
+              </Text>
+            </Pressable>
+          ) : (
+            <View className="bg-surface rounded-2xl p-4 gap-3">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-base font-semibold text-foreground">Seu Perfil</Text>
+                <Pressable onPress={() => setShowProfileModal(true)}>
+                  <Text className="text-primary font-semibold">Editar</Text>
+                </Pressable>
+              </View>
+              <View className="flex-row gap-4">
+                <View className="flex-1">
+                  <Text className="text-xs text-muted">Peso</Text>
+                  <Text className="text-sm font-semibold text-foreground">{userProfile.weight} kg</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-muted">Altura</Text>
+                  <Text className="text-sm font-semibold text-foreground">{userProfile.height} cm</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-muted">Trabalho</Text>
+                  <Text className="text-sm font-semibold text-foreground">
+                    {getWorkTypeLabel(userProfile.workType).split(" ")[1]}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           {/* Progresso Diário */}
           <View className="gap-4 bg-surface rounded-2xl p-6">
@@ -183,6 +336,123 @@ export default function HydrationTrackerScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* Modal de Perfil */}
+      <Modal
+        visible={showProfileModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowProfileModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 16 }}>
+          <View style={{ backgroundColor: colors.background, borderRadius: 16, padding: 24, gap: 20 }}>
+            <Text className="text-2xl font-bold text-foreground text-center">
+              Calcular Meta de Hidratação
+            </Text>
+
+            <View className="gap-4">
+              {/* Peso */}
+              <View className="gap-2">
+                <Text className="text-sm font-semibold text-foreground">Peso (kg)</Text>
+                <TextInput
+                  value={weight}
+                  onChangeText={setWeight}
+                  keyboardType="numeric"
+                  placeholder="Ex: 75"
+                  placeholderTextColor={colors.muted}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    padding: 12,
+                    color: colors.foreground,
+                    fontSize: 16,
+                  }}
+                />
+              </View>
+
+              {/* Altura */}
+              <View className="gap-2">
+                <Text className="text-sm font-semibold text-foreground">Altura (cm)</Text>
+                <TextInput
+                  value={height}
+                  onChangeText={setHeight}
+                  keyboardType="numeric"
+                  placeholder="Ex: 175"
+                  placeholderTextColor={colors.muted}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    padding: 12,
+                    color: colors.foreground,
+                    fontSize: 16,
+                  }}
+                />
+              </View>
+
+              {/* Tipo de Trabalho */}
+              <View className="gap-2">
+                <Text className="text-sm font-semibold text-foreground">Tipo de Trabalho</Text>
+                <View className="gap-2">
+                  {(["leve", "moderado", "pesado"] as WorkType[]).map((type) => (
+                    <Pressable
+                      key={type}
+                      onPress={() => setWorkType(type)}
+                      style={{
+                        backgroundColor: workType === type ? colors.primary + "20" : colors.surface,
+                        borderColor: workType === type ? colors.primary : colors.border,
+                        borderWidth: 2,
+                        padding: 12,
+                        borderRadius: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: workType === type ? colors.primary : colors.foreground,
+                          fontWeight: workType === type ? "600" : "400",
+                        }}
+                      >
+                        {getWorkTypeLabel(type)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            {/* Botões */}
+            <View className="gap-3">
+              <Pressable
+                onPress={handleSaveProfile}
+                style={{
+                  backgroundColor: colors.primary,
+                  padding: 14,
+                  borderRadius: 8,
+                }}
+              >
+                <Text className="text-center text-background font-semibold text-base">
+                  Calcular e Salvar
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setShowProfileModal(false)}
+                style={{
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  padding: 14,
+                  borderRadius: 8,
+                }}
+              >
+                <Text className="text-center text-foreground font-semibold text-base">Cancelar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }

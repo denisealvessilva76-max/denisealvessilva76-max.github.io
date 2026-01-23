@@ -664,3 +664,20 @@
 - [x] Adicionar seção "Próximas Ações Sugeridas" - CONCLUÍDO: Até 3 ações priorizadas
 - [x] Integrar dashboard na tela principal (index.tsx) - CONCLUÍDO
 - [x] Adicionar animações e transições suaves - CONCLUÍDO: Pull-to-refresh
+
+## Calculadora de Hidratação Personalizada (23/01/2026 - 15:30)
+- [x] Criar formulário de dados pessoais (peso, altura, tipo de trabalho) - CONCLUÍDO
+- [x] Implementar fórmula de cálculo de hidratação ideal - CONCLUÍDO: 35ml/kg + ajuste por trabalho
+- [x] Considerar fatores: peso corporal, temperatura ambiente, esforço físico - CONCLUÍDO
+- [x] Salvar meta personalizada no perfil do usuário - CONCLUÍDO: AsyncStorage
+- [x] Mostrar progresso diário em barra visual - JÁ EXISTIA
+- [x] Integrar com sistema de notificações - JÁ EXISTIA
+
+## Relatório Mensal de Hidratação - Admin (23/01/2026 - 15:30)
+- [x] Criar schema no banco para salvar registros de hidratação por usuário - CONCLUÍDO: Tabela hydration_records
+- [x] Implementar API para enviar dados de hidratação ao servidor - CONCLUÍDO: /api/hydration/sync
+- [x] Criar tela de relatório mensal no painel admin - CONCLUÍDO: admin-hydration-report.tsx
+- [x] Gráfico comparativo de todos os empregados - CONCLUÍDO: Gráfico de compliance
+- [x] Identificar trabalhadores abaixo da meta - CONCLUÍDO: Compliance < 50% = risco
+- [ ] Exportar relatório em PDF/Excel - NÃO IMPLEMENTADO
+- [ ] Enviar relatório automático por email no fim do mês - NÃO IMPLEMENTADO

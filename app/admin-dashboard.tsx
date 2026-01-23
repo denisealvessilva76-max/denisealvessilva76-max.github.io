@@ -275,6 +275,18 @@ export default function AdminDashboardScreen() {
               <Text className="text-xl font-bold text-foreground">Ações</Text>
               
               <TouchableOpacity
+                className="bg-cyan-500 rounded-xl p-4"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/admin-hydration-report" as any);
+                }}
+              >
+                <Text className="text-white font-semibold text-center text-base">
+                  💧 Relatório de Hidratação Mensal
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
                 className="bg-blue-500 rounded-xl p-4"
                 onPress={async () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

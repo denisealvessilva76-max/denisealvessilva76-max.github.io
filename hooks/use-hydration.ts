@@ -75,14 +75,14 @@ export function useHydration() {
     }
   };
 
-  /**
+    /**
    * Registrar consumo de água
    */
   const logWaterIntake = async (glassesConsumed: number = 1): Promise<boolean> => {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const glassSize = 250; // ml por copo
-      const waterIntake = glassesConsumed * glassSize;
+      const waterPerGlass = 250; // ml
+      const waterIntake = glassesConsumed * waterPerGlass;
 
       const currentEntry = hydrationData[today] || {
         date: today,
@@ -94,7 +94,6 @@ export function useHydration() {
         ...currentEntry,
         waterIntake: currentEntry.waterIntake + waterIntake,
         glassesConsumed: currentEntry.glassesConsumed + glassesConsumed,
-        lastReminderTime: new Date().toISOString(),
       };
 
       const updatedData = {
@@ -102,18 +101,15 @@ export function useHydration() {
         [today]: updatedEntry,
       };
 
-      const saved = await saveHydrationData(updatedData);
-      if (!saved) {
-        throw new Error("Falha ao salvar dados");
-      }
-
-      // Sincronizar com servidor
-      await syncHydrationToServer(updatedEntry);
+      await saveHydrationData(updatedData);
 
       // Verificar se atingiu a meta diária
       if (updatedEntry.waterIntake >= reminderSettings.dailyGoal) {
         await sendDailyGoalNotification(updatedEntry.waterIntake);
       }
+
+      // Sincronizar com servidor (incluindo dados do perfil)
+      await syncHydrationToServer(updatedEntry, reminderSettings.dailyGoal);
 
       return true;
     } catch (error) {
@@ -123,21 +119,34 @@ export function useHydration() {
   };
 
   /**
-   * Sincronizar dados de hidratação com servidor
+   * Sincronizar dados de hidratação com o servidor
    */
-  const syncHydrationToServer = async (entry: HydrationEntry) => {
+  const syncHydrationToServer = async (entry: HydrationEntry, dailyGoal: number) => {
     try {
-      const workerId = await SecureStore.getItemAsync("worker_id");
-      if (!workerId) return;
+      const token = await SecureStore.getItemAsync("auth_token");
+      if (!token) return;
 
-      const response = await fetch(`${API_BASE_URL}/api/hydration/log`, {
+      // Carregar perfil do usuário
+      const profileData = await AsyncStorage.getItem("user_hydration_profile");
+      let profile = null;
+      if (profileData) {
+        profile = JSON.parse(profileData);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/hydration/sync`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          workerId,
-          ...entry,
+          date: entry.date,
+          waterIntake: entry.waterIntake,
+          glassesConsumed: entry.glassesConsumed,
+          dailyGoal,
+          weight: profile?.weight,
+          height: profile?.height,
+          workType: profile?.workType,
         }),
       });
 
@@ -270,6 +279,13 @@ export function useHydration() {
     await saveReminderSettings(updated);
   };
 
+  /**
+   * Atualizar meta diária de hidratação
+   */
+  const setDailyGoal = async (newGoal: number) => {
+    await updateReminderSettings({ dailyGoal: newGoal });
+  };
+
   return {
     hydrationData,
     isLoading,
@@ -280,5 +296,6 @@ export function useHydration() {
     getHydrationHistory,
     getDailyProgress,
     updateReminderSettings,
+    setDailyGoal,
   };
 }
