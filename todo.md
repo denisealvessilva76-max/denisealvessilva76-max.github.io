@@ -243,3 +243,46 @@
 
 ## Bugs Corrigidos
 - [x] Corrigir "Maximum update depth exceeded" - loop infinito de renderização
+
+---
+
+## Bugs Críticos Reportados (Prioridade Máxima)
+- [x] Aba de acesso administrativo não aparece no Perfil
+- [x] Ao relatar dor não aparece campo para escrever detalhes
+- [x] Não tem campo para calcular água ingerida (copos/garrafas)
+- [x] Lembretes de água não funcionam
+- [x] Erro ao registrar notificação (corrigido com useCallback)
+- [x] Link do WhatsApp não funciona corretamente (adicionado +55)
+- [x] Ao selecionar "dor leve" não aparece aviso de procurar ajuda (formulário completo)
+- [x] Não aparece campo para especificar de onde vem a dor (formulário completo)
+
+---
+
+## Funcionalidades Faltantes Críticas
+- [ ] Botão "Área Administrativa" visível na tela Perfil
+- [ ] Formulário detalhado ao clicar em "Dor leve" ou "Dor forte"
+- [ ] Campo obrigatório para descrever a dor
+- [ ] Aviso visual "Procure o SESMT" ao reportar dor
+- [ ] Sistema de rastreamento de hidratação com copos/garrafas
+- [ ] Contador visual de água ingerida no dia
+- [ ] Lembretes de hidratação a cada 2 horas
+- [ ] Correção do link do WhatsApp (21 99822-5493)
+- [ ] Envio automático de relatórios para denise.silva@mip.com.br
+- [ ] Dashboard com gráficos acessível pelo admin
+- [ ] Exportação de relatórios semanais/mensais
+
+---
+
+## Ferramentas de Saúde Mental (Implementado)
+- [x] Criar aba/seção de Saúde Mental
+- [x] Guias de apoio emocional
+- [x] Técnicas de respiração e relaxamento (4-7-8)
+- [x] Auxílio para momentos difíceis (quando procurar ajuda)
+- [x] Lista de recursos em Canaã dos Carajás (CAPS)
+- [x] Contato da psicóloga da obra (Brenda Fernandes)
+- [x] Contato da assistente social da obra (Luciana Nascimento)
+- [x] Links para CVV (Centro de Valorização da Vida - 188)
+- [x] Botões de contato direto e solicitação de atendimento
+- [x] Aviso de sigilo profissional garantido por lei
+- [x] Mapa da Saúde Mental (recursos nacionais)
+- [x] Dicas para o dia a dia

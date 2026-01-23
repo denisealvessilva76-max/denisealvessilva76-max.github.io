@@ -33,6 +33,16 @@ export default function HomeScreen() {
 
   const handleCheckIn = async (status: CheckInStatus) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Se reportar dor, abrir formulário detalhado
+    if (status === "dor-leve" || status === "dor-forte") {
+      router.push({
+        pathname: "/complaint-form",
+        params: { severity: status === "dor-leve" ? "leve" : "forte" }
+      });
+      return;
+    }
+    
     const result = await addCheckIn(status);
     if (result) {
       setTodayCheckIn(result);
@@ -167,6 +177,17 @@ export default function HomeScreen() {
             >
               <Text className="text-center font-semibold text-primary">
                 Fazer Pausa Ativa
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-blue-500/20 rounded-xl p-4 active:opacity-80 border border-blue-500"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/hydration-tracker");
+              }}
+            >
+              <Text className="text-center font-semibold text-blue-500">
+                💧 Registrar Hidratação
               </Text>
             </TouchableOpacity>
           </View>

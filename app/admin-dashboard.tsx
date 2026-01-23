@@ -73,6 +73,72 @@ export default function AdminDashboardScreen() {
     }
   };
 
+  const handleEmailReport = async () => {
+    Alert.alert(
+      "Enviar Relatório por Email",
+      `O relatório será enviado para denise.silva@mip.com.br`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Enviar Semanal",
+          onPress: async () => {
+            try {
+              const token = await SecureStore.getItemAsync("admin_token");
+              const response = await fetch("http://127.0.0.1:3000/api/email-reports/send", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  period: "week",
+                  reportType: "health",
+                }),
+              });
+
+              if (response.ok) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                Alert.alert("Sucesso", "Relatório enviado por email!");
+              } else {
+                throw new Error("Erro ao enviar");
+              }
+            } catch (error) {
+              Alert.alert("Erro", "Não foi possível enviar o relatório");
+            }
+          },
+        },
+        {
+          text: "Enviar Mensal",
+          onPress: async () => {
+            try {
+              const token = await SecureStore.getItemAsync("admin_token");
+              const response = await fetch("http://127.0.0.1:3000/api/email-reports/send", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  period: "month",
+                  reportType: "health",
+                }),
+              });
+
+              if (response.ok) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                Alert.alert("Sucesso", "Relatório enviado por email!");
+              } else {
+                throw new Error("Erro ao enviar");
+              }
+            } catch (error) {
+              Alert.alert("Erro", "Não foi possível enviar o relatório");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleLogout = async () => {
     Alert.alert("Sair", "Deseja realmente sair?", [
       {
@@ -431,6 +497,22 @@ export default function AdminDashboardScreen() {
             >
               <Text className="text-center text-background font-semibold">
                 📄 Exportar Relatório PDF
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleEmailReport}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: "#10b981",
+                  opacity: pressed ? 0.7 : 1,
+                  padding: 14,
+                  borderRadius: 8,
+                },
+              ]}
+            >
+              <Text className="text-center text-background font-semibold">
+                📧 Enviar Relatório por Email
               </Text>
             </Pressable>
 

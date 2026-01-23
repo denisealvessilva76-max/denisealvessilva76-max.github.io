@@ -65,7 +65,7 @@ export default function PerfilScreen() {
 
   const handleContatoSESMT = async () => {
     const message = `Olá, sou trabalhador da Obra 345 e gostaria de falar sobre saúde ocupacional.`;
-    const url = `whatsapp://send?phone=${SESMT_PHONE}&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=+55${SESMT_PHONE}&text=${encodeURIComponent(message)}`;
 
     try {
       const supported = await Linking.canOpenURL(url);
@@ -216,6 +216,44 @@ export default function PerfilScreen() {
                 </View>
               </View>
             )}
+          </Card>
+
+          {/* Saúde Mental */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">💙 Saúde Mental</Text>
+            <Text className="text-sm text-muted">
+              Acesse recursos de apoio emocional e profissionais disponíveis
+            </Text>
+            <TouchableOpacity
+              className="bg-primary rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/saude-mental");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Acessar Recursos
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
+          {/* Área Administrativa */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">🔐 Área Administrativa</Text>
+            <Text className="text-sm text-muted">
+              Acesso exclusivo para gestão de saúde ocupacional
+            </Text>
+            <TouchableOpacity
+              className="bg-orange-500 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/admin-login");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Entrar como Administrador
+              </Text>
+            </TouchableOpacity>
           </Card>
 
           {/* Configuração de Notificações */}

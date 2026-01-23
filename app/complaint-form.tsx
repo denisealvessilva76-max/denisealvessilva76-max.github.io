@@ -1,39 +1,70 @@
-import { ScrollView, Text, View, TextInput, Pressable, Alert } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Pressable, Alert } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
+import { Card } from "@/components/ui/card";
 import { useHealthReferrals } from "@/hooks/use-health-referrals";
+import { useHealthData } from "@/hooks/use-health-data";
 import { useState } from "react";
 import { useColors } from "@/hooks/use-colors";
+import * as Haptics from "expo-haptics";
+
+const PAIN_LOCATIONS = [
+  "Cabeça",
+  "Pescoço",
+  "Ombros",
+  "Costas (superior)",
+  "Costas (inferior)",
+  "Braços",
+  "Mãos/Punhos",
+  "Pernas",
+  "Joelhos",
+  "Pés/Tornozelos",
+  "Outro",
+];
 
 export default function ComplaintFormScreen() {
   const router = useRouter();
   const colors = useColors();
+  const params = useLocalSearchParams();
   const { createReferral } = useHealthReferrals();
+  const { addCheckIn } = useHealthData();
+  const [painLocation, setPainLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [severity, setSeverity] = useState<"leve" | "moderada" | "grave">("leve");
-  const [complaintType, setComplaintType] = useState<"dor-leve" | "dor-forte" | "outro">(
-    "dor-leve"
+  const [severity] = useState<"leve" | "moderada" | "grave">(
+    params.severity === "leve" ? "leve" : "grave"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    if (!painLocation) {
+      Alert.alert("Erro", "Por favor, selecione a localização da dor");
+      return;
+    }
+
     if (!description.trim()) {
-      Alert.alert("Erro", "Por favor, descreva sua queixa");
+      Alert.alert("Erro", "Por favor, descreva sua dor");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = await createReferral(complaintType, description, severity);
+      // Salvar check-in com dor
+      const checkInStatus = severity === "leve" ? "dor-leve" : "dor-forte";
+      await addCheckIn(checkInStatus as any);
+
+      // Criar encaminhamento
+      const fullDescription = `Localização: ${painLocation}\n\nDescrição: ${description}`;
+      const result = await createReferral(checkInStatus as any, fullDescription, severity);
 
       if (result) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         Alert.alert(
-          "Sucesso",
-          "Sua queixa foi encaminhada ao setor de saúde. Você será contatado em breve.",
+          "✅ Encaminhado ao SESMT",
+          "Sua queixa foi registrada e encaminhada ao Serviço de Saúde Ocupacional. Você será contatado em breve.\n\n⚠️ Se a dor for muito forte, procure atendimento médico imediatamente.",
           [
             {
-              text: "OK",
-              onPress: () => router.back(),
+              text: "Entendi",
+              onPress: () => router.replace("/(tabs)"),
             },
           ]
         );
@@ -49,71 +80,84 @@ export default function ComplaintFormScreen() {
 
   return (
     <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <View className="gap-6">
           {/* Header */}
           <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">Relatar Queixa</Text>
+            <TouchableOpacity onPress={() => router.back()} className="mb-2">
+              <Text className="text-primary text-base">← Voltar</Text>
+            </TouchableOpacity>
+            <Text className="text-3xl font-bold text-foreground">Relatar Dor</Text>
             <Text className="text-base text-muted">
-              Descreva sua queixa para que o setor de saúde possa ajudá-lo
+              Preencha os campos abaixo para que o SESMT possa te ajudar
             </Text>
           </View>
 
-          {/* Tipo de Queixa */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Tipo de Queixa</Text>
-            <View className="gap-2">
-              {[
-                { value: "dor-leve", label: "🤕 Dor Leve" },
-                { value: "dor-forte", label: "😣 Dor Forte" },
-                { value: "outro", label: "❓ Outro" },
-              ].map((option) => (
-                <Pressable
-                  key={option.value}
-                  onPress={() => setComplaintType(option.value as any)}
-                  style={({ pressed }) => [
-                    {
-                      backgroundColor:
-                        complaintType === option.value ? colors.primary : colors.surface,
-                      borderColor:
-                        complaintType === option.value ? colors.primary : colors.border,
-                      borderWidth: 2,
-                      padding: 12,
-                      borderRadius: 8,
-                      opacity: pressed ? 0.7 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    className={
-                      complaintType === option.value ? "text-background font-semibold" : "text-foreground"
-                    }
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
+          {/* Aviso de Urgência */}
+          {severity === "grave" && (
+            <Card className="bg-error/10 border border-error gap-2">
+              <Text className="text-sm font-semibold text-error">⚠️ Dor Forte Detectada</Text>
+              <Text className="text-sm text-foreground leading-relaxed">
+                Se você está sentindo uma dor muito intensa, procure atendimento médico
+                imediatamente. Não espere!
+              </Text>
+              <TouchableOpacity
+                className="bg-error rounded-lg py-2 mt-2 active:opacity-80"
+                onPress={() => {
+                  Alert.alert(
+                    "Contato SESMT",
+                    "Ligue para o SESMT: (21) 99822-5493",
+                    [
+                      { text: "Cancelar", style: "cancel" },
+                      { text: "Ligar Agora", onPress: () => {} },
+                    ]
+                  );
+                }}
+              >
+                <Text className="text-center font-semibold text-white">
+                  📞 Ligar para SESMT Agora
+                </Text>
+              </TouchableOpacity>
+            </Card>
+          )}
 
           {/* Severidade */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Severidade</Text>
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">Intensidade da Dor</Text>
+            <View
+              className={`p-4 rounded-lg ${
+                severity === "leve" ? "bg-warning/10 border border-warning" : "bg-error/10 border border-error"
+              }`}
+            >
+              <Text
+                className={`text-center font-bold text-lg ${
+                  severity === "leve" ? "text-warning" : "text-error"
+                }`}
+              >
+                {severity === "leve" ? "😐 Dor Leve" : "😞 Dor Forte"}
+              </Text>
+            </View>
+          </Card>
+
+          {/* Localização da Dor */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">
+              Onde está a dor? <Text className="text-error">*</Text>
+            </Text>
             <View className="gap-2">
-              {[
-                { value: "leve", label: "🟢 Leve" },
-                { value: "moderada", label: "🟡 Moderada" },
-                { value: "grave", label: "🔴 Grave" },
-              ].map((option) => (
+              {PAIN_LOCATIONS.map((location) => (
                 <Pressable
-                  key={option.value}
-                  onPress={() => setSeverity(option.value as any)}
+                  key={location}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setPainLocation(location);
+                  }}
                   style={({ pressed }) => [
                     {
                       backgroundColor:
-                        severity === option.value ? colors.primary : colors.surface,
+                        painLocation === location ? colors.primary : colors.surface,
                       borderColor:
-                        severity === option.value ? colors.primary : colors.border,
+                        painLocation === location ? colors.primary : colors.border,
                       borderWidth: 2,
                       padding: 12,
                       borderRadius: 8,
@@ -123,92 +167,82 @@ export default function ComplaintFormScreen() {
                 >
                   <Text
                     className={
-                      severity === option.value ? "text-background font-semibold" : "text-foreground"
+                      painLocation === location
+                        ? "text-background font-semibold"
+                        : "text-foreground"
                     }
                   >
-                    {option.label}
+                    {painLocation === location ? "✓ " : ""}
+                    {location}
                   </Text>
                 </Pressable>
               ))}
             </View>
-          </View>
+          </Card>
 
-          {/* Descrição */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Descrição Detalhada</Text>
+          {/* Descrição da Dor */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">
+              Descreva sua dor <Text className="text-error">*</Text>
+            </Text>
+            <Text className="text-sm text-muted">
+              Conte mais detalhes: quando começou, o que você estava fazendo, como é a dor
+              (latejante, aguda, contínua), etc.
+            </Text>
             <TextInput
-              placeholder="Descreva sua queixa em detalhes..."
+              className="bg-surface border border-border rounded-lg p-4 text-foreground min-h-[120px]"
+              placeholder="Ex: A dor começou hoje de manhã quando estava carregando sacos de cimento. É uma dor aguda nas costas que piora quando me abaixo..."
               placeholderTextColor={colors.muted}
-              value={description}
-              onChangeText={setDescription}
               multiline
               numberOfLines={6}
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 8,
-                padding: 12,
-                color: colors.foreground,
-                minHeight: 120,
-                textAlignVertical: "top",
-              }}
+              textAlignVertical="top"
+              value={description}
+              onChangeText={setDescription}
+              maxLength={500}
             />
-            <Text className="text-sm text-muted">
+            <Text className="text-xs text-muted text-right">
               {description.length}/500 caracteres
             </Text>
-          </View>
+          </Card>
 
-          {/* Informações */}
-          <View
-            style={{ backgroundColor: colors.surface, borderLeftColor: colors.warning, borderLeftWidth: 4 }}
-            className="p-3 rounded-lg gap-2"
-          >
-            <Text className="text-sm font-semibold text-foreground">ℹ️ Informações Importantes</Text>
-            <Text className="text-xs text-muted leading-relaxed">
-              Sua queixa será encaminhada ao setor de saúde ocupacional (SESMT) para análise. Você será
-              contatado em breve com orientações e, se necessário, será agendado um atendimento.
+          {/* Aviso de Sigilo */}
+          <Card className="bg-primary/10 border border-primary gap-2">
+            <Text className="text-sm font-semibold text-primary">🔒 Sigilo Garantido</Text>
+            <Text className="text-sm text-foreground leading-relaxed">
+              Suas informações são confidenciais e protegidas por lei. Apenas profissionais de
+              saúde autorizados terão acesso.
             </Text>
-          </View>
+          </Card>
 
           {/* Botões */}
-          <View className="gap-3 mt-4">
-            <Pressable
+          <View className="gap-3">
+            <TouchableOpacity
+              className={`rounded-lg py-4 ${isSubmitting ? "bg-muted" : "bg-primary"} active:opacity-80`}
               onPress={handleSubmit}
               disabled={isSubmitting}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.primary,
-                  opacity: pressed || isSubmitting ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
             >
-              <Text className="text-center text-background font-semibold text-base">
-                {isSubmitting ? "Enviando..." : "Enviar Queixa"}
+              <Text className="text-center font-bold text-white text-base">
+                {isSubmitting ? "Enviando..." : "Enviar ao SESMT"}
               </Text>
-            </Pressable>
+            </TouchableOpacity>
 
-            <Pressable
+            <TouchableOpacity
+              className="bg-surface border border-border rounded-lg py-4 active:opacity-80"
               onPress={() => router.back()}
               disabled={isSubmitting}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  opacity: pressed ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
             >
-              <Text className="text-center text-foreground font-semibold text-base">
-                Cancelar
-              </Text>
-            </Pressable>
+              <Text className="text-center font-semibold text-foreground">Cancelar</Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Dica */}
+          <Card className="bg-success/10 border border-success gap-2">
+            <Text className="text-sm font-semibold text-success">💡 Dica</Text>
+            <Text className="text-sm text-foreground leading-relaxed">
+              Enquanto aguarda o contato do SESMT, evite movimentos que causem dor e descanse
+              sempre que possível.
+            </Text>
+          </Card>
         </View>
       </ScrollView>
     </ScreenContainer>
