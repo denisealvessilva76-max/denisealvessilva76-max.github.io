@@ -851,3 +851,14 @@
 - [x] Salvar flag de "onboarding completo" em AsyncStorage
 - [x] Testar fluxo completo de primeira abertura
 - [x] Adicionar botão "Rever Tutorial" na tela de perfil
+
+---
+
+## Bug: Onboarding não avança entre páginas (RESOLVIDO)
+- [x] Investigar por que não sai da primeira página
+- [x] Corrigir lógica de navegação entre slides
+- [x] Corrigir função handleFinish que reinicia ao invés de completar
+- [x] Testar botão "Próximo" entre as 3 páginas
+- [x] Testar botão "Começar" na última página
+- [x] Verificar se completeOnboarding está sendo chamado corretamente
+- [x] Remover loop de redirecionamento no _layout.tsx

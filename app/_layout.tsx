@@ -50,12 +50,12 @@ export default function RootLayout() {
 
     const inOnboarding = segments[0] === "onboarding";
 
+    // Apenas redireciona se o usuário não completou e não está no onboarding
     if (!isOnboardingCompleted && !inOnboarding) {
       router.replace("/onboarding");
-    } else if (isOnboardingCompleted && inOnboarding) {
-      router.replace("/(tabs)");
     }
-  }, [isOnboardingCompleted, isLoading, segments]);
+    // Não força redirecionamento se já completou - deixa o onboarding screen fazer isso
+  }, [isOnboardingCompleted, isLoading, segments, router]);
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
