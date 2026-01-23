@@ -651,3 +651,8 @@
 - [ ] Dicas de saúde para familiares
 - [ ] Mensagens de incentivo
 - [ ] Configurações de privacidade
+
+## Atualização de Vídeos - YouTube Real (23/01/2026 - 14:30)
+- [x] Buscar vídeos reais de alongamento para canteiro de obras no YouTube - CONCLUÍDO
+- [x] Substituir URLs de exemplo por URLs reais - CONCLUÍDO: 3 vídeos principais do YouTube
+- [x] Validar que todos os vídeos são acessíveis e adequados - CONCLUÍDO
