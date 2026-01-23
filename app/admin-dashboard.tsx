@@ -7,6 +7,7 @@ import * as SecureStore from "expo-secure-store";
 import * as Haptics from "expo-haptics";
 import { LineChart } from "@/components/charts/line-chart";
 import { BarChart } from "@/components/charts/bar-chart";
+import { generateHealthReport } from "@/lib/generate-health-report";
 
 interface AnalyticsData {
   period: string;
@@ -240,13 +241,16 @@ export default function AdminDashboardScreen() {
               <Text className="text-xl font-bold text-foreground">Ações</Text>
               
               <TouchableOpacity
-                className="bg-primary rounded-xl p-4"
-                onPress={() => {
+                className="bg-green-500 rounded-xl p-4"
+                onPress={async () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  Alert.alert(
-                    "Exportar Relatório",
-                    "Funcionalidade de exportação em desenvolvimento"
-                  );
+                  if (data) {
+                    try {
+                      await generateHealthReport(data, email);
+                    } catch (error) {
+                      console.error("Erro ao exportar:", error);
+                    }
+                  }
                 }}
               >
                 <Text className="text-center font-semibold text-white">

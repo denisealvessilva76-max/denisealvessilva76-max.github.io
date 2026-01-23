@@ -508,3 +508,20 @@
 - [x] Verificar URL da API no código - CORRIGIDO: admin-login.tsx e admin-dashboard.tsx atualizados
 - [x] Testar conectividade com servidor - OK: Servidor respondendo corretamente
 - [x] Garantir que variável de ambiente EXPO_PUBLIC_API_URL está correta - OK: Fallback atualizado
+
+---
+
+## 📄 Exportação de Relatórios em PDF (Nova Funcionalidade)
+- [x] Instalar biblioteca expo-print e expo-sharing
+- [x] Criar função de geração de relatório PDF (lib/generate-health-report.ts)
+- [x] Incluir cabeçalho com logo e informações da obra
+- [x] Incluir indicadores resumo (absenteísmo, trabalhadores, resolvidos, pendentes)
+- [x] Incluir descrição dos gráficos principais (top 10 queixas, estados emocionais, riscos ergonômicos)
+- [x] Incluir período selecionado no relatório
+- [x] Incluir data e hora de geração
+- [x] Incluir assinatura digital (Denise Alves da Silva - Técnica de Enfermagem do Trabalho)
+- [x] Botão de exportar funcionando no dashboard admin
+- [x] Compartilhamento do PDF gerado (expo-sharing no mobile, download no web)
+- [x] Mensagem de confirmação após exportação
+- [x] Relatório formatado profissionalmente com CSS
+- [x] Rodapé com créditos e aviso de confidencialidade
