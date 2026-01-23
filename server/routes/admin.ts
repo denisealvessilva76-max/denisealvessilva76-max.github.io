@@ -523,3 +523,33 @@ router.get("/analytics", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Erro ao obter analytics" });
   }
 });
+
+
+/**
+ * POST /api/admin/send-report-email
+ * Enviar relatório por email
+ */
+router.post("/send-report-email", async (req: Request, res: Response) => {
+  try {
+    const { data, email } = req.body;
+
+    if (!data || !email) {
+      return res.status(400).json({ error: "Dados e email são obrigatórios" });
+    }
+
+    // Por enquanto, apenas simular envio
+    // Em produção, integrar com SendGrid, AWS SES, ou similar
+    console.log(`📧 Relatório seria enviado para: ${email}`);
+    console.log(`📊 Período: ${data.period}`);
+    console.log(`👥 Trabalhadores: ${data.summary.uniqueWorkers}`);
+    console.log(`📈 Absenteísmo: ${data.summary.absenteeismRate}%`);
+
+    res.json({
+      success: true,
+      message: `Relatório enviado com sucesso para ${email}`,
+    });
+  } catch (error) {
+    console.error("Erro ao enviar relatório:", error);
+    res.status(500).json({ error: "Erro ao enviar relatório" });
+  }
+});

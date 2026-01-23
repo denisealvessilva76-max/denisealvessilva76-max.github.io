@@ -240,33 +240,28 @@ export default function AdminDashboardScreen() {
               <Text className="text-xl font-bold text-foreground">Ações</Text>
               
               <TouchableOpacity
-                className="bg-green-500 rounded-xl p-4"
+                className="bg-blue-500 rounded-xl p-4"
                 onPress={async () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   if (data) {
                     try {
-                      const { generateHealthReport } = await import("@/lib/generate-health-report");
-                      await generateHealthReport(data, email);
+                      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://3000-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer";
+                      const response = await fetch(`${API_URL}/api/admin/send-report-email`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ data, email: "denise.silva@mip.com.br" }),
+                      });
+                      const result = await response.json();
+                      if (result.success) {
+                        Alert.alert("✅ Sucesso", result.message);
+                      } else {
+                        Alert.alert("❌ Erro", result.error || "Falha ao enviar relatório");
+                      }
                     } catch (error) {
-                      console.error("Erro ao exportar:", error);
-                      Alert.alert("Erro", "Falha ao gerar relatório PDF");
+                      console.error("Erro ao enviar:", error);
+                      Alert.alert("❌ Erro", "Falha ao enviar relatório por email");
                     }
                   }
-                }}
-              >
-                <Text className="text-center font-semibold text-white">
-                  📊 Exportar Relatório PDF
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="bg-blue-500 rounded-xl p-4"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  Alert.alert(
-                    "Enviar por Email",
-                    "Relatório será enviado para denise.silva@mip.com.br"
-                  );
                 }}
               >
                 <Text className="text-center font-semibold text-white">
