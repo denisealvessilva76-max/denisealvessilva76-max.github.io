@@ -1,42 +1,46 @@
-import { ScrollView, Text, View, Pressable, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState, useCallback } from "react";
 import { useColors } from "@/hooks/use-colors";
 import * as SecureStore from "expo-secure-store";
 import * as Haptics from "expo-haptics";
+import { LineChart } from "@/components/charts/line-chart";
+import { BarChart } from "@/components/charts/bar-chart";
 
-interface DashboardData {
-  totalEmployees: number;
-  totalCheckIns: number;
-  averagePressure: {
-    systolic: number;
-    diastolic: number;
+interface AnalyticsData {
+  period: string;
+  summary: {
+    totalReferrals: number;
+    resolvedReferrals: number;
+    pendingReferrals: number;
+    uniqueWorkers: number;
+    absenteeismRate: number;
   };
-  wellnessDistribution: {
-    good: number;
-    mild: number;
-    severe: number;
+  charts: {
+    topComplaints: { x: number; y: number; label: string }[];
+    emotionalDistribution: { x: number; y: number; label: string }[];
+    checkInTimeSeries: { x: number; y: number; label: string }[];
+    ergonomicRiskData: { x: number; y: number; label: string }[];
   };
-  atRiskEmployees: number;
-  referralsThisWeek: number;
-  medalsBadges: number;
 }
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const colors = useColors();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const [email, setEmail] = useState("");
 
   useFocusEffect(
     useCallback(() => {
-      loadDashboardData();
-    }, [])
+      loadAnalyticsData();
+    }, [period])
   );
 
-  const loadDashboardData = async () => {
+  const loadAnalyticsData = async () => {
     try {
       setIsLoading(true);
 
@@ -50,7 +54,8 @@ export default function AdminDashboardScreen() {
 
       setEmail(storedEmail);
 
-      const response = await fetch("http://127.0.0.1:3000/api/admin/dashboard", {
+      const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:3000";
+      const response = await fetch(`${API_URL}/api/admin/analytics?period=${period}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -64,475 +69,208 @@ export default function AdminDashboardScreen() {
         throw new Error("Erro ao carregar dados");
       }
 
-      const dashboardData = await response.json();
-      setData(dashboardData);
+      const analyticsData = await response.json();
+      setData(analyticsData);
     } catch (error) {
-      Alert.alert("Erro", error instanceof Error ? error.message : "Erro ao carregar dashboard");
+      Alert.alert("Erro", error instanceof Error ? error.message : "Erro ao carregar analytics");
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleEmailReport = async () => {
-    Alert.alert(
-      "Enviar Relatório por Email",
-      `O relatório será enviado para denise.silva@mip.com.br`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Enviar Semanal",
-          onPress: async () => {
-            try {
-              const token = await SecureStore.getItemAsync("admin_token");
-              const response = await fetch("http://127.0.0.1:3000/api/email-reports/send", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  period: "week",
-                  reportType: "health",
-                }),
-              });
-
-              if (response.ok) {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                Alert.alert("Sucesso", "Relatório enviado por email!");
-              } else {
-                throw new Error("Erro ao enviar");
-              }
-            } catch (error) {
-              Alert.alert("Erro", "Não foi possível enviar o relatório");
-            }
-          },
-        },
-        {
-          text: "Enviar Mensal",
-          onPress: async () => {
-            try {
-              const token = await SecureStore.getItemAsync("admin_token");
-              const response = await fetch("http://127.0.0.1:3000/api/email-reports/send", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  period: "month",
-                  reportType: "health",
-                }),
-              });
-
-              if (response.ok) {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                Alert.alert("Sucesso", "Relatório enviado por email!");
-              } else {
-                throw new Error("Erro ao enviar");
-              }
-            } catch (error) {
-              Alert.alert("Erro", "Não foi possível enviar o relatório");
-            }
-          },
-        },
-      ]
-    );
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadAnalyticsData();
   };
 
   const handleLogout = async () => {
-    Alert.alert("Sair", "Deseja realmente sair?", [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
-      {
-        text: "Sair",
-        onPress: async () => {
-          await SecureStore.deleteItemAsync("admin_token");
-          await SecureStore.deleteItemAsync("admin_email");
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          router.push("/admin-login");
-        },
-        style: "destructive",
-      },
-    ]);
+    await SecureStore.deleteItemAsync("admin_token");
+    await SecureStore.deleteItemAsync("admin_email");
+    router.push("/admin-login");
   };
 
-  if (isLoading) {
+  if (isLoading && !data) {
     return (
       <ScreenContainer className="justify-center items-center">
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text className="text-foreground mt-4">Carregando dados...</Text>
-      </ScreenContainer>
-    );
-  }
-
-  if (!data) {
-    return (
-      <ScreenContainer className="p-4 justify-center items-center gap-4">
-        <Text className="text-foreground text-lg">Erro ao carregar dados</Text>
-        <Pressable
-          onPress={loadDashboardData}
-          style={({ pressed }) => [
-            {
-              backgroundColor: colors.primary,
-              opacity: pressed ? 0.7 : 1,
-              padding: 12,
-              borderRadius: 8,
-            },
-          ]}
-        >
-          <Text className="text-background font-semibold">Tentar Novamente</Text>
-        </Pressable>
+        <Text className="text-muted mt-4">Carregando analytics...</Text>
       </ScreenContainer>
     );
   }
 
   return (
-    <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        <View className="gap-6 pb-6">
-          {/* Header */}
-          <View className="gap-2">
-            <View className="flex-row justify-between items-center">
-              <View className="flex-1">
-                <Text className="text-3xl font-bold text-foreground">📊 Dashboard SESMT</Text>
-                <Text className="text-sm text-muted">{email}</Text>
-              </View>
-              <Pressable
-                onPress={handleLogout}
-                style={({ pressed }) => [
-                  {
-                    opacity: pressed ? 0.7 : 1,
-                    padding: 8,
-                  },
-                ]}
-              >
-                <Text className="text-2xl">🚪</Text>
-              </Pressable>
+    <ScreenContainer>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+      >
+        {/* Header */}
+        <View className="p-4 bg-primary">
+          <View className="flex-row justify-between items-center">
+            <View>
+              <Text className="text-2xl font-bold text-white">Painel SESMT</Text>
+              <Text className="text-sm text-white/80 mt-1">{email}</Text>
             </View>
-          </View>
-
-          {/* Métricas Principais */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Visão Geral</Text>
-
-            {/* Grid de Métricas */}
-            <View className="gap-3">
-              {/* Total de Empregados */}
-              <View
-                style={{
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  borderRadius: 12,
-                  padding: 16,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View>
-                  <Text className="text-sm text-muted">Total de Empregados</Text>
-                  <Text className="text-3xl font-bold text-foreground">
-                    {data.totalEmployees}
-                  </Text>
-                </View>
-                <Text className="text-4xl">👥</Text>
-              </View>
-
-              {/* Check-ins */}
-              <View
-                style={{
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  borderRadius: 12,
-                  padding: 16,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View>
-                  <Text className="text-sm text-muted">Check-ins Realizados</Text>
-                  <Text className="text-3xl font-bold text-foreground">
-                    {data.totalCheckIns}
-                  </Text>
-                </View>
-                <Text className="text-4xl">✅</Text>
-              </View>
-
-              {/* Empregados em Risco */}
-              <View
-                style={{
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  borderRadius: 12,
-                  padding: 16,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View>
-                  <Text className="text-sm text-muted">Empregados em Risco</Text>
-                  <Text className="text-3xl font-bold text-error">
-                    {data.atRiskEmployees}
-                  </Text>
-                </View>
-                <Text className="text-4xl">⚠️</Text>
-              </View>
-
-              {/* Encaminhamentos */}
-              <View
-                style={{
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  borderRadius: 12,
-                  padding: 16,
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View>
-                  <Text className="text-sm text-muted">Encaminhamentos (Esta Semana)</Text>
-                  <Text className="text-3xl font-bold text-warning">
-                    {data.referralsThisWeek}
-                  </Text>
-                </View>
-                <Text className="text-4xl">📋</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Pressão Arterial */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Pressão Arterial Média</Text>
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 12,
-                padding: 16,
-              }}
-            >
-              <View className="flex-row justify-between items-center">
-                <View className="flex-1">
-                  <Text className="text-sm text-muted">Sistólica</Text>
-                  <Text className="text-2xl font-bold text-foreground">
-                    {Math.round(data.averagePressure.systolic)} mmHg
-                  </Text>
-                </View>
-                <Text className="text-3xl">/</Text>
-                <View className="flex-1 items-flex-end">
-                  <Text className="text-sm text-muted">Diastólica</Text>
-                  <Text className="text-2xl font-bold text-foreground">
-                    {Math.round(data.averagePressure.diastolic)} mmHg
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Distribuição de Bem-estar */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">Distribuição de Bem-estar</Text>
-
-            {/* Tudo Bem */}
-            <View className="gap-2">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-sm text-foreground">😊 Tudo Bem</Text>
-                <Text className="text-sm font-semibold text-success">
-                  {data.wellnessDistribution.good}
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: colors.border,
-                  borderRadius: 8,
-                  height: 8,
-                  overflow: "hidden",
-                }}
-              >
-                <View
-                  style={{
-                    backgroundColor: colors.success,
-                    width: `${
-                      (data.wellnessDistribution.good /
-                        (data.wellnessDistribution.good +
-                          data.wellnessDistribution.mild +
-                          data.wellnessDistribution.severe)) *
-                      100
-                    }%`,
-                    height: "100%",
-                  }}
-                />
-              </View>
-            </View>
-
-            {/* Dor Leve */}
-            <View className="gap-2">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-sm text-foreground">😐 Dor Leve</Text>
-                <Text className="text-sm font-semibold text-warning">
-                  {data.wellnessDistribution.mild}
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: colors.border,
-                  borderRadius: 8,
-                  height: 8,
-                  overflow: "hidden",
-                }}
-              >
-                <View
-                  style={{
-                    backgroundColor: colors.warning,
-                    width: `${
-                      (data.wellnessDistribution.mild /
-                        (data.wellnessDistribution.good +
-                          data.wellnessDistribution.mild +
-                          data.wellnessDistribution.severe)) *
-                      100
-                    }%`,
-                    height: "100%",
-                  }}
-                />
-              </View>
-            </View>
-
-            {/* Dor Forte */}
-            <View className="gap-2">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-sm text-foreground">😢 Dor Forte</Text>
-                <Text className="text-sm font-semibold text-error">
-                  {data.wellnessDistribution.severe}
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: colors.border,
-                  borderRadius: 8,
-                  height: 8,
-                  overflow: "hidden",
-                }}
-              >
-                <View
-                  style={{
-                    backgroundColor: colors.error,
-                    width: `${
-                      (data.wellnessDistribution.severe /
-                        (data.wellnessDistribution.good +
-                          data.wellnessDistribution.mild +
-                          data.wellnessDistribution.severe)) *
-                      100
-                    }%`,
-                    height: "100%",
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Botões de Ação */}
-          <View className="gap-3">
-            <Pressable
-              onPress={() =>
-                Alert.alert("Em Breve", "Tela de encaminhamentos em desenvolvimento")
-              }
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.primary,
-                  opacity: pressed ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
-            >
-              <Text className="text-center text-background font-semibold">
-                📋 Ver Encaminhamentos
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() =>
-                Alert.alert("Em Breve", "Tela de empregados em risco em desenvolvimento")
-              }
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.error,
-                  opacity: pressed ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
-            >
-              <Text className="text-center text-background font-semibold">
-                ⚠️ Empregados em Risco
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                Alert.alert("Exportar Relatório", "Gerando PDF com análises e recomendações...", [
-                  { text: "Cancelar", style: "cancel" },
-                  { text: "Mês", onPress: () => {} },
-                  { text: "Semana", onPress: () => {} },
-                ]);
-              }}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.warning,
-                  opacity: pressed ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
-            >
-              <Text className="text-center text-background font-semibold">
-                📄 Exportar Relatório PDF
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={handleEmailReport}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: "#10b981",
-                  opacity: pressed ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
-            >
-              <Text className="text-center text-background font-semibold">
-                📧 Enviar Relatório por Email
-              </Text>
-            </Pressable>
-
-            <Pressable
+            <TouchableOpacity
+              className="bg-white/20 px-4 py-2 rounded-lg"
               onPress={handleLogout}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1,
-                  opacity: pressed ? 0.7 : 1,
-                  padding: 14,
-                  borderRadius: 8,
-                },
-              ]}
             >
-              <Text className="text-center text-foreground font-semibold">🚪 Sair</Text>
-            </Pressable>
+              <Text className="text-white font-semibold">Sair</Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Filtros de Período */}
+        <View className="p-4 bg-surface border-b border-border">
+          <Text className="text-sm font-semibold text-foreground mb-2">Período</Text>
+          <View className="flex-row gap-2">
+            {[
+              { key: "week", label: "Última Semana" },
+              { key: "month", label: "Último Mês" },
+              { key: "quarter", label: "Últimos 3 Meses" },
+            ].map((p) => (
+              <TouchableOpacity
+                key={p.key}
+                className={`flex-1 py-2 px-3 rounded-lg border ${
+                  period === p.key
+                    ? "bg-primary border-primary"
+                    : "bg-background border-border"
+                }`}
+                onPress={() => setPeriod(p.key as any)}
+              >
+                <Text
+                  className={`text-center text-sm font-semibold ${
+                    period === p.key ? "text-white" : "text-foreground"
+                  }`}
+                >
+                  {p.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {data && (
+          <View className="p-4 gap-4">
+            {/* Indicadores Resumo */}
+            <View className="gap-3">
+              <Text className="text-xl font-bold text-foreground">Indicadores Gerais</Text>
+              
+              <View className="flex-row gap-3">
+                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-3xl font-bold text-primary">
+                    {data.summary.absenteeismRate}%
+                  </Text>
+                  <Text className="text-sm text-muted mt-1">Taxa de Absenteísmo</Text>
+                </View>
+                
+                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-3xl font-bold text-foreground">
+                    {data.summary.uniqueWorkers}
+                  </Text>
+                  <Text className="text-sm text-muted mt-1">Trabalhadores</Text>
+                </View>
+              </View>
+
+              <View className="flex-row gap-3">
+                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-3xl font-bold text-success">
+                    {data.summary.resolvedReferrals}
+                  </Text>
+                  <Text className="text-sm text-muted mt-1">Resolvidos</Text>
+                </View>
+                
+                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-3xl font-bold text-warning">
+                    {data.summary.pendingReferrals}
+                  </Text>
+                  <Text className="text-sm text-muted mt-1">Pendentes</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Gráficos */}
+            <View className="gap-4 mt-4">
+              <Text className="text-xl font-bold text-foreground">Análises Detalhadas</Text>
+
+              {/* Tendência de Check-ins */}
+              {data.charts.checkInTimeSeries.length > 0 && (
+                <LineChart
+                  data={data.charts.checkInTimeSeries}
+                  title="Tendência de Check-ins"
+                  yLabel="Número de check-ins por dia"
+                  color={colors.primary}
+                />
+              )}
+
+              {/* Queixas Mais Comuns */}
+              {data.charts.topComplaints.length > 0 && (
+                <BarChart
+                  data={data.charts.topComplaints}
+                  title="Queixas Mais Comuns"
+                  yLabel="Número de ocorrências"
+                  color="#F59E0B"
+                />
+              )}
+
+              {/* Estados Emocionais */}
+              {data.charts.emotionalDistribution.length > 0 && (
+                <BarChart
+                  data={data.charts.emotionalDistribution}
+                  title="Estados Emocionais"
+                  yLabel="Número de relatos"
+                  color="#8B5CF6"
+                />
+              )}
+
+              {/* Riscos Ergonômicos */}
+              {data.charts.ergonomicRiskData.length > 0 && (
+                <BarChart
+                  data={data.charts.ergonomicRiskData}
+                  title="Riscos Ergonômicos Relatados"
+                  yLabel="Número de relatos"
+                  color="#EF4444"
+                />
+              )}
+            </View>
+
+            {/* Ações */}
+            <View className="gap-3 mt-4">
+              <Text className="text-xl font-bold text-foreground">Ações</Text>
+              
+              <TouchableOpacity
+                className="bg-primary rounded-xl p-4"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  Alert.alert(
+                    "Exportar Relatório",
+                    "Funcionalidade de exportação em desenvolvimento"
+                  );
+                }}
+              >
+                <Text className="text-center font-semibold text-white">
+                  📊 Exportar Relatório PDF
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="bg-blue-500 rounded-xl p-4"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  Alert.alert(
+                    "Enviar por Email",
+                    "Relatório será enviado para denise.silva@mip.com.br"
+                  );
+                }}
+              >
+                <Text className="text-center font-semibold text-white">
+                  📧 Enviar Relatório por Email
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </ScreenContainer>
   );

@@ -359,3 +359,167 @@ router.get("/employees-at-risk", async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
+/**
+ * GET /api/admin/analytics
+ * Obter dados agregados para gráficos e análises
+ * Query params: period (week|month|quarter)
+ */
+router.get("/analytics", async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Não autorizado" });
+    }
+
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({ error: "Banco de dados não disponível" });
+    }
+
+    const { period = "month" } = req.query;
+    
+    // Calcular data inicial baseado no período
+    const now = new Date();
+    const startDate = new Date();
+    
+    switch (period) {
+      case "week":
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case "month":
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+      case "quarter":
+        startDate.setMonth(now.getMonth() - 3);
+        break;
+      default:
+        startDate.setMonth(now.getMonth() - 1);
+    }
+
+    // Buscar todos os encaminhamentos do período
+    const referrals = await db
+      .select()
+      .from(healthReferrals)
+      .where(gte(healthReferrals.createdAt as any, startDate.toISOString() as any))
+      .orderBy(healthReferrals.createdAt);
+
+    // 1. Queixas mais comuns (top 10)
+    const complaintCounts: Record<string, number> = {};
+    referrals.forEach((r: any) => {
+      const type = r.type || "Outros";
+      complaintCounts[type] = (complaintCounts[type] || 0) + 1;
+    });
+    
+    const topComplaints = Object.entries(complaintCounts)
+      .sort(([, a], [, b]) => (b as number) - (a as number))
+      .slice(0, 10)
+      .map(([name, count], index) => ({
+        x: index + 1,
+        y: count as number,
+        label: name,
+      }));
+
+    // 2. Estados emocionais (distribuição)
+    const emotionalStates = {
+      bem: 0,
+      levemente_preocupado: 0,
+      muito_preocupado: 0,
+      estressado: 0,
+      ansioso: 0,
+    };
+    
+    referrals.forEach((r: any) => {
+      if (r.emotionalState && emotionalStates.hasOwnProperty(r.emotionalState)) {
+        (emotionalStates as any)[r.emotionalState]++;
+      }
+    });
+
+    const emotionalDistribution = Object.entries(emotionalStates).map(([state, count], index) => ({
+      x: index + 1,
+      y: count as number,
+      label: state.replace(/_/g, " "),
+    }));
+
+    // 3. Tendência de check-ins ao longo do tempo
+    const checkInTrend: Record<string, { bem: number; dorLeve: number; dorForte: number }> = {};
+    
+    referrals.forEach((r: any) => {
+      const date = new Date(r.createdAt).toISOString().split("T")[0];
+      if (!checkInTrend[date]) {
+        checkInTrend[date] = { bem: 0, dorLeve: 0, dorForte: 0 };
+      }
+      
+      if (r.severity === "leve") checkInTrend[date].dorLeve++;
+      else if (r.severity === "grave") checkInTrend[date].dorForte++;
+      else checkInTrend[date].bem++;
+    });
+
+    const checkInTimeSeries = Object.entries(checkInTrend)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, counts], index) => ({
+        x: index + 1,
+        y: counts.bem + counts.dorLeve + counts.dorForte,
+        label: new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      }));
+
+    // 4. Riscos ergonômicos relatados
+    const ergonomicRisks = {
+      postura_inadequada: 0,
+      levantamento_peso: 0,
+      movimentos_repetitivos: 0,
+      trabalho_altura: 0,
+      exposicao_calor: 0,
+    };
+
+    referrals.forEach((r: any) => {
+      if (r.riskFactors && Array.isArray(r.riskFactors)) {
+        r.riskFactors.forEach((risk: string) => {
+          if (ergonomicRisks.hasOwnProperty(risk)) {
+            (ergonomicRisks as any)[risk]++;
+          }
+        });
+      }
+    });
+
+    const ergonomicRiskData = Object.entries(ergonomicRisks).map(([risk, count], index) => ({
+      x: index + 1,
+      y: count as number,
+      label: risk.replace(/_/g, " "),
+    }));
+
+    // 5. Indicadores gerais
+    const totalReferrals = referrals.length;
+    const resolvedReferrals = referrals.filter((r: any) => r.status === "resolvido").length;
+    const pendingReferrals = referrals.filter((r: any) => r.status === "pendente").length;
+    const uniqueWorkers = new Set(referrals.map((r: any) => r.workerId)).size;
+    
+    // Calcular absenteísmo (simplificado: % de trabalhadores com queixas graves)
+    const severeComplaints = referrals.filter((r: any) => r.severity === "grave").length;
+    const absenteeismRate = uniqueWorkers > 0 ? (severeComplaints / uniqueWorkers) * 100 : 0;
+
+    res.json({
+      success: true,
+      period,
+      startDate: startDate.toISOString(),
+      endDate: now.toISOString(),
+      summary: {
+        totalReferrals,
+        resolvedReferrals,
+        pendingReferrals,
+        uniqueWorkers,
+        absenteeismRate: Math.round(absenteeismRate * 10) / 10,
+      },
+      charts: {
+        topComplaints,
+        emotionalDistribution,
+        checkInTimeSeries,
+        ergonomicRiskData,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao obter analytics:", error);
+    res.status(500).json({ error: "Erro ao obter analytics" });
+  }
+});

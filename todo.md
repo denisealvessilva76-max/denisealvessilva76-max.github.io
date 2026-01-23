@@ -446,3 +446,24 @@
 ## Bugs Críticos - Teste em Dispositivo Real (23/01/2026 - 11:03)
 - [x] Login admin com erro "Network request failed" - CORRIGIDO: Rotas admin adicionadas ao servidor + URL pública configurada
 - [x] Erro de notificações: "No projectId found" - CORRIGIDO: projectId adicionado ao app.config.ts
+
+---
+
+## 📊 Painel Administrativo com Gráficos (Nova Funcionalidade)
+- [x] Instalar victory-native para gráficos React Native
+- [x] Criar componentes de gráficos reutilizáveis (LineChart, BarChart)
+- [x] Implementar API de dados agregados no servidor (/api/admin/analytics)
+- [x] Gráfico de check-ins emocionais ao longo do tempo (linha)
+- [x] Gráfico de queixas mais comuns (top 10 barras)
+- [x] Gráfico de estados emocionais (distribuição em barras)
+- [x] Gráfico de riscos ergonômicos relatados (barras)
+- [x] Indicador de absenteísmo (% calculado)
+- [x] Filtros por período (última semana, último mês, últimos 3 meses)
+- [x] Indicadores resumo (trabalhadores, resolvidos, pendentes)
+- [x] Pull-to-refresh para atualizar dados
+- [x] Botões de ação (exportar PDF, enviar email)
+- [x] Dashboard responsivo para mobile
+- [ ] Exportação de relatórios em PDF (funcionalidade preparada)
+- [ ] Envio automático de relatório por email (funcionalidade preparada)
+- [ ] Gráfico de hidratação média da equipe (dados não disponíveis no backend)
+- [ ] Gráfico de pressão arterial (dados não disponíveis no backend)
