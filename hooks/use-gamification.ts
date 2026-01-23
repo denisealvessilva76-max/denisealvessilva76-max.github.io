@@ -15,9 +15,33 @@ import { useMedalNotifications } from "./use-medal-notifications";
 
 const GAMIFICATION_STORAGE_KEY = "gamification_data";
 
+// Sistema de pontos por atividade
+export const POINTS_SYSTEM = {
+  CHECK_IN_DAILY: 10,
+  HYDRATION_GLASS: 5,
+  CHALLENGE_COMPLETE: 20,
+  BREATHING_EXERCISE: 15,
+  WATCH_VIDEO: 10,
+  READ_HEALTH_TIP: 5,
+  STREAK_7_DAYS: 100,
+  STREAK_30_DAYS: 500,
+  PERFECT_WEEK_BONUS: 50,
+};
+
+export interface ExtendedGamificationStats extends GamificationStats {
+  hydrationPoints: number;
+  challengePoints: number;
+  breathingPoints: number;
+  videoPoints: number;
+  healthTipPoints: number;
+  bonusPoints: number;
+  rank: number;
+  title: string;
+}
+
 export function useGamification(checkIns: CheckIn[]) {
   const { sendMedalNotification } = useMedalNotifications();
-  const [stats, setStats] = useState<GamificationStats>({
+  const [stats, setStats] = useState<ExtendedGamificationStats>({
     totalCheckIns: 0,
     weeklyCheckIns: 0,
     currentStreak: 0,
@@ -25,6 +49,14 @@ export function useGamification(checkIns: CheckIn[]) {
     unlockedMedals: [],
     achievements: [],
     totalPoints: 0,
+    hydrationPoints: 0,
+    challengePoints: 0,
+    breathingPoints: 0,
+    videoPoints: 0,
+    healthTipPoints: 0,
+    bonusPoints: 0,
+    rank: 0,
+    title: "Iniciante",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [previousMedalCount, setPreviousMedalCount] = useState(0);
@@ -46,7 +78,7 @@ export function useGamification(checkIns: CheckIn[]) {
       const stored = await AsyncStorage.getItem(GAMIFICATION_STORAGE_KEY);
       if (stored) {
         const data = JSON.parse(stored);
-        setStats((prev) => ({ ...prev, achievements: data.achievements || [] }));
+        setStats((prev) => ({ ...prev, ...data }));
       }
     } catch (error) {
       console.error("Erro ao carregar dados de gamificação:", error);
@@ -55,7 +87,7 @@ export function useGamification(checkIns: CheckIn[]) {
     }
   };
 
-  const saveGamificationData = async (newStats: GamificationStats) => {
+  const saveGamificationData = async (newStats: ExtendedGamificationStats) => {
     try {
       await AsyncStorage.setItem(GAMIFICATION_STORAGE_KEY, JSON.stringify(newStats));
     } catch (error) {
@@ -66,18 +98,16 @@ export function useGamification(checkIns: CheckIn[]) {
   const calculateStats = async () => {
     const now = new Date();
     const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay()); // Início da semana (domingo)
+    weekStart.setDate(now.getDate() - now.getDay());
 
-    // Contar check-ins da semana
     const weeklyCheckIns = checkIns.filter((c) => {
       const checkInDate = new Date(c.date);
       return checkInDate >= weekStart && checkInDate <= now;
     }).length;
 
-    // Contar total de check-ins
     const totalCheckIns = checkIns.length;
 
-    // Calcular streak (dias consecutivos)
+    // Calcular streak
     let currentStreak = 0;
     let longestStreak = 0;
     let tempStreak = 0;
@@ -100,7 +130,6 @@ export function useGamification(checkIns: CheckIn[]) {
         tempStreak = 1;
       }
 
-      // Verificar se é hoje
       const today = new Date();
       if (currentDate.toDateString() === today.toDateString()) {
         currentStreak = tempStreak;
@@ -112,35 +141,127 @@ export function useGamification(checkIns: CheckIn[]) {
     // Calcular medalhas desbloqueadas
     const unlockedMedals = calculateUnlockedMedals(weeklyCheckIns);
 
-    // Detectar novas medalhas desbloqueadas
+    // Detectar novas medalhas
     const newMedals = unlockedMedals.filter(
       (medal) => !stats.unlockedMedals.some((m) => m.id === medal.id)
     );
 
-    // Enviar notificação para cada medalha nova
     for (const medal of newMedals) {
       await sendMedalNotification(medal);
     }
 
-    // Calcular pontos
-    const previousUnlockedCount = stats.unlockedMedals.length;
-    const newMedalsUnlocked = Math.max(0, unlockedMedals.length - previousUnlockedCount);
-    const isPerfectWeek = weeklyCheckIns === 7;
-    const totalPoints = calculatePoints(weeklyCheckIns, newMedalsUnlocked, isPerfectWeek);
+    // Calcular pontos de check-in
+    const checkInPoints = totalCheckIns * POINTS_SYSTEM.CHECK_IN_DAILY;
 
-    const newStats: GamificationStats = {
+    // Calcular bônus de streak
+    let bonusPoints = stats.bonusPoints;
+    if (currentStreak === 7) bonusPoints += POINTS_SYSTEM.STREAK_7_DAYS;
+    if (currentStreak === 30) bonusPoints += POINTS_SYSTEM.STREAK_30_DAYS;
+    if (weeklyCheckIns === 7) bonusPoints += POINTS_SYSTEM.PERFECT_WEEK_BONUS;
+
+    // Calcular pontos totais
+    const totalPoints = 
+      checkInPoints +
+      stats.hydrationPoints +
+      stats.challengePoints +
+      stats.breathingPoints +
+      stats.videoPoints +
+      stats.healthTipPoints +
+      bonusPoints;
+
+    // Calcular título baseado em pontos
+    const title = calculateTitle(totalPoints);
+
+    const newStats: ExtendedGamificationStats = {
       totalCheckIns,
       weeklyCheckIns,
       currentStreak,
       longestStreak,
       unlockedMedals,
       achievements: stats.achievements,
-      totalPoints: stats.totalPoints + totalPoints,
+      totalPoints,
+      hydrationPoints: stats.hydrationPoints,
+      challengePoints: stats.challengePoints,
+      breathingPoints: stats.breathingPoints,
+      videoPoints: stats.videoPoints,
+      healthTipPoints: stats.healthTipPoints,
+      bonusPoints,
+      rank: stats.rank,
+      title,
     };
 
     setStats(newStats);
     setPreviousMedalCount(unlockedMedals.length);
     await saveGamificationData(newStats);
+  };
+
+  const calculateTitle = (points: number): string => {
+    if (points >= 5000) return "Mestre da Saúde";
+    if (points >= 2000) return "Guardião Avançado";
+    if (points >= 1000) return "Guardião Intermediário";
+    if (points >= 500) return "Guardião Iniciante";
+    if (points >= 100) return "Aprendiz";
+    return "Iniciante";
+  };
+
+  const addHydrationPoints = async (glasses: number) => {
+    const points = glasses * POINTS_SYSTEM.HYDRATION_GLASS;
+    const newStats = {
+      ...stats,
+      hydrationPoints: stats.hydrationPoints + points,
+      totalPoints: stats.totalPoints + points,
+    };
+    setStats(newStats);
+    await saveGamificationData(newStats);
+    return points;
+  };
+
+  const addChallengePoints = async () => {
+    const points = POINTS_SYSTEM.CHALLENGE_COMPLETE;
+    const newStats = {
+      ...stats,
+      challengePoints: stats.challengePoints + points,
+      totalPoints: stats.totalPoints + points,
+    };
+    setStats(newStats);
+    await saveGamificationData(newStats);
+    return points;
+  };
+
+  const addBreathingPoints = async () => {
+    const points = POINTS_SYSTEM.BREATHING_EXERCISE;
+    const newStats = {
+      ...stats,
+      breathingPoints: stats.breathingPoints + points,
+      totalPoints: stats.totalPoints + points,
+    };
+    setStats(newStats);
+    await saveGamificationData(newStats);
+    return points;
+  };
+
+  const addVideoPoints = async () => {
+    const points = POINTS_SYSTEM.WATCH_VIDEO;
+    const newStats = {
+      ...stats,
+      videoPoints: stats.videoPoints + points,
+      totalPoints: stats.totalPoints + points,
+    };
+    setStats(newStats);
+    await saveGamificationData(newStats);
+    return points;
+  };
+
+  const addHealthTipPoints = async () => {
+    const points = POINTS_SYSTEM.READ_HEALTH_TIP;
+    const newStats = {
+      ...stats,
+      healthTipPoints: stats.healthTipPoints + points,
+      totalPoints: stats.totalPoints + points,
+    };
+    setStats(newStats);
+    await saveGamificationData(newStats);
+    return points;
   };
 
   const getNextMedalInfo = () => {
@@ -171,5 +292,10 @@ export function useGamification(checkIns: CheckIn[]) {
     getNextMedalInfo,
     resetWeeklyStats,
     sendMedalNotification,
+    addHydrationPoints,
+    addChallengePoints,
+    addBreathingPoints,
+    addVideoPoints,
+    addHealthTipPoints,
   };
 }

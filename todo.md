@@ -736,3 +736,55 @@
 - [ ] Medalha de ver vídeos
 - [ ] Medalha de ver informações sobre saúde
 - [ ] Títulos progressivos (Iniciante, Intermediário, Avançado, Mestre)
+
+## Sistema de Gamificação Robusto (23/01/2026 - 18:00)
+
+### Sistema de Pontos Detalhado
+- [ ] Check-in diário: 10 pontos
+- [ ] Hidratação (cada copo): 5 pontos
+- [ ] Completar desafio diário: 20 pontos
+- [ ] Fazer respiração guiada: 15 pontos
+- [ ] Assistir vídeo de alongamento: 10 pontos
+- [ ] Ler dica de saúde: 5 pontos
+- [ ] Sequência de 7 dias: 100 pontos bônus
+- [ ] Sequência de 30 dias: 500 pontos bônus
+
+### Ranking e Leaderboard
+- [ ] Criar tela de ranking semanal
+- [ ] Ranking mensal
+- [ ] Top 10 trabalhadores
+- [ ] Posição do usuário no ranking
+- [ ] Filtro por equipe/setor
+
+### Sistema de Recompensas
+- [ ] Medalhas bronze/prata/ouro por categoria
+- [ ] Títulos progressivos (Iniciante → Mestre)
+- [ ] Conquistas especiais (ex: "Hidratação Perfeita")
+- [ ] Notificação animada ao desbloquear conquista
+- [ ] Tela de troféus e conquistas
+- [ ] Compartilhar conquistas
+
+### Integração
+- [ ] Adicionar aba "Ranking" no menu inferior
+- [ ] Mostrar pontos no header de todas as telas
+- [ ] Animação de +pontos ao completar ação
+- [ ] Badge de "novo" em conquistas desbloqueadas
+
+---
+
+## Sistema de Gamificação Expandido (Implementado)
+- [x] Expandir hook de gamificação com pontos por atividade
+- [x] Criar tela de ranking com leaderboard semanal/mensal
+- [x] Criar tela de conquistas com progresso visual
+- [x] Adicionar pontos para respiração guiada (+15 pts)
+- [x] Adicionar pontos para assistir vídeos (+10 pts)
+- [x] Integrar botões de Ranking e Conquistas na Home
+- [x] Exibir pontos totais no dashboard pessoal
+- [x] Sistema de títulos progressivos (Iniciante → Mestre da Saúde)
+- [x] Conquistas por categoria (hidratação, check-in, desafios, etc.)
+- [x] Indicadores visuais de progresso para cada conquista
+- [x] Pódio visual com top 3 trabalhadores
+- [x] Classificação completa com posição de cada usuário
+- [ ] Sincronizar ranking com servidor (multi-usuário)
+- [ ] Notificações ao desbloquear novas conquistas
+- [ ] Sistema de recompensas tangíveis (sorteios, brindes)

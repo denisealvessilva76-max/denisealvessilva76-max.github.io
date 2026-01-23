@@ -4,6 +4,9 @@ import * as Haptics from "expo-haptics";
 import * as WebBrowser from "expo-web-browser";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { useHealthData } from "@/hooks/use-health-data";
+import { useGamification } from "@/hooks/use-gamification";
+import { useState } from "react";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 
@@ -11,11 +14,20 @@ export default function VideoPlayerScreen() {
   const colors = useColors();
   const params = useLocalSearchParams();
   const { title, url } = params;
+  const { checkIns } = useHealthData();
+  const { addVideoPoints } = useGamification(checkIns);
+  const [hasWatched, setHasWatched] = useState(false);
 
   const handleOpenVideo = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (url) {
       await WebBrowser.openBrowserAsync(url as string);
+      // Adicionar pontos após abrir o vídeo (assumindo que o usuário assistiu)
+      if (!hasWatched) {
+        const points = await addVideoPoints();
+        setHasWatched(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
     }
   };
 

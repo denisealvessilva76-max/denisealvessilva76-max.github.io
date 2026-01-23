@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
@@ -7,6 +7,8 @@ import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import { useAudioPlayer } from "expo-audio";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useHealthData } from "@/hooks/use-health-data";
+import { useGamification } from "@/hooks/use-gamification";
 
 type Phase = "inspire" | "segure" | "expire" | "repouso" | "completo";
 type BackgroundSound = "none" | "rain" | "ocean" | "forest";
@@ -28,6 +30,8 @@ const SOUND_URLS: Record<BackgroundSound, string | null> = {
 
 export default function RespiracaoGuiadaScreen() {
   const router = useRouter();
+  const { checkIns } = useHealthData();
+  const { addBreathingPoints } = useGamification(checkIns);
   const [phase, setPhase] = useState<Phase>("inspire");
   const [timeLeft, setTimeLeft] = useState(4);
   const [isRunning, setIsRunning] = useState(false);
@@ -377,9 +381,14 @@ export default function RespiracaoGuiadaScreen() {
           {isCompleted && (
             <TouchableOpacity
               className="bg-success rounded-lg py-3 active:opacity-80"
-              onPress={() => {
+              onPress={async () => {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                router.back();
+                const points = await addBreathingPoints();
+                Alert.alert(
+                  "Parabéns! 🎉",
+                  `Você ganhou +${points} pontos por completar a respiração guiada!`,
+                  [{ text: "OK", onPress: () => router.back() }]
+                );
               }}
             >
               <Text className="text-center font-semibold text-white">Concluído</Text>
