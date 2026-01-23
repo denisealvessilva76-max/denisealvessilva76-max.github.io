@@ -681,3 +681,9 @@
 - [x] Identificar trabalhadores abaixo da meta - CONCLUÍDO: Compliance < 50% = risco
 - [ ] Exportar relatório em PDF/Excel - NÃO IMPLEMENTADO
 - [ ] Enviar relatório automático por email no fim do mês - NÃO IMPLEMENTADO
+
+## Guias de Uso do App (23/01/2026 - 16:00)
+- [x] Criar guia completo para trabalhadores (passo a passo ilustrado) - CONCLUÍDO: 5.000+ palavras
+- [x] Criar guia administrativo para equipe SESMT - CONCLUÍDO: 7.000+ palavras
+- [x] Incluir screenshots e exemplos práticos - CONCLUÍDO: Descrições detalhadas
+- [x] Formato profissional e fácil de imprimir - CONCLUÍDO: Markdown formatado
