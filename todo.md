@@ -825,3 +825,13 @@
 - [x] Validação de campos obrigatórios
 - [x] Confirmação antes de excluir prêmio
 - [x] Função de restaurar catálogo padrão
+
+---
+
+## Bug: Unmatched Route em Duas Abas (RESOLVIDO)
+- [x] Investigar quais tabs estão com erro de rota
+- [x] Verificar configuração do tab layout
+- [x] Criar arquivos de rota faltantes
+- [x] Testar navegação em todas as abas
+- [x] Verificar se ícones estão mapeados corretamente
+- [x] Reiniciar servidor para limpar cache
