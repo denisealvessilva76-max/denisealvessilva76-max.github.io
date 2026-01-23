@@ -126,6 +126,11 @@ const config: ExpoConfig = {
     typedRoutes: true,
     reactCompiler: true,
   },
+  extra: {
+    eas: {
+      projectId: "canteiro-saudavel-" + timestamp,
+    },
+  },
 };
 
 export default config;

@@ -440,3 +440,9 @@
 - [ ] Logs de erro e monitoramento
 - [ ] Testes de integração
 - [ ] Documentação técnica
+
+---
+
+## Bugs Críticos - Teste em Dispositivo Real (23/01/2026 - 11:03)
+- [x] Login admin com erro "Network request failed" - CORRIGIDO: Rotas admin adicionadas ao servidor + URL pública configurada
+- [x] Erro de notificações: "No projectId found" - CORRIGIDO: projectId adicionado ao app.config.ts
