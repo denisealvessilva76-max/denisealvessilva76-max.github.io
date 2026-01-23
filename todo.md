@@ -316,3 +316,127 @@
 - [x] Integrar com navegação principal (botão na Home)
 - [x] 5 artigos completos sobre ergonomia, prevenção, segurança e saúde mental
 - [ ] Testar em dispositivo real
+
+---
+
+## 🎯 Desafios de Saúde (Nova Funcionalidade)
+- [x] Criar tipos e estrutura de dados para desafios
+- [x] Implementar desafio "Caminhar 6.000 passos por dia por 15 dias"
+- [x] Implementar desafio "Beber água regularmente"
+- [x] Sistema de progresso e acompanhamento
+- [x] Ranking amigável da equipe
+- [ ] Notificações de lembrete para desafios ativos
+- [x] Tela de desafios disponíveis
+- [x] Tela de progresso individual
+- [x] Tela de ranking da equipe
+- [x] Recompensas ao completar desafios (pontos e medalhas)
+- [x] 7 desafios pré-definidos (passos, hidratação, check-in, DDS, combo)
+- [x] Hook use-challenges para gerenciar estado
+- [x] Botão de acesso na Home
+
+---
+
+## 🍎 Orientações Nutricionais (Nova Funcionalidade)
+- [x] Criar banco de dicas nutricionais simples
+- [x] Dicas específicas para construção civil/mineração/indústria
+- [x] Alertas de hidratação em dias quentes
+- [x] Alertas de hidratação com alto calor ocupacional
+- [x] Integração com clima/temperatura (simulado)
+- [ ] Notificações contextuais de nutrição
+- [x] Tela de orientações nutricionais
+- [x] Calculadora de necessidade hídrica
+- [x] 6 categorias de dicas (café, almoço, lanches, hidratação, energia, evitar)
+- [x] Sistema de alertas por nível de temperatura
+- [x] Botão de acesso na Home
+
+---
+
+## 📅 Metas Mensais de Saúde (Nova Funcionalidade)
+- [ ] Sistema de metas mensais personalizáveis
+- [ ] Meta: "Fazer 2 check-ins emocionais por semana"
+- [ ] Meta: "Beber 2L de água por dia"
+- [ ] Meta: "Participar de um vídeo de DDS"
+- [ ] Progresso visual de metas
+- [ ] Notificações de lembrete de metas
+- [ ] Histórico de metas cumpridas
+- [ ] Recompensas ao atingir metas
+
+---
+
+## 🏅 Gamificação Expandida (Nova Funcionalidade)
+- [ ] Novos selos e medalhas:
+  - [ ] "Cuidador da Saúde"
+  - [ ] "Hidratado"
+  - [ ] "Zen da Semana"
+  - [ ] "Campeão de Passos"
+  - [ ] "Mestre do DDS"
+  - [ ] "Nutrição Consciente"
+- [ ] Sistema de pontos expandido
+- [ ] Níveis de usuário (Iniciante, Intermediário, Avançado, Expert)
+- [ ] Conquistas especiais
+- [ ] Perfil gamificado
+
+---
+
+## 🎥 DDS Interativo (Nova Funcionalidade)
+- [ ] Sistema de upload manual de vídeos DDS
+- [ ] Vídeos curtos (5-10 min) com temas:
+  - [ ] Outubro Rosa
+  - [ ] Novembro Azul
+  - [ ] Janeiro Branco (Saúde Mental)
+  - [ ] Ergonomia
+  - [ ] Fadiga Mental
+  - [ ] Prevenção de Acidentes
+- [ ] Quiz interativo ao final de cada vídeo
+- [ ] Pontuação do quiz
+- [ ] Certificado de participação
+- [ ] Histórico de DDS assistidos
+- [ ] Notificações de novos DDS
+- [ ] Tela de DDS disponíveis
+- [ ] Tela de quiz com feedback
+
+---
+
+## 📈 Painel Administrativo de Indicadores (Nova Funcionalidade)
+- [ ] Dashboard visual com gráficos
+- [ ] Indicador: Absenteísmo
+- [ ] Indicador: Queixas mais comuns
+- [ ] Indicador: Estados emocionais detectados
+- [ ] Indicador: Riscos ergonômicos relatados
+- [ ] Indicador: Taxa de participação em DDS
+- [ ] Indicador: Média de hidratação da equipe
+- [ ] Indicador: Progresso de desafios
+- [ ] Filtros por período (semana/mês/ano)
+- [ ] Filtros por setor/equipe
+- [ ] Exportação de relatórios (PDF/Excel)
+- [ ] Gráficos interativos
+- [ ] Alertas automáticos para indicadores críticos
+
+---
+
+## 📴 Modo Offline (Nova Funcionalidade)
+- [ ] Implementar armazenamento local robusto
+- [ ] Sincronização automática ao reconectar
+- [ ] Indicador visual de status de conexão
+- [ ] Fila de sincronização
+- [ ] Resolução de conflitos
+- [ ] Cache de conteúdos essenciais
+- [ ] Funcionalidades offline:
+  - [ ] Check-in diário
+  - [ ] Registro de pressão
+  - [ ] Registro de sintomas
+  - [ ] Registro de hidratação
+  - [ ] Visualização de dicas (cache)
+  - [ ] Progresso de desafios
+- [ ] Notificação de dados pendentes de sincronização
+- [ ] Teste em áreas remotas (minas, obras)
+
+---
+
+## 🔧 Melhorias Técnicas
+- [ ] Otimização de performance
+- [ ] Redução de consumo de bateria
+- [ ] Compressão de dados para sincronização
+- [ ] Logs de erro e monitoramento
+- [ ] Testes de integração
+- [ ] Documentação técnica

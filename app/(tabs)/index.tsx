@@ -201,6 +201,28 @@ export default function HomeScreen() {
                 📚 Dicas de Saúde
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-orange-500/20 rounded-xl p-4 active:opacity-80 border border-orange-500"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/desafios-saude");
+              }}
+            >
+              <Text className="text-center font-semibold text-orange-500">
+                🎯 Desafios de Saúde
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-green-500/20 rounded-xl p-4 active:opacity-80 border border-green-500"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/orientacoes-nutricionais");
+              }}
+            >
+              <Text className="text-center font-semibold text-green-500">
+                🍎 Orientações Nutricionais
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Medalhas e Gamificação */}
