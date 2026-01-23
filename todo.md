@@ -500,3 +500,11 @@
 - [x] Contadores e estatísticas de feedbacks
 - [ ] Opção de anexar foto (preparado mas não implementado)
 - [ ] Notificação push para admin quando novo feedback é enviado
+
+---
+
+## Bug Crítico - Login Admin (23/01/2026)
+- [x] Erro "Network request failed" ao tentar fazer login admin - CORRIGIDO: URL da API atualizada de localhost para servidor público
+- [x] Verificar URL da API no código - CORRIGIDO: admin-login.tsx e admin-dashboard.tsx atualizados
+- [x] Testar conectividade com servidor - OK: Servidor respondendo corretamente
+- [x] Garantir que variável de ambiente EXPO_PUBLIC_API_URL está correta - OK: Fallback atualizado

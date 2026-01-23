@@ -54,7 +54,7 @@ export default function AdminDashboardScreen() {
 
       setEmail(storedEmail);
 
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:3000";
+      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://3000-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer";
       const response = await fetch(`${API_URL}/api/admin/analytics?period=${period}`, {
         headers: {
           Authorization: `Bearer ${token}`,

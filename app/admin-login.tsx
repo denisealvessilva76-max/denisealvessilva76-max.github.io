@@ -23,7 +23,7 @@ export default function AdminLoginScreen() {
     setIsLoading(true);
     try {
       // Chamar API de login
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:3000";
+      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://3000-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer";
       console.log("Tentando login em:", `${API_URL}/api/admin/login`);
       console.log("Credenciais:", { email, password });
       
