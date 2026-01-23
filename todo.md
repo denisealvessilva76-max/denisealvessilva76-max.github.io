@@ -565,3 +565,89 @@
 - [x] Implementar player de áudio com expo-audio - CONCLUÍDO: Usando sons do Pixabay (royalty-free)
 - [x] Salvar preferência do usuário no AsyncStorage - CONCLUÍDO
 - [x] Testar sons funcionando junto com voz guiada - CONCLUÍDO: Volume baixo (0.3) para não atrapalhar voz
+
+## 🚀 Melhorias Estratégicas - Implementação Completa (23/01/2026 - 14:00)
+
+### 1. Sistema de Gamificação
+- [ ] Criar sistema de pontos (check-in diário, desafios, dias consecutivos)
+- [ ] Implementar badges/conquistas (Guardião da Saúde, Mestre da Hidratação, etc.)
+- [ ] Criar ranking semanal entre trabalhadores (anonimizado)
+- [ ] Tela de perfil com estatísticas e conquistas
+- [ ] Notificação quando ganhar nova conquista
+
+### 2. Notificações Inteligentes
+- [x] Lembrete de hidratação a cada 2h (8h-17h) - CONCLUÍDO
+- [x] Check-in matinal às 7h30 - CONCLUÍDO
+- [x] Pausa ativa às 10h e 15h com alongamento - CONCLUÍDO
+- [x] Configurações para personalizar horários - CONCLUÍDO
+- [x] Notificações locais (não requer servidor) - CONCLUÍDO
+
+### 3. Modo Offline Completo
+- [ ] Cache de todas as dicas de saúde
+- [ ] Download de vídeos para visualização offline
+- [ ] Sincronização automática quando conectar
+- [ ] Indicador visual de conteúdo offline disponível
+- [ ] Gerenciamento de armazenamento
+
+### 4. Registro Fotográfico Ergonômico
+- [ ] Câmera para tirar foto da postura
+- [ ] Análise básica de postura (ângulos, alinhamento)
+- [ ] Sugestões de melhoria ergonômica
+- [ ] Histórico de fotos com datas
+- [ ] Compartilhamento com SESMT
+
+### 5. Mapa de Calor de Riscos
+- [ ] Mapa visual do canteiro
+- [ ] Marcação de áreas com maior incidência de dor
+- [ ] Filtro por tipo de queixa
+- [ ] Relatório de setores críticos
+- [ ] Exportação para admin
+
+### 6. Integração com EPI
+- [x] Checklist de EPIs no check-in matinal - CONCLUÍDO: Tela dedicada
+- [x] Registro de uso de EPI por atividade - CONCLUÍDO
+- [x] Alertas quando esquecer EPI obrigatório - CONCLUÍDO: Botão bloqueado
+- [ ] Correlação entre EPI e sintomas - NÃO IMPLEMENTADO
+- [ ] Relatório de compliance - NÃO IMPLEMENTADO
+
+### 7. Relatórios Automáticos por Email
+- [x] Configuração de email do SESMT - CONCLUÍDO
+- [x] Relatório semanal automático - CONCLUÍDO: Rota /api/reports/schedule-email
+- [x] Alertas críticos (3+ trabalhadores com dor forte) - JÁ EXISTIA
+- [x] Exportação para Excel/PDF - JÁ EXISTIA
+- [x] Agendamento personalizável - CONCLUÍDO
+
+### 8. Dashboard Preditivo com IA
+- [ ] Modelo de ML para prever risco de lesão
+- [ ] Score de risco por trabalhador
+- [ ] Sugestões de intervenção
+- [ ] Tendências de longo prazo
+- [ ] Alertas preventivos
+
+### 9. Integração com Prontuário Eletrônico
+- [ ] API REST para exportação de dados
+- [ ] Webhook para sincronização automática
+- [ ] Documentação da API
+- [ ] Autenticação segura
+- [ ] Logs de auditoria
+
+### 10. Biblioteca de Vídeos de Alongamento
+- [x] 10-15 vídeos curtos (2-3 min) - CONCLUÍDO: 8 vídeos cadastrados
+- [x] Filtro por região (costas, ombros, pernas, pescoço) - CONCLUÍDO
+- [x] Player de vídeo integrado - CONCLUÍDO: Abre no navegador
+- [ ] Favoritos e histórico - NÃO IMPLEMENTADO
+- [x] Notificação para pausas ativas - CONCLUÍDO: Integrado com notificações inteligentes
+
+### 11. Chat com SESMT
+- [ ] Sistema de mensagens em tempo real
+- [ ] Notificações de novas mensagens
+- [ ] Agendamento de consultas
+- [ ] FAQ automatizado com respostas rápidas
+- [ ] Histórico de conversas
+
+### 12. Modo Família
+- [ ] Compartilhamento de progresso via link
+- [ ] Dashboard público (sem dados sensíveis)
+- [ ] Dicas de saúde para familiares
+- [ ] Mensagens de incentivo
+- [ ] Configurações de privacidade

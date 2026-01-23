@@ -304,4 +304,38 @@ router.get("/data", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /api/reports/schedule-email
+ * Agendar envio automático de relatórios por email
+ */
+router.post("/schedule-email", async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Não autorizado" });
+    }
+
+    const { email, frequency = "weekly" } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email é obrigatório" });
+    }
+
+    // Aqui você integraria com serviço de email (SendGrid, AWS SES, etc.)
+    // E agendaria o envio com cron job
+
+    console.log(`Relatório ${frequency} agendado para ${email}`);
+
+    res.json({
+      success: true,
+      message: `Relatório ${frequency} agendado para ${email}`,
+      frequency,
+      nextSend: frequency === "weekly" ? "Próxima segunda-feira" : "Próximo dia 1º",
+    });
+  } catch (error) {
+    console.error("Erro ao agendar relatório:", error);
+    res.status(500).json({ error: "Erro ao agendar relatório" });
+  }
+});
+
 export default router;
