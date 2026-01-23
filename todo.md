@@ -447,6 +447,10 @@
 - [x] Login admin com erro "Network request failed" - CORRIGIDO: Rotas admin adicionadas ao servidor + URL pública configurada
 - [x] Erro de notificações: "No projectId found" - CORRIGIDO: projectId adicionado ao app.config.ts
 
+## Bugs Reportados - Teste com QR Code (23/01/2026 - 12:30)
+- [x] Erro de tela azul ao abrir app via Expo Go - CORRIGIDO: Removida flag --web do script dev:metro
+- [x] Gerar link direto do Expo Go para colar no celular - CORRIGIDO: exp://8081-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer
+
 ---
 
 ## 📊 Painel Administrativo com Gráficos (Nova Funcionalidade)
