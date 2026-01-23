@@ -533,3 +533,13 @@
 - [x] Verificar logs do servidor Metro - OK: Servidor rodando
 - [x] Identificar causa do erro - Plugins não estavam registrados no app.config.ts
 - [x] Corrigir e testar - Plugins adicionados e servidor reiniciado
+
+---
+
+## 📦 Geração de APK para Android (Nova Solicitação - 23/01/2026)
+- [ ] Configurar EAS Build
+- [ ] Criar arquivo eas.json
+- [ ] Gerar APK de produção
+- [ ] Fazer upload do APK
+- [ ] Gerar QR code de download
+- [ ] Criar guia de instalação para trabalhadores

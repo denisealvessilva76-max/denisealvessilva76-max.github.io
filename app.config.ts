@@ -128,7 +128,7 @@ const config: ExpoConfig = {
   },
   extra: {
     eas: {
-      projectId: "canteiro-saudavel-" + timestamp,
+      projectId: "e1b91dc7-e740-4cbb-8c67-7a1d037a1dc2",
     },
   },
 };
