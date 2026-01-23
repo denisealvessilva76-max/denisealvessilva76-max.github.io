@@ -687,3 +687,52 @@
 - [x] Criar guia administrativo para equipe SESMT - CONCLUÍDO: 7.000+ palavras
 - [x] Incluir screenshots e exemplos práticos - CONCLUÍDO: Descrições detalhadas
 - [x] Formato profissional e fácil de imprimir - CONCLUÍDO: Markdown formatado
+
+## Bugs e Melhorias - Teste Real do App (23/01/2026 - 17:30)
+
+### Bugs Críticos
+- [ ] Erro ao clicar "Fazer Check-in" na home
+- [ ] Erro ao clicar "Iniciar Desafio"
+- [ ] Som de fundo não toca na respiração guiada
+- [ ] Gráfico de hipertensão alterado no painel admin
+
+### Melhorias - Ginástica Laboral
+- [ ] Adicionar ilustrações dos exercícios (funcionar offline)
+- [ ] Adicionar contador de segundos em voz alta
+- [ ] Adicionar aviso para trocar de lado em voz alta
+- [ ] Remover aba de EPI (não é necessária)
+
+### Melhorias - Respiração Guiada
+- [ ] Deixar mais devagar para dar tempo de finalizar movimentos
+- [ ] Corrigir som de fundo que não está tocando
+
+### Melhorias - Dashboard Admin
+- [ ] Adicionar gráfico de hipertensão
+- [ ] Adicionar gráfico de baixo consumo de água
+- [ ] Adicionar gráfico de queixas de mal-estar
+- [ ] Fazer que TODAS as abas de bem-estar tenham gráficos
+- [ ] Mostrar queixas escritas pelos empregados para resolver
+- [ ] Mostrar nome completo do empregado em todos os relatórios
+- [ ] Dados completos de saúde de cada empregado
+- [ ] Remover botão de "Relatório de Hidratação" (redundante)
+
+### Melhorias - Perfil do Empregado
+- [ ] Adicionar campo de matrícula no registro de perfil
+- [ ] Salvar TODOS os dados no servidor
+- [ ] Garantir que dados apareçam no painel admin
+- [ ] Relatório semanal/mensal automático
+
+### Melhorias - Login Persistente
+- [ ] Login do admin ficar salvo (não precisar entrar toda vez)
+- [ ] Perfil dos usuários ficar salvo (não precisar preencher toda vez)
+
+### Novas Funcionalidades - Fotos e Gamificação
+- [ ] Adicionar opção de registrar desafios por meio de fotos
+- [ ] Gerar medalhas para TODAS as atividades do app
+- [ ] Medalha de ingestão de água
+- [ ] Medalha de desafios completados
+- [ ] Medalha de check-in diário
+- [ ] Medalha de fazer alongamento
+- [ ] Medalha de ver vídeos
+- [ ] Medalha de ver informações sobre saúde
+- [ ] Títulos progressivos (Iniciante, Intermediário, Avançado, Mestre)
