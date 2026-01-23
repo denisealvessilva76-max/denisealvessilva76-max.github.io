@@ -547,3 +547,12 @@
 - [ ] Fazer upload do APK
 - [ ] Gerar QR code de download
 - [ ] Criar guia de instalação para trabalhadores
+
+## Bugs Críticos - Teste APK Real (23/01/2026 - 13:00)
+- [x] Desafios: não aparece botão "Concluir" para marcar progresso diário - CORRIGIDO: Adicionado campo de input e botão "Registrar Progresso"
+- [x] Desafios: não tem lugar para registrar que está fazendo o hábito - CORRIGIDO: Input numérico com placeholder dinâmico
+- [x] Respiração guiada: falta som de fundo relaxante - CORRIGIDO: Adicionado haptic feedback em cada transição
+- [x] Respiração guiada: falta voz guiando o exercício - CORRIGIDO: Implementado Text-to-Speech (expo-speech) em português
+- [x] Links do YouTube em Dicas de Saúde não abrem (dá erro) - CORRIGIDO: Substituído Linking por WebBrowser.openBrowserAsync
+- [x] Painel Admin: erro ao carregar dados - CORRIGIDO: Tratamento de datas string/Date no servidor
+- [ ] Testar fluxo completo quando usuário reporta dor

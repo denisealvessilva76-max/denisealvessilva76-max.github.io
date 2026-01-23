@@ -446,7 +446,9 @@ router.get("/analytics", async (req: Request, res: Response) => {
     const checkInTrend: Record<string, { bem: number; dorLeve: number; dorForte: number }> = {};
     
     referrals.forEach((r: any) => {
-      const date = new Date(r.createdAt).toISOString().split("T")[0];
+      // Verificar se createdAt já é string ou precisa ser convertido
+      const dateValue = typeof r.createdAt === 'string' ? r.createdAt : new Date(r.createdAt).toISOString();
+      const date = dateValue.split("T")[0];
       if (!checkInTrend[date]) {
         checkInTrend[date] = { bem: 0, dorLeve: 0, dorForte: 0 };
       }

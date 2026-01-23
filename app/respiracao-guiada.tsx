@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import * as Haptics from "expo-haptics";
+import * as Speech from "expo-speech";
 
 type Phase = "inspire" | "segure" | "expire" | "repouso" | "completo";
 
@@ -17,6 +18,36 @@ export default function RespiracaoGuiadaScreen() {
 
   const totalCiclos = 5;
 
+  // Falar instrução de voz quando muda de fase
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const speakInstruction = () => {
+      Speech.stop(); // Para qualquer fala anterior
+      
+      let text = "";
+      if (phase === "inspire") {
+        text = "Inspire lentamente pelo nariz";
+      } else if (phase === "segure") {
+        text = "Segure a respiração";
+      } else if (phase === "expire") {
+        text = "Expire lentamente pela boca";
+      } else if (phase === "completo") {
+        text = "Parabéns! Exercício completo";
+      }
+
+      if (text) {
+        Speech.speak(text, {
+          language: "pt-BR",
+          pitch: 1.0,
+          rate: 0.85,
+        });
+      }
+    };
+
+    speakInstruction();
+  }, [phase, isRunning]);
+
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return;
 
@@ -26,14 +57,17 @@ export default function RespiracaoGuiadaScreen() {
           // Passar para próxima fase
           if (phase === "inspire") {
             setPhase("segure");
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             return 4;
           } else if (phase === "segure") {
             setPhase("expire");
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             return 4;
           } else if (phase === "expire") {
             if (cicloAtual < totalCiclos) {
               setCicloAtual((prev) => prev + 1);
               setPhase("inspire");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               return 4;
             } else {
               setPhase("completo");

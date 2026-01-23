@@ -6,15 +6,18 @@ import { useChallenges } from "@/hooks/use-challenges";
 import * as Haptics from "expo-haptics";
 import { AVAILABLE_CHALLENGES, DIFFICULTY_COLORS, RANK_ICONS, getDaysRemaining } from "@/lib/challenges-data";
 import { useEffect, useState } from "react";
+import { Alert, TextInput } from "react-native";
 import type { ChallengeProgress } from "@/lib/challenges-data";
 
 export default function DesafioDetalheScreen() {
   const router = useRouter();
   const colors = useColors();
   const { id } = useLocalSearchParams();
-  const { getChallengeProgress, getChallengeRanking, activeChallenges } = useChallenges();
+  const { getChallengeProgress, getChallengeRanking, activeChallenges, updateChallengeProgress } = useChallenges();
 
   const [progress, setProgress] = useState<ChallengeProgress | null>(null);
+  const [inputValue, setInputValue] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const challenge = AVAILABLE_CHALLENGES.find((c) => c.id === id);
   const activeChallenge = activeChallenges.find((c) => c.id === id);
@@ -276,6 +279,98 @@ export default function DesafioDetalheScreen() {
                   +{ranking.length - 10} participantes
                 </Text>
               )}
+            </View>
+          )}
+
+          {/* Registrar Progresso */}
+          {activeChallenge && !progress?.completed && (
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderRadius: 12,
+                padding: 16,
+              }}
+            >
+              <Text className="text-lg font-semibold text-foreground mb-3">
+                ✅ Registrar Progresso de Hoje
+              </Text>
+
+              <View className="gap-3">
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <TextInput
+                    style={{
+                      flex: 1,
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                      borderWidth: 1,
+                      borderRadius: 8,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      fontSize: 16,
+                      color: colors.foreground,
+                    }}
+                    placeholder={`Ex: ${challenge.type === 'steps' ? '6000' : challenge.type === 'hydration' ? '8' : '1'}`}
+                    placeholderTextColor={colors.muted}
+                    keyboardType="numeric"
+                    value={inputValue}
+                    onChangeText={setInputValue}
+                  />
+                  <Text className="text-sm text-muted">{challenge.unit}</Text>
+                </View>
+
+                <Pressable
+                  onPress={async () => {
+                    if (!inputValue || isNaN(Number(inputValue))) {
+                      Alert.alert("Atenção", "Digite um valor válido");
+                      return;
+                    }
+
+                    setIsRegistering(true);
+                    try {
+                      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      const success = await updateChallengeProgress(
+                        challenge.id,
+                        Number(inputValue),
+                        true
+                      );
+
+                      if (success) {
+                        await loadProgress();
+                        setInputValue("");
+                        Alert.alert(
+                          "Sucesso! 🎉",
+                          "Progresso registrado com sucesso!"
+                        );
+                      } else {
+                        Alert.alert("Erro", "Não foi possível registrar o progresso");
+                      }
+                    } catch (error) {
+                      Alert.alert("Erro", "Ocorreu um erro ao registrar");
+                    } finally {
+                      setIsRegistering(false);
+                    }
+                  }}
+                  disabled={isRegistering}
+                  style={({ pressed }) => [{
+                    backgroundColor: colors.primary,
+                    paddingVertical: 14,
+                    borderRadius: 8,
+                    opacity: pressed || isRegistering ? 0.7 : 1,
+                  }]}
+                >
+                  <Text className="text-white font-semibold text-center text-base">
+                    {isRegistering ? "Registrando..." : "Registrar Progresso"}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           )}
 

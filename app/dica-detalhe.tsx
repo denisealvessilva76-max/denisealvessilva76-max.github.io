@@ -7,6 +7,7 @@ import { ALL_HEALTH_TIPS, CATEGORIES } from "@/lib/health-tips-data";
 import Markdown from "react-native-markdown-display";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useState } from "react";
+import * as WebBrowser from "expo-web-browser";
 
 export default function DicaDetalheScreen() {
   const router = useRouter();
@@ -49,14 +50,15 @@ export default function DicaDetalheScreen() {
     if (tip.videoUrl) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       try {
-        const supported = await Linking.canOpenURL(tip.videoUrl);
-        if (supported) {
-          await Linking.openURL(tip.videoUrl);
-        } else {
-          Alert.alert("Erro", "Não foi possível abrir o vídeo");
-        }
+        // Usar WebBrowser para abrir YouTube (mais confiável que Linking)
+        await WebBrowser.openBrowserAsync(tip.videoUrl, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.AUTOMATIC,
+          controlsColor: colors.primary,
+          toolbarColor: colors.background,
+        });
       } catch (error) {
-        Alert.alert("Erro", "Não foi possível abrir o vídeo");
+        console.error("Erro ao abrir vídeo:", error);
+        Alert.alert("Erro", "Não foi possível abrir o vídeo. Verifique sua conexão.");
       }
     }
   };
