@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
-import * as SecureStore from "expo-secure-store";
 
-const SYNC_QUEUE_KEY = "offline_sync_queue";
-const LAST_SYNC_KEY = "last_sync_timestamp";
+const SYNC_QUEUE_KEY = "sync_queue_v2";
+const LAST_SYNC_KEY = "last_sync_v2";
 
-export interface SyncQueueItem {
+export interface SyncItem {
   id: string;
-  type: "checkin" | "hydration" | "challenge" | "blood_pressure" | "complaint";
+  type: "checkIn" | "hydration" | "bloodPressure" | "challenge" | "complaint" | "gamification";
   data: any;
   timestamp: number;
   retryCount: number;
@@ -22,9 +22,10 @@ export interface SyncStatus {
   lastError: string | null;
 }
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
-
-export function useOfflineSync() {
+/**
+ * Hook para gerenciar sincronização de dados com o backend usando tRPC
+ */
+export function useSyncManager() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     isOnline: true,
     isSyncing: false,
@@ -32,6 +33,14 @@ export function useOfflineSync() {
     lastSync: null,
     lastError: null,
   });
+
+  // Mutations tRPC
+  const checkInMutation = trpc.sync.checkIns.useMutation();
+  const hydrationMutation = trpc.sync.hydration.useMutation();
+  const bloodPressureMutation = trpc.sync.bloodPressure.useMutation();
+  const challengeMutation = trpc.sync.challengeProgress.useMutation();
+  const complaintMutation = trpc.sync.complaints.useMutation();
+  const gamificationMutation = trpc.sync.gamification.useMutation();
 
   useEffect(() => {
     // Monitorar conectividade
@@ -43,7 +52,7 @@ export function useOfflineSync() {
 
       // Se voltou online, sincronizar automaticamente
       if (wasOffline && isNowOnline) {
-        syncPendingItems();
+        syncAll();
       }
     });
 
@@ -58,7 +67,7 @@ export function useOfflineSync() {
       const queueData = await AsyncStorage.getItem(SYNC_QUEUE_KEY);
       const lastSyncData = await AsyncStorage.getItem(LAST_SYNC_KEY);
 
-      const queue: SyncQueueItem[] = queueData ? JSON.parse(queueData) : [];
+      const queue: SyncItem[] = queueData ? JSON.parse(queueData) : [];
       const lastSync = lastSyncData ? parseInt(lastSyncData) : null;
 
       setSyncStatus((prev) => ({
@@ -74,15 +83,12 @@ export function useOfflineSync() {
   /**
    * Adicionar item à fila de sincronização
    */
-  const addToSyncQueue = async (
-    type: SyncQueueItem["type"],
-    data: any
-  ): Promise<boolean> => {
+  const addToQueue = async (type: SyncItem["type"], data: any): Promise<boolean> => {
     try {
       const queueData = await AsyncStorage.getItem(SYNC_QUEUE_KEY);
-      const queue: SyncQueueItem[] = queueData ? JSON.parse(queueData) : [];
+      const queue: SyncItem[] = queueData ? JSON.parse(queueData) : [];
 
-      const newItem: SyncQueueItem = {
+      const newItem: SyncItem = {
         id: `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         type,
         data,
@@ -100,20 +106,20 @@ export function useOfflineSync() {
 
       // Se estiver online, tentar sincronizar imediatamente
       if (syncStatus.isOnline) {
-        await syncPendingItems();
+        await syncAll();
       }
 
       return true;
     } catch (error) {
-      console.error("Erro ao adicionar à fila de sincronização:", error);
+      console.error("Erro ao adicionar à fila:", error);
       return false;
     }
   };
 
   /**
-   * Sincronizar itens pendentes
+   * Sincronizar todos os itens pendentes
    */
-  const syncPendingItems = async (): Promise<boolean> => {
+  const syncAll = async (): Promise<boolean> => {
     if (syncStatus.isSyncing) {
       console.log("Sincronização já em andamento");
       return false;
@@ -123,35 +129,26 @@ export function useOfflineSync() {
       setSyncStatus((prev) => ({ ...prev, isSyncing: true, lastError: null }));
 
       const queueData = await AsyncStorage.getItem(SYNC_QUEUE_KEY);
-      const queue: SyncQueueItem[] = queueData ? JSON.parse(queueData) : [];
+      const queue: SyncItem[] = queueData ? JSON.parse(queueData) : [];
 
       if (queue.length === 0) {
         setSyncStatus((prev) => ({ ...prev, isSyncing: false }));
         return true;
       }
 
-      const token = await SecureStore.getItemAsync("auth_token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado");
-      }
-
-      const failedItems: SyncQueueItem[] = [];
+      const failedItems: SyncItem[] = [];
       let successCount = 0;
 
       // Processar cada item da fila
       for (const item of queue) {
         try {
-          const success = await syncItem(item, token);
+          const success = await syncItem(item);
           if (success) {
             successCount++;
           } else {
-            // Incrementar contador de tentativas
             item.retryCount++;
-            // Se falhou menos de 3 vezes, manter na fila
             if (item.retryCount < 3) {
               failedItems.push(item);
-            } else {
-              console.error(`Item ${item.id} excedeu limite de tentativas`);
             }
           }
         } catch (error) {
@@ -180,7 +177,7 @@ export function useOfflineSync() {
 
       return failedItems.length === 0;
     } catch (error) {
-      console.error("Erro ao sincronizar itens pendentes:", error);
+      console.error("Erro ao sincronizar:", error);
       setSyncStatus((prev) => ({
         ...prev,
         isSyncing: false,
@@ -191,25 +188,37 @@ export function useOfflineSync() {
   };
 
   /**
-   * Sincronizar um item específico
+   * Sincronizar um item específico usando tRPC
    */
-  const syncItem = async (item: SyncQueueItem, token: string): Promise<boolean> => {
+  const syncItem = async (item: SyncItem): Promise<boolean> => {
     try {
-      const endpoint = getEndpointForType(item.type);
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(item.data),
-      });
+      let result;
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      switch (item.type) {
+        case "checkIn":
+          result = await checkInMutation.mutateAsync(item.data);
+          break;
+        case "hydration":
+          result = await hydrationMutation.mutateAsync(item.data);
+          break;
+        case "bloodPressure":
+          result = await bloodPressureMutation.mutateAsync(item.data);
+          break;
+        case "challenge":
+          result = await challengeMutation.mutateAsync(item.data);
+          break;
+        case "complaint":
+          result = await complaintMutation.mutateAsync(item.data);
+          break;
+        case "gamification":
+          result = await gamificationMutation.mutateAsync(item.data);
+          break;
+        default:
+          console.error(`Tipo de item desconhecido: ${item.type}`);
+          return false;
       }
 
-      return true;
+      return result?.success === true;
     } catch (error) {
       console.error(`Erro ao sincronizar item ${item.id}:`, error);
       return false;
@@ -217,29 +226,15 @@ export function useOfflineSync() {
   };
 
   /**
-   * Obter endpoint da API para cada tipo de item (tRPC)
+   * Limpar fila de sincronização
    */
-  const getEndpointForType = (type: SyncQueueItem["type"]): string => {
-    const endpoints = {
-      checkin: "/api/trpc/sync.checkIns",
-      hydration: "/api/trpc/sync.hydration",
-      challenge: "/api/trpc/sync.challengeProgress",
-      blood_pressure: "/api/trpc/sync.bloodPressure",
-      complaint: "/api/trpc/sync.complaints",
-    };
-    return endpoints[type];
-  };
-
-  /**
-   * Limpar fila de sincronização (usar com cuidado)
-   */
-  const clearSyncQueue = async (): Promise<boolean> => {
+  const clearQueue = async (): Promise<boolean> => {
     try {
       await AsyncStorage.removeItem(SYNC_QUEUE_KEY);
       setSyncStatus((prev) => ({ ...prev, pendingItems: 0 }));
       return true;
     } catch (error) {
-      console.error("Erro ao limpar fila de sincronização:", error);
+      console.error("Erro ao limpar fila:", error);
       return false;
     }
   };
@@ -247,7 +242,7 @@ export function useOfflineSync() {
   /**
    * Forçar sincronização manual
    */
-  const forceSyncNow = async (): Promise<boolean> => {
+  const forceSync = async (): Promise<boolean> => {
     if (!syncStatus.isOnline) {
       setSyncStatus((prev) => ({
         ...prev,
@@ -255,14 +250,14 @@ export function useOfflineSync() {
       }));
       return false;
     }
-    return await syncPendingItems();
+    return await syncAll();
   };
 
   return {
     syncStatus,
-    addToSyncQueue,
-    syncPendingItems,
-    clearSyncQueue,
-    forceSyncNow,
+    addToQueue,
+    syncAll,
+    clearQueue,
+    forceSync,
   };
 }
