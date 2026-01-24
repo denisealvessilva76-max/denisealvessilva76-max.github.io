@@ -46,33 +46,20 @@ export default function AdminDashboardScreen() {
 
       const token = await SecureStore.getItemAsync("admin_token");
       const storedEmail = await SecureStore.getItemAsync("admin_email");
+      const isAuthenticated = await SecureStore.getItemAsync("admin_authenticated");
 
-      if (!token || !storedEmail) {
+      if (!token || !storedEmail || isAuthenticated !== "true") {
         router.push("/admin-login");
         return;
       }
 
       setEmail(storedEmail);
 
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://3000-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer";
-      const response = await fetch(`${API_URL}/api/admin/analytics?period=${period}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/admin-login");
-          return;
-        }
-        throw new Error("Erro ao carregar dados");
-      }
-
-      const analyticsData = await response.json();
-      setData(analyticsData);
+      // Usar dados locais (offline) - Não depende de servidor
+      console.log("Carregando dados locais do admin...");
+      
     } catch (error) {
-      console.log("Erro ao carregar analytics, usando dados mockados:", error);
+      console.log("Erro ao carregar analytics:", error);
       // Usar dados mockados quando servidor não responde
       setData({
         period: "month",

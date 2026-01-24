@@ -50,7 +50,7 @@ export default function EnviarFeedbackScreen() {
       const response = await axios.post(`${API_URL}/api/feedback`, {
         userId: profile?.id || `user-${Date.now()}`,
         userName: profile?.name || "Usuário Anônimo",
-        userCpf: profile?.cpf || "Não informado",
+        userMatricula: profile?.matricula || "Não informado",
         type: selectedType,
         category: selectedCategory,
         title: title.trim(),
@@ -216,7 +216,7 @@ export default function EnviarFeedbackScreen() {
                 Nome: {profile.name}
               </Text>
               <Text className="text-xs text-muted">
-                CPF: {profile.cpf}
+                Matrícula: {profile.matricula}
               </Text>
               <Text className="text-xs text-muted mt-2">
                 Essas informações serão enviadas junto com o feedback para que possamos entrar em contato se necessário.

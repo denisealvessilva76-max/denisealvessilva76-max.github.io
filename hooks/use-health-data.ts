@@ -52,10 +52,16 @@ export function useHealthData() {
   // Salvar perfil do usuário
   const saveProfile = useCallback(async (newProfile: UserProfile) => {
     try {
+      console.log("[SAVE PROFILE] Salvando perfil:", newProfile);
       await AsyncStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
       setProfile(newProfile);
+      console.log("[SAVE PROFILE] Perfil salvo com sucesso!");
+      
+      // Verificar se foi salvo corretamente
+      const saved = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE);
+      console.log("[SAVE PROFILE] Verificação:", saved);
     } catch (error) {
-      console.error("Erro ao salvar perfil:", error);
+      console.error("[SAVE PROFILE] Erro ao salvar perfil:", error);
     }
   }, []);
 

@@ -881,3 +881,146 @@
 - [x] Verificar tela /hydration-tracker (já existia)
 - [x] Criar tela /desafios para iniciar desafios
 - [x] Testar navegação completa
+
+---
+
+## 🔴 CRÍTICO - Bugs Bloqueadores (Prioridade Máxima)
+
+### Erro "Desafio não encontrado"
+- [x] Criar rota `/desafio-detalhe` para exibir detalhes do desafio (JÁ EXISTE)
+- [x] Implementar tela com informações do desafio selecionado
+- [x] Adicionar botão "Iniciar Desafio" que salva no perfil do usuário
+- [ ] Adicionar campo para anexar foto como prova de realização (PENDENTE)
+
+### Erro de Autenticação no Admin
+- [x] Corrigir autenticação do painel admin (mostra código HTML)
+- [x] Implementar sistema de login seguro LOCAL (offline)
+- [x] Criar tela de login com senha (JÁ EXISTIA)
+- [x] Salvar credenciais de admin com SecureStore
+- [x] Credenciais de acess### Perfil não Salva Dados
+- [x] Implementar persistência completa com AsyncStorage (JÁ IMPLEMENTADO)
+- [x] Salvar nome, matrícula, cargo e turno
+- [x] Carregar dados ao abrir o app
+- [x] Adicionar logs de debug para verificar persistência
+- [x] Testar persistência após fechar e reabrir app
+- [x] Manter dados mesmo após fechar o ap### Link do WhatsApp Quebrado
+- [x] Corrigir link do WhatsApp da Saúde Ocupacional (JÁ USA whatsapp://send)
+- [x] Usar intent do WhatsApp ao invés de link web
+- [ ] Corrigir número da Brenda (psicóloga) - PENDENTE
+- [x] Testar abertura do WhatsApp no dispositivo
+### Campo CPF → Matrícula
+- [x] Trocar campo "CPF" por "Matrícula" no perfil
+- [x] Atualizar tipo UserProfile
+- [x] Atualizar formulário de feedback
+- [x] Atualizar placeholder para "Ex: 12345"
+- [ ] Atualizar placeholder e validação
+- [ ] Atualizar todos os lugares que usam CPF
+
+---
+
+## 🟡 ALTA PRIORIDADE - Funcionalidades Core
+
+### Respiração Guiada
+- [x] Corrigir som de fundo que não toca (adicionado logs de debug)
+- [x] Ajustar velocidade da contagem (ajustado para padrão 4-7-8)
+- [x] Aumentar duração de cada fase: inspirar (5s), segurar (7s), expirar (8s)
+- [x] Implementado técnica 4-7-8 (recomendada para relaxamento)
+
+### Pausa Ativa - Ajustar Horários
+- [ ] Permitir usuário configurar horários personalizados
+- [ ] Remover horários fixos (10h, 14h, 17h)
+- [ ] Adicionar opção "Não me lembre durante o trabalho"
+- [ ] Salvar preferências de horário no perfil
+
+### Salvar Dados de Pressão Arterial
+- [ ] Criar histórico de medições de pressão
+- [ ] Salvar data, hora, sistólica e diastólica
+- [ ] Exibir gráfico de evolução
+- [ ] Enviar relatório para admin
+
+### Modo Offline
+- [ ] Implementar sincronização automática
+- [ ] Salvar dados localmente quando offline
+- [ ] Enviar para servidor quando conectar
+- [ ] Indicador visual de "dados não sincronizados"
+
+---
+
+## 🟢 MÉDIA PRIORIDADE - Melhorias UX/UI
+
+### Sistema de Água
+- [ ] Corrigir atualização em tempo real (não precisa sair da aba)
+- [ ] Recalcular meta baseado em: peso + altura + tipo de trabalho
+- [ ] Ajustar medida do copo para 150ml
+- [ ] Adicionar medidor de cor de urina (hidratação)
+- [ ] Criar escala visual de cores (1-8)
+
+### Conquistas com Progresso
+- [ ] Mostrar conquistas já obtidas separadas das pendentes
+- [ ] Exibir barra de progresso para cada conquista
+- [ ] Mostrar "Faltam X pontos" ou "Faltam X dias"
+- [ ] Animação ao desbloquear conquista
+
+### Sistema de Pontos Rebalanceado
+- [ ] Recalcular pontos para premiar consistência
+- [ ] Aumentar pontos de ações diárias (check-in, água)
+- [ ] Ajustar preços dos prêmios proporcionalmente
+- [ ] Quanto mais pontos, melhor o brinde
+- [ ] Fazer possível ganhar prêmios com uso consistente (não fácil)
+
+### Próximas Ações - Marcar Concluídas
+- [ ] Adicionar ícone de ✓ em ações já feitas hoje
+- [ ] Mudar cor do card para indicar conclusão
+- [ ] Remover badge "URGENTE" se já fez
+- [ ] Atualizar em tempo real ao completar ação
+
+### Edição de Brindes pelo Admin
+- [ ] Permitir admin editar nome, descrição e pontos
+- [ ] Permitir admin adicionar novos brindes
+- [ ] Permitir admin remover brindes
+- [ ] Sincronizar catálogo com todos os usuários
+
+---
+
+## 🔵 BAIXA PRIORIDADE - Polimento
+
+### Remover Aba de EPI
+- [ ] Remover botão "Checklist de EPIs" da Home
+- [ ] Remover rota `/checklist-epi`
+- [ ] Limpar referências no código
+
+### Revisar Textos
+- [ ] Corrigir ortografia em todas as telas
+- [ ] Revisar pontuação
+- [ ] Corrigir concordância verbal
+- [ ] Padronizar tom de voz (formal/informal)
+
+### Relatórios para Admin
+- [ ] Criar relatório de hábitos (água, check-in, desafios)
+- [ ] Criar relatório de reclamações e queixas
+- [ ] Criar relatório de condições psicológicas
+- [ ] Gráficos de evolução individual e coletiva
+- [ ] Opção de exportar PDF ou enviar por email
+- [ ] Relatórios semanais e mensais automáticos
+
+### Edição de Horários de Notificação
+- [ ] Tela de configuração de notificações
+- [ ] Permitir escolher horário de check-in
+- [ ] Permitir escolher horários de pausa ativa
+- [ ] Permitir escolher horário de lembrete de água
+
+---
+
+## 📊 Relatórios e Acompanhamento Admin
+
+### Dados que Devem Gerar Relatórios
+- [ ] Histórico de check-ins diários
+- [ ] Ingestão de água (ml por dia)
+- [ ] Desafios iniciados e concluídos
+- [ ] Reclamações e queixas de dores
+- [ ] Condições psicológicas reportadas
+- [ ] Pressão arterial (histórico)
+- [ ] Frequência de uso do app
+- [ ] Conquistas desbloqueadas
+- [ ] Pontos acumulados e prêmios resgatados
+

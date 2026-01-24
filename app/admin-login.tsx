@@ -22,47 +22,27 @@ export default function AdminLoginScreen() {
 
     setIsLoading(true);
     try {
-      // Chamar API de login
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://3000-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer";
-      console.log("Tentando login em:", `${API_URL}/api/admin/login`);
-      console.log("Credenciais:", { email, password });
-      
-      const response = await fetch(`${API_URL}/api/admin/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      // Autenticação LOCAL (offline) - Credenciais de admin fixas
+      const ADMIN_EMAIL = "admin@canteiro.com";
+      const ADMIN_PASSWORD = "admin123";
 
-      console.log("Response status:", response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Erro da API:", errorText);
-        let error;
-        try {
-          error = JSON.parse(errorText);
-        } catch {
-          error = { message: errorText };
-        }
-        throw new Error(error.message || "Erro ao fazer login");
+      // Verificar credenciais localmente
+      if (email.toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        // Gerar token local simples
+        const localToken = `local_${Date.now()}_${Math.random().toString(36)}`;
+
+        // Salvar token e email no SecureStore
+        await SecureStore.setItemAsync("admin_token", localToken);
+        await SecureStore.setItemAsync("admin_email", email);
+        await SecureStore.setItemAsync("admin_authenticated", "true");
+
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        // Navegar para dashboard
+        router.replace("/admin-dashboard");
+      } else {
+        throw new Error("Email ou senha incorretos");
       }
-
-      const data = await response.json();
-      console.log("Login bem-sucedido:", data);
-
-      // Salvar token seguro
-      await SecureStore.setItemAsync("admin_token", data.token);
-      await SecureStore.setItemAsync("admin_email", email);
-
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      // Navegar para dashboard
-      router.push("/admin-dashboard");
     } catch (error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert(

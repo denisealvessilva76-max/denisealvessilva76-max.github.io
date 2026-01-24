@@ -33,7 +33,7 @@ export default function RespiracaoGuiadaScreen() {
   const { checkIns } = useHealthData();
   const { addBreathingPoints } = useGamification(checkIns);
   const [phase, setPhase] = useState<Phase>("inspire");
-  const [timeLeft, setTimeLeft] = useState(4);
+  const [timeLeft, setTimeLeft] = useState(5); // Começa com 5s (inspire)
   const [isRunning, setIsRunning] = useState(false);
   const [cicloAtual, setCicloAtual] = useState(1);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -73,18 +73,24 @@ export default function RespiracaoGuiadaScreen() {
 
   // Controlar reprodução do som de fundo
   useEffect(() => {
-    if (!isRunning || selectedSound === "none") return;
+    if (!isRunning || selectedSound === "none") {
+      console.log("[AUDIO] Não iniciando som (isRunning:", isRunning, "selectedSound:", selectedSound, ")");
+      return;
+    }
 
     const player = 
       selectedSound === "rain" ? rainPlayer :
       selectedSound === "ocean" ? oceanPlayer :
       forestPlayer;
 
+    console.log("[AUDIO] Iniciando som de fundo:", selectedSound);
     player.volume = 0.3; // Volume baixo para não atrapalhar a voz
     player.loop = true;
     player.play();
+    console.log("[AUDIO] Player.play() chamado");
 
     return () => {
+      console.log("[AUDIO] Pausando som de fundo");
       player.pause();
     };
   }, [isRunning, selectedSound]);
@@ -125,21 +131,21 @@ export default function RespiracaoGuiadaScreen() {
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Passar para próxima fase
+          // Passar para próxima fase (padrão 4-7-8)
           if (phase === "inspire") {
             setPhase("segure");
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            return 4;
+            return 7; // Segurar por 7 segundos
           } else if (phase === "segure") {
             setPhase("expire");
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            return 4;
+            return 8; // Expirar por 8 segundos
           } else if (phase === "expire") {
             if (cicloAtual < totalCiclos) {
               setCicloAtual((prev) => prev + 1);
               setPhase("inspire");
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              return 4;
+              return 5; // Inspirar por 5 segundos (aproximado de 4)
             } else {
               setPhase("completo");
               setIsRunning(false);

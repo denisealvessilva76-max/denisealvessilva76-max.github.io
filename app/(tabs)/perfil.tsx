@@ -18,7 +18,7 @@ export default function PerfilScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: "",
-    cpf: "",
+    matricula: "",
     cargo: "",
     turno: "matutino",
   });
@@ -32,7 +32,7 @@ export default function PerfilScreen() {
   }, [profile]);
 
   const handleSaveProfile = async () => {
-    if (!formData.name || !formData.cpf || !formData.cargo || !formData.turno) {
+    if (!formData.name || !formData.matricula || !formData.cargo || !formData.turno) {
       Alert.alert("Erro", "Preencha todos os campos");
       return;
     }
@@ -40,7 +40,7 @@ export default function PerfilScreen() {
     const newProfile: UserProfile = {
       id: profile?.id || Date.now().toString(),
       name: formData.name,
-      cpf: formData.cpf,
+      matricula: formData.matricula,
       cargo: formData.cargo,
       turno: formData.turno as "matutino" | "vespertino" | "noturno",
       createdAt: profile?.createdAt || Date.now(),
@@ -155,8 +155,8 @@ export default function PerfilScreen() {
                   <Text className="text-base text-foreground">{profile.name}</Text>
                 </View>
                 <View>
-                  <Text className="text-xs text-muted mb-1">CPF</Text>
-                  <Text className="text-base text-foreground">{profile.cpf}</Text>
+                  <Text className="text-xs text-muted mb-1">Matrícula</Text>
+                  <Text className="text-base text-foreground">{profile.matricula}</Text>
                 </View>
                 <View>
                   <Text className="text-xs text-muted mb-1">Cargo</Text>
@@ -180,13 +180,13 @@ export default function PerfilScreen() {
                   />
                 </View>
                 <View>
-                  <Text className="text-xs text-muted mb-1">CPF</Text>
+                  <Text className="text-xs text-muted mb-1">Matrícula</Text>
                   <TextInput
                     className="bg-background border border-border rounded-lg p-3 text-foreground"
-                    placeholder="000.000.000-00"
+                    placeholder="Ex: 12345"
                     placeholderTextColor="#687076"
-                    value={formData.cpf}
-                    onChangeText={(text) => setFormData({ ...formData, cpf: text })}
+                    value={formData.matricula}
+                    onChangeText={(text) => setFormData({ ...formData, matricula: text })}
                   />
                 </View>
                 <View>
