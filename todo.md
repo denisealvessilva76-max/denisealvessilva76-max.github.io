@@ -1383,3 +1383,15 @@
 - [x] Sincronização offline + retry
 - [x] Testes de integração
 - [x] 0 erros de TypeScript
+
+
+---
+
+## ADICIONAR CONTATOS PROFISSIONAIS
+
+- [x] Localizar tela de Saúde Mental
+- [x] Adicionar seção "Fale com Profissionais"
+- [x] Adicionar contato da Psicóloga Brenda
+- [x] Adicionar contato da Assistente Social Luciana
+- [x] Número: (31) 99589-2351
+- [x] Incluir botão de WhatsApp para contato direto

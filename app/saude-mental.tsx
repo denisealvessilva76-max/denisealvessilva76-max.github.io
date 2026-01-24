@@ -22,17 +22,23 @@ export default function SaudeMentalScreen() {
 
   const handleContatoPsicologa = () => {
     Alert.alert(
-      "Contato com Psicóloga",
-      "Para agendar atendimento com a Psicóloga Brenda Fernandes (presencial na obra ou teleconsulta), procure o setor de Medicina do Trabalho.\n\n✅ Sigilo profissional garantido por lei.",
-      [{ text: "Entendi", style: "default" }]
+      "Contato com Psicóloga Brenda",
+      "Psicóloga/Analista Brenda\nAtendimento presencial na obra ou teleconsulta\n\n📱 WhatsApp: (31) 99589-2351\n\n✅ Sigilo profissional garantido por lei.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Abrir WhatsApp", onPress: () => Linking.openURL("https://wa.me/5531995892351?text=Olá, gostaria de agendar um atendimento com a Psicóloga Brenda") },
+      ]
     );
   };
 
   const handleContatoAssistenteSocial = () => {
     Alert.alert(
-      "Contato com Assistente Social",
-      "Para agendar atendimento com a Assistente Social Luciana Nascimento, procure o setor de Medicina do Trabalho.\n\n✅ Sigilo profissional garantido por lei.",
-      [{ text: "Entendi", style: "default" }]
+      "Contato com Assistente Social Luciana",
+      "Assistente Social Luciana\nOrientação e apoio em questões sociais\n\n📱 WhatsApp: (31) 99589-2351\n\n✅ Sigilo profissional garantido por lei.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Abrir WhatsApp", onPress: () => Linking.openURL("https://wa.me/5531995892351?text=Olá, gostaria de agendar um atendimento com a Assistente Social Luciana") },
+      ]
     );
   };
 
@@ -91,20 +97,23 @@ export default function SaudeMentalScreen() {
             <View className="gap-3">
               <View className="gap-2">
                 <Text className="text-base font-semibold text-foreground">
-                  🧠 Psicóloga - Brenda Fernandes
+                  🧠 Psicóloga/Analista - Brenda
                 </Text>
                 <Text className="text-sm text-muted">
                   Atendimento presencial na obra ou teleconsulta
                 </Text>
+                <Text className="text-sm text-foreground">
+                  📱 (31) 99589-2351
+                </Text>
                 <TouchableOpacity
-                  className="bg-primary rounded-lg py-3 active:opacity-80"
+                  className="bg-green-600 rounded-lg py-3 active:opacity-80"
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     handleContatoPsicologa();
                   }}
                 >
                   <Text className="text-center font-semibold text-white">
-                    Solicitar Atendimento
+                    💬 Agendar via WhatsApp
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -113,27 +122,30 @@ export default function SaudeMentalScreen() {
 
               <View className="gap-2">
                 <Text className="text-base font-semibold text-foreground">
-                  🤝 Assistente Social - Luciana Nascimento
+                  🤝 Assistente Social - Luciana
                 </Text>
                 <Text className="text-sm text-muted">
                   Orientação e apoio em questões sociais
                 </Text>
+                <Text className="text-sm text-foreground">
+                  📱 (31) 99589-2351
+                </Text>
                 <TouchableOpacity
-                  className="bg-primary rounded-lg py-3 active:opacity-80"
+                  className="bg-green-600 rounded-lg py-3 active:opacity-80"
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     handleContatoAssistenteSocial();
                   }}
                 >
                   <Text className="text-center font-semibold text-white">
-                    Solicitar Atendimento
+                    💬 Agendar via WhatsApp
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             <Text className="text-xs text-muted italic">
-              💡 Procure o setor de Medicina do Trabalho para agendar
+              💡 Clique no botão verde para enviar mensagem via WhatsApp
             </Text>
           </Card>
 
