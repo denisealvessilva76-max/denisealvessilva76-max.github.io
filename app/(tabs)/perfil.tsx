@@ -309,6 +309,25 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </Card>
 
+          {/* Notificações Semanais */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">📬 Notificações Semanais</Text>
+            <Text className="text-sm text-muted">
+              Receba resumos do seu progresso de saúde toda semana
+            </Text>
+            <TouchableOpacity
+              className="bg-indigo-600 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/notificacoes-semanais");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Configurar Notificações
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
           {/* Preferências e Notificações */}
           <Card className="gap-3">
             <Text className="text-lg font-semibold text-foreground">⚙️ Preferências</Text>

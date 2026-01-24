@@ -1413,3 +1413,22 @@
 - [x] Botão de acesso no perfil
 - [x] Cards de resumo com métricas principais
 - [ ] Exportar relatório pessoal em PDF (funcionalidade futura)
+
+
+---
+
+## 📬 SISTEMA DE NOTIFICAÇÕES SEMANAIS (NOVA FUNCIONALIDADE)
+
+### Funcionalidades
+- [x] Criar hook de notificações semanais (use-weekly-notifications.ts)
+- [x] Implementar gerador de resumo semanal com estatísticas
+- [x] Criar mensagens motivacionais personalizadas
+- [x] Agendamento automático de notificações
+- [x] Configuração de dia da semana preferido
+- [x] Configuração de horário preferido
+- [x] Tela de configuração de notificações semanais
+- [x] Integrar com sistema de preferências existente
+- [x] Solicitar permissões de notificação
+- [x] Testar notificações em diferentes cenários (botão de teste)
+- [x] Adicionar opção de ativar/desativar
+- [x] Persistir configurações no AsyncStorage
