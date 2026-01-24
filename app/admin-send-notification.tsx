@@ -3,7 +3,8 @@ import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import * as SecureStore from "expo-secure-store";
 
 type TargetType = "user" | "group";
 type TargetGroup = "all" | "high_pressure" | "pending_complaints" | "inactive";
@@ -11,6 +12,41 @@ type Template = "exam_reminder" | "appointment" | "safety_alert" | "custom";
 
 export default function AdminSendNotificationScreen() {
   const colors = useColors();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  // Verificar autenticação
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const authenticated = await SecureStore.getItemAsync("admin_authenticated");
+      if (authenticated === "true") {
+        setIsAuthenticated(true);
+      } else {
+        router.replace("/admin-login");
+      }
+    } catch (error) {
+      router.replace("/admin-login");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  if (checking) {
+    return (
+      <ScreenContainer className="items-center justify-center">
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="text-muted mt-4">Verificando acesso...</Text>
+      </ScreenContainer>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const [targetType, setTargetType] = useState<TargetType>("group");
   const [targetUserId, setTargetUserId] = useState("");

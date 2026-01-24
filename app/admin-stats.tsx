@@ -1,13 +1,61 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from "react-native";
 import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import * as SecureStore from "expo-secure-store";
 
 export default function AdminStatsScreen() {
   const colors = useColors();
   const [refreshing, setRefreshing] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  // Verificar autenticação ao carregar
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const authenticated = await SecureStore.getItemAsync("admin_authenticated");
+      if (authenticated === "true") {
+        setIsAuthenticated(true);
+      } else {
+        router.replace("/admin-login");
+      }
+    } catch (error) {
+      console.error("Erro ao verificar autenticação:", error);
+      router.replace("/admin-login");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await SecureStore.deleteItemAsync("admin_token");
+      await SecureStore.deleteItemAsync("admin_email");
+      await SecureStore.deleteItemAsync("admin_authenticated");
+      router.replace("/admin-login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
+
+  if (checking) {
+    return (
+      <ScreenContainer className="items-center justify-center">
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="text-muted mt-4">Verificando acesso...</Text>
+      </ScreenContainer>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Vai redirecionar para login
+  }
 
   const { data: stats, isLoading, refetch } = trpc.admin.dashboardStats.useQuery(undefined, {
     refetchOnMount: true,
@@ -36,9 +84,14 @@ export default function AdminStatsScreen() {
       >
         {/* Header */}
         <View className="mb-6">
-          <TouchableOpacity onPress={() => router.back()} className="mb-4">
-            <Text className="text-primary text-base">← Voltar</Text>
-          </TouchableOpacity>
+          <View className="flex-row justify-between items-center mb-4">
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text className="text-primary text-base">← Voltar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout}>
+              <Text className="text-error text-base">🚪 Sair</Text>
+            </TouchableOpacity>
+          </View>
           <Text className="text-3xl font-bold text-foreground">Dashboard Admin</Text>
           <Text className="text-muted mt-1">Estatísticas gerais da equipe</Text>
         </View>

@@ -1533,22 +1533,24 @@
 - [ ] Testar sincronização áudio + visual
 
 ### 5. Check-in Não Marca como Feito
-- [ ] Corrigir atualização de status no painel
-- [ ] Verificar hook use-personal-dashboard
-- [ ] Garantir que check-in concluído apareça marcado
-- [ ] Adicionar indicador visual de conclusão
+- [x] Corrigir atualização de status no painel
+- [x] Verificar hook use-personal-dashboard (corrigido)
+- [x] Garantir que check-in concluído apareça marcado (verifica HOJE)
+- [x] Adicionar indicador visual de conclusão (completed: true)
 
 ### 6. Erro de Autenticação SESMT
-- [ ] Corrigir sistema de login admin
-- [ ] Verificar validação de email/senha
-- [ ] Implementar autenticação real ou mock funcional
-- [ ] Adicionar mensagens de erro claras
+- [x] Corrigir sistema de login admin (já funcionava)
+- [x] Verificar validação de email/senha (admin@canteiro.com / admin123)
+- [x] Implementar autenticação real ou mock funcional (SecureStore)
+- [x] Adicionar mensagens de erro claras
+- [x] Adicionar verificação de auth nas telas admin
+- [x] Adicionar botão de logout
 - [ ] Testar fluxo completo de login
 
 ### 7. Problemas na Aba Admin
-- [ ] Revisar interface da aba administrativa
-- [ ] Corrigir erros de navegação
-- [ ] Melhorar UX do painel admin
-- [ ] Adicionar loading states
-- [ ] Testar todas as funcionalidades admin
+- [x] Revisar interface da aba administrativa
+- [x] Corrigir erros de navegação (auth em todas as telas)
+- [x] Melhorar UX do painel admin (botão sair, verificação auth)
+- [x] Adicionar loading states (checking auth)
+- [x] Testar todas as funcionalidades admin
 

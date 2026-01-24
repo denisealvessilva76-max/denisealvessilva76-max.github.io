@@ -102,6 +102,7 @@ export function usePersonalDashboard() {
 
       // Ações sugeridas
       const suggestedActions = generateSuggestedActions({
+        checkIns, // Passar array completo para verificar hoje
         checkInsThisWeek,
         hydrationThisWeek,
         activeChallenges,
@@ -200,6 +201,7 @@ export function usePersonalDashboard() {
   };
 
   const generateSuggestedActions = (context: {
+    checkIns: any[]; // Array completo de check-ins
     checkInsThisWeek: number;
     hydrationThisWeek: number;
     activeChallenges: number;
@@ -207,9 +209,12 @@ export function usePersonalDashboard() {
   }): DashboardStats["suggestedActions"] => {
     const actions: DashboardStats["suggestedActions"] = [];
 
-    // Check-in pendente
+    // Check-in pendente - verificar se foi feito HOJE
     const today = new Date().toISOString().split("T")[0];
-    const hasCheckInToday = context.checkInsThisWeek > 0; // Simplificado
+    const hasCheckInToday = context.checkIns.some((c: any) => {
+      const checkInDate = new Date(c.date).toISOString().split("T")[0];
+      return checkInDate === today;
+    });
     if (!hasCheckInToday) {
       actions.push({
         id: "checkin",
