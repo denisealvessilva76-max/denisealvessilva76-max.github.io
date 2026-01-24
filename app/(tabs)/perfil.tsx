@@ -290,14 +290,33 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </Card>
 
-          {/* Configuração de Pausas Ativas */}
+          {/* Preferências e Notificações */}
           <Card className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">⚙️ Pausas Ativas</Text>
+            <Text className="text-lg font-semibold text-foreground">⚙️ Preferências</Text>
             <Text className="text-sm text-muted">
-              Personalize os horários das pausas ativas e lembretes de hidratação
+              Configure notificações, lembretes e horários personalizados
             </Text>
             <TouchableOpacity
               className="bg-purple-500 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/preferencias");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Abrir Preferências
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
+          {/* Configuração de Pausas Ativas */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">🧘 Pausas Ativas</Text>
+            <Text className="text-sm text-muted">
+              Personalize os horários das pausas ativas
+            </Text>
+            <TouchableOpacity
+              className="bg-blue-500 rounded-lg py-3 active:opacity-80"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.push("/configurar-pausas");
@@ -324,6 +343,25 @@ export default function PerfilScreen() {
             >
               <Text className="text-center font-semibold text-white">
                 Configurar Notificações
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
+          {/* Backup e Restauração */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">💾 Backup</Text>
+            <Text className="text-sm text-muted">
+              Proteja seus dados criando backups regulares
+            </Text>
+            <TouchableOpacity
+              className="bg-green-600 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/backup");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Gerenciar Backups
               </Text>
             </TouchableOpacity>
           </Card>

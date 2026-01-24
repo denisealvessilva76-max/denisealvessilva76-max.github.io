@@ -187,6 +187,88 @@ export default function BloodPressureHistoryScreen() {
           </View>
         )}
 
+        {/* Gráfico Visual (Últimos 7 dias) */}
+        {last30Days.length > 0 && (() => {
+          const last7Days = last30Days.slice(0, 7).reverse();
+          const maxValue = Math.max(...last7Days.flatMap(r => [r.systolic, r.diastolic]));
+          const minValue = Math.min(...last7Days.flatMap(r => [r.systolic, r.diastolic]));
+          const range = maxValue - minValue + 20;
+
+          return (
+            <View className="bg-surface rounded-2xl p-5 mb-6 border border-border">
+              <Text className="text-lg font-bold text-foreground mb-4">
+                📈 Gráfico (Últimos 7 dias)
+              </Text>
+
+              {/* Legenda */}
+              <View className="flex-row items-center gap-4 mb-4">
+                <View className="flex-row items-center gap-2">
+                  <View className="w-4 h-4 rounded-full" style={{ backgroundColor: colors.error }} />
+                  <Text className="text-xs text-muted">Sistólica</Text>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  <View className="w-4 h-4 rounded-full" style={{ backgroundColor: colors.primary }} />
+                  <Text className="text-xs text-muted">Diastólica</Text>
+                </View>
+              </View>
+
+              {/* Gráfico de Barras */}
+              <View className="flex-row items-end justify-around" style={{ height: 150 }}>
+                {last7Days.map((reading, index) => {
+                  const systolicHeight = ((reading.systolic - minValue + 10) / range) * 140;
+                  const diastolicHeight = ((reading.diastolic - minValue + 10) / range) * 140;
+
+                  return (
+                    <View key={reading.id} className="items-center gap-1" style={{ flex: 1 }}>
+                      {/* Valores */}
+                      <View className="items-center mb-1">
+                        <Text className="text-xs font-bold text-foreground">
+                          {reading.systolic}
+                        </Text>
+                        <Text className="text-xs text-muted">
+                          {reading.diastolic}
+                        </Text>
+                      </View>
+
+                      {/* Barras */}
+                      <View className="flex-row gap-1 items-end">
+                        <View
+                          className="rounded-t-md"
+                          style={{
+                            width: 12,
+                            height: systolicHeight,
+                            backgroundColor: colors.error,
+                          }}
+                        />
+                        <View
+                          className="rounded-t-md"
+                          style={{
+                            width: 12,
+                            height: diastolicHeight,
+                            backgroundColor: colors.primary,
+                          }}
+                        />
+                      </View>
+
+                      {/* Data */}
+                      <Text className="text-xs text-muted mt-1">
+                        {new Date(reading.timestamp).getDate()}/{new Date(reading.timestamp).getMonth() + 1}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+
+              {/* Linhas de Referência */}
+              <View className="mt-3 pt-3 border-t border-border">
+                <Text className="text-xs text-muted text-center">
+                  🟢 Normal: &lt;120/80 | 🟡 Pré-hipertensão: 120-139/80-89 | 🔴 Hipertensão: ≥140/90
+                </Text>
+              </View>
+            </View>
+          );
+        })()}
+
         {/* Histórico (Últimos 30 dias) */}
         {last30Days.length > 0 && (
           <View className="mb-6">
