@@ -1665,3 +1665,22 @@
 - [x] useEffect só executa redirecionamento uma vez
 - [x] Logs de debug adicionados para rastreamento
 - [x] Condição de guarda: `if (isLoading || hasRedirected) return`
+
+
+---
+
+## 🐛 Bug CRÍTICO PERSISTENTE: Loop Continua Após Correção (24/01/2026 - 13:00)
+
+### Problema:
+- [x] Tela AINDA pisca rapidamente entre tela inicial e tela branca "Carregando"
+- [x] Flag hasRedirected NÃO resolveu o problema
+- [x] Loop continua mesmo com guarda no useEffect
+- [x] App inutilizável
+
+### Solução Definitiva Implementada:
+- [x] REMOVIDO sistema de onboarding automático completamente
+- [x] App agora abre DIRETAMENTE nas tabs principais
+- [x] Botão "Ver Tutorial" disponível no perfil para acesso manual
+- [x] Removidos imports de useOnboarding, useRouter, useSegments
+- [x] Removido useEffect de redirecionamento
+- [x] initialRouteName definido como "(tabs)"

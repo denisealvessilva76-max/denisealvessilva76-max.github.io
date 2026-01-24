@@ -19,14 +19,12 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { useNotifications } from "@/hooks/use-notifications";
-import { useOnboarding } from "@/hooks/use-onboarding";
-import { useRouter, useSegments } from "expo-router";
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
 
 export const unstable_settings = {
-  anchor: "(tabs)",
+  initialRouteName: "(tabs)",
 };
 
 export default function RootLayout() {
@@ -39,28 +37,9 @@ export default function RootLayout() {
   // Inicializar notificações
   useNotifications();
 
-  // Verificar status do onboarding
-  const { isOnboardingCompleted, isLoading } = useOnboarding();
-  const router = useRouter();
-  const segments = useSegments();
-  const [hasRedirected, setHasRedirected] = useState(false);
-
-  // Redirecionar para onboarding apenas uma vez
-  useEffect(() => {
-    if (isLoading || hasRedirected) return;
-
-    const inOnboarding = segments[0] === "onboarding";
-
-    // Apenas redireciona se o usuário não completou e não está no onboarding
-    if (!isOnboardingCompleted && !inOnboarding) {
-      console.log("[REDIRECT] Redirecionando para onboarding");
-      setHasRedirected(true);
-      router.replace("/onboarding");
-    } else if (isOnboardingCompleted && !hasRedirected) {
-      console.log("[REDIRECT] Onboarding já completado, indo para tabs");
-      setHasRedirected(true);
-    }
-  }, [isOnboardingCompleted, isLoading, hasRedirected, segments, router])
+  // REMOVIDO: Sistema de onboarding automático que causava loop
+  // Agora o usuário acessa diretamente as tabs
+  // Tutorial disponível via botão "Ver Tutorial" no perfil
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
