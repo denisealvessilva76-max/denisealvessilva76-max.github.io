@@ -1503,3 +1503,52 @@
 - [x] Navegação entre telas admin (stats → send-notification)
 - [ ] Implementar verificação de permissão (role === 'admin') - TODO futuro
 - [ ] Adicionar mensagem de acesso negado para não-admins - TODO futuro
+
+
+---
+
+## 🐛 BUGS CRÍTICOS A CORRIGIR
+
+### 1. Desafio Não Encontrado
+- [x] Investigar erro "Desafio não encontrado" ao abrir desafios
+- [x] Verificar IDs dos desafios no hook use-challenges
+- [x] Corrigir navegação para tela de detalhes (Array.isArray check)
+- [x] Adicionar tratamento de erro robusto (logs de debug)
+
+### 2. Avatar Não Salva Imediatamente
+- [x] Corrigir delay na persistência do avatar
+- [x] Garantir que AsyncStorage.setItem seja await (já estava correto)
+- [x] Adicionar feedback visual de salvamento (useFocusEffect)
+- [x] Testar salvamento em diferentes cenários (recarrega ao voltar)
+
+### 3. Dashboard Fora da Aba Admin
+- [x] Mover "Dashboard de Evolução" para dentro da área administrativa
+- [x] Reorganizar navegação no perfil (removido do perfil)
+- [x] Adicionar botão no admin-stats para acessar evolução
+
+### 4. Respiração Guiada Sem Som
+- [ ] Adicionar áudio de fundo relaxante (música ambiente)
+- [ ] Reduzir velocidade da narração (mais lenta e calma)
+- [ ] Ajustar timing entre instruções
+- [ ] Testar sincronização áudio + visual
+
+### 5. Check-in Não Marca como Feito
+- [ ] Corrigir atualização de status no painel
+- [ ] Verificar hook use-personal-dashboard
+- [ ] Garantir que check-in concluído apareça marcado
+- [ ] Adicionar indicador visual de conclusão
+
+### 6. Erro de Autenticação SESMT
+- [ ] Corrigir sistema de login admin
+- [ ] Verificar validação de email/senha
+- [ ] Implementar autenticação real ou mock funcional
+- [ ] Adicionar mensagens de erro claras
+- [ ] Testar fluxo completo de login
+
+### 7. Problemas na Aba Admin
+- [ ] Revisar interface da aba administrativa
+- [ ] Corrigir erros de navegação
+- [ ] Melhorar UX do painel admin
+- [ ] Adicionar loading states
+- [ ] Testar todas as funcionalidades admin
+

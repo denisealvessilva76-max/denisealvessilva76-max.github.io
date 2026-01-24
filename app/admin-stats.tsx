@@ -140,14 +140,23 @@ export default function AdminStatsScreen() {
           )}
         </View>
 
-        {/* Botão de Enviar Notificações */}
-        <TouchableOpacity
-          onPress={() => router.push("/admin-send-notification")}
-          className="bg-primary rounded-xl p-4 items-center"
-          style={{ backgroundColor: colors.primary }}
-        >
-          <Text className="text-background font-semibold text-base">📬 Enviar Notificações</Text>
-        </TouchableOpacity>
+        {/* Botões de Ações */}
+        <View className="gap-3">
+          <TouchableOpacity
+            onPress={() => router.push("/evolucao" as any)}
+            className="bg-teal-600 rounded-xl p-4 items-center"
+          >
+            <Text className="text-white font-semibold text-base">📊 Dashboard de Evolução</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            onPress={() => router.push("/admin-send-notification" as any)}
+            className="bg-primary rounded-xl p-4 items-center"
+            style={{ backgroundColor: colors.primary }}
+          >
+            <Text className="text-background font-semibold text-base">📬 Enviar Notificações</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </ScreenContainer>
   );

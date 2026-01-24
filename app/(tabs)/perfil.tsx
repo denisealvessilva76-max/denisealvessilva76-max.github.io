@@ -1,6 +1,7 @@
 import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable, Alert, Linking } from "react-native";
-import { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
@@ -30,6 +31,25 @@ export default function PerfilScreen() {
       setIsEditing(true);
     }
   }, [profile]);
+
+  // Recarregar perfil ao voltar para a tela
+  useFocusEffect(
+    useCallback(() => {
+      const reloadProfile = async () => {
+        try {
+          const stored = await AsyncStorage.getItem("health:profile");
+          if (stored) {
+            const reloadedProfile = JSON.parse(stored);
+            setFormData(reloadedProfile);
+            console.log("[PERFIL] Avatar recarregado:", reloadedProfile.avatar);
+          }
+        } catch (error) {
+          console.error("Erro ao recarregar perfil:", error);
+        }
+      };
+      reloadProfile();
+    }, [])
+  );
 
   const handleSaveProfile = async () => {
     if (!formData.name || !formData.matricula || !formData.cargo || !formData.turno) {
@@ -309,24 +329,7 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </Card>
 
-          {/* Dashboard de Evolução */}
-          <Card className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">📊 Dashboard de Evolução</Text>
-            <Text className="text-sm text-muted">
-              Veja seu progresso e estatísticas de saúde ao longo do tempo
-            </Text>
-            <TouchableOpacity
-              className="bg-teal-600 rounded-lg py-3 active:opacity-80"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/evolucao");
-              }}
-            >
-              <Text className="text-center font-semibold text-white">
-                Ver Minha Evolução
-              </Text>
-            </TouchableOpacity>
-          </Card>
+
 
           {/* Notificações Semanais */}
           <Card className="gap-3">

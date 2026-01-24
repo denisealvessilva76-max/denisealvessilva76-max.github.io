@@ -21,16 +21,23 @@ export default function DesafioDetalheScreen() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
-  const challenge = AVAILABLE_CHALLENGES.find((c) => c.id === id);
-  const activeChallenge = activeChallenges.find((c) => c.id === id);
+  // Garantir que id seja string e fazer comparação correta
+  const challengeId = Array.isArray(id) ? id[0] : id;
+  const challenge = AVAILABLE_CHALLENGES.find((c) => c.id === challengeId);
+  const activeChallenge = activeChallenges.find((c) => c.id === challengeId);
+  
+  // Debug log
+  console.log("Challenge ID from params:", challengeId);
+  console.log("Challenge found:", challenge ? "Yes" : "No");
+  console.log("Available challenge IDs:", AVAILABLE_CHALLENGES.map(c => c.id));
 
   useEffect(() => {
     loadProgress();
   }, [id]);
 
   const loadProgress = async () => {
-    if (typeof id === "string") {
-      const p = await getChallengeProgress(id);
+    if (challengeId && typeof challengeId === "string") {
+      const p = await getChallengeProgress(challengeId);
       setProgress(p);
     }
   };
