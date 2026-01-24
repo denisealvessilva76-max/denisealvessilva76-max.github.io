@@ -33,7 +33,7 @@ export default function RespiracaoGuiadaScreen() {
   const { checkIns } = useHealthData();
   const { addBreathingPoints } = useGamification(checkIns);
   const [phase, setPhase] = useState<Phase>("inspire");
-  const [timeLeft, setTimeLeft] = useState(5); // Começa com 5s (inspire)
+  const [timeLeft, setTimeLeft] = useState(6); // Começa com 6s (inspire - mais lento)
   const [isRunning, setIsRunning] = useState(false);
   const [cicloAtual, setCicloAtual] = useState(1);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -131,7 +131,7 @@ export default function RespiracaoGuiadaScreen() {
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Passar para próxima fase (padrão 4-7-8)
+          // Passar para próxima fase (padrão 6-7-9 - mais lento e relaxante)
           if (phase === "inspire") {
             setPhase("segure");
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -139,13 +139,13 @@ export default function RespiracaoGuiadaScreen() {
           } else if (phase === "segure") {
             setPhase("expire");
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            return 8; // Expirar por 8 segundos
+            return 9; // Expirar por 9 segundos (mais lento)
           } else if (phase === "expire") {
             if (cicloAtual < totalCiclos) {
               setCicloAtual((prev) => prev + 1);
               setPhase("inspire");
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              return 5; // Inspirar por 5 segundos (aproximado de 4)
+              return 6; // Inspirar por 6 segundos (mais lento)
             } else {
               setPhase("completo");
               setIsRunning(false);

@@ -1554,3 +1554,53 @@
 - [x] Adicionar loading states (checking auth)
 - [x] Testar todas as funcionalidades admin
 
+
+
+---
+
+## 🎵 ÁUDIO NA RESPIRAÇÃO GUIADA
+
+### Música Relaxante de Fundo
+- [x] Encontrar/gerar arquivo de áudio relaxante (mp3) - JÁ IMPLEMENTADO
+- [x] Adicionar arquivo à pasta assets/audio/ - URLs do Pixabay
+- [x] Integrar expo-audio para tocar música de fundo - useAudioPlayer
+- [x] Ajustar volume da música (baixo, não sobrepor narração) - OK
+- [x] Loop contínuo durante toda a sessão - OK
+- [x] Parar música ao sair da tela - OK
+- [x] 3 opções: chuva, ondas, floresta
+
+### Narração Mais Lenta
+- [x] Aumentar intervalos entre instruções de 3s para 5-6s
+- [x] Ajustar timing de inspirar (5s → 6s)
+- [x] Ajustar timing de segurar (7s - mantido)
+- [x] Ajustar timing de expirar (8s → 9s)
+- [x] Sincronizar animação visual com novo timing
+- [x] Testar experiência completa (calma e relaxante) - Padrão 6-7-9
+
+---
+
+## 🔔 NOTIFICAÇÕES PUSH REAIS
+
+### Sistema de Push Tokens
+- [x] Criar hook use-push-notifications.ts
+- [x] Solicitar permissões de notificação ao abrir app
+- [x] Registrar push token do dispositivo
+- [x] Salvar token no AsyncStorage
+- [ ] Enviar token para backend (endpoint /api/user/register-push-token) - TODO
+- [x] Atualizar token quando mudar
+
+### Lembretes Automáticos
+- [ ] Lembrete de check-in diário (configurável em preferências) - TODO
+- [ ] Lembrete de hidratação (múltiplos horários) - TODO
+- [ ] Lembrete de pausa ativa (horários configurados) - TODO
+- [ ] Integrar com hook use-smart-notifications existente - TODO
+- [x] Agendar notificações locais com expo-notifications (funções criadas)
+- [ ] Reagendar automaticamente após disparar - TODO
+- [ ] Cancelar notificações ao desativar em preferências - TODO
+
+### Backend para Push
+- [ ] Criar endpoint POST /api/user/register-push-token - TODO
+- [ ] Criar tabela push_tokens no banco - TODO
+- [ ] Implementar envio real via Expo Push API - TODO
+- [ ] Testar envio de notificação do admin para usuários - TODO
+
