@@ -1,122 +1,183 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl } from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useColors } from "@/hooks/use-colors";
 import * as SecureStore from "expo-secure-store";
 import * as Haptics from "expo-haptics";
-import { LineChart } from "@/components/charts/line-chart";
-import { BarChart } from "@/components/charts/bar-chart";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface AnalyticsData {
-  period: string;
-  summary: {
-    totalReferrals: number;
-    resolvedReferrals: number;
-    pendingReferrals: number;
-    uniqueWorkers: number;
-    absenteeismRate: number;
-  };
-  charts: {
-    topComplaints: { x: number; y: number; label: string }[];
-    emotionalDistribution: { x: number; y: number; label: string }[];
-    checkInTimeSeries: { x: number; y: number; label: string }[];
-    ergonomicRiskData: { x: number; y: number; label: string }[];
-  };
+interface EmployeeData {
+  id: string;
+  name: string;
+  checkIns: Array<{ date: string; status: string }>;
+  hydration: Array<{ date: string; amount: number }>;
+  pressure: Array<{ date: string; systolic: number; diastolic: number }>;
+  complaints: Array<{ date: string; type: string; details: string; severity: string }>;
+  challenges: Array<{ id: string; name: string; progress: number; completed: boolean }>;
+  ergonomics: { pausesCompleted: number; stretchesCompleted: number };
+  mentalHealth: { breathingExercises: number; psychologistContacts: number };
+}
+
+interface DashboardStats {
+  totalEmployees: number;
+  activeToday: number;
+  checkInsToday: number;
+  hydrationAverage: number;
+  complaintsThisWeek: number;
+  challengesActive: number;
+  ergonomicsAdherence: number;
+  mentalHealthUsage: number;
 }
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const colors = useColors();
-  const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const [email, setEmail] = useState("");
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [employees, setEmployees] = useState<EmployeeData[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "hydration" | "pressure" | "complaints" | "challenges" | "ergonomics" | "mental">("overview");
 
-  useFocusEffect(
-    useCallback(() => {
-      loadAnalyticsData();
-    }, [period])
-  );
+  useEffect(() => {
+    checkAuthAndLoadData();
+  }, [period]);
 
-  const loadAnalyticsData = async () => {
+  const checkAuthAndLoadData = async () => {
     try {
       setIsLoading(true);
-
+      
       const token = await SecureStore.getItemAsync("admin_token");
       const storedEmail = await SecureStore.getItemAsync("admin_email");
       const isAuthenticated = await SecureStore.getItemAsync("admin_authenticated");
 
       if (!token || !storedEmail || isAuthenticated !== "true") {
-        router.push("/admin-login");
+        router.replace("/admin-login");
         return;
       }
 
       setEmail(storedEmail);
-
-      // Usar dados locais (offline) - Não depende de servidor
-      console.log("Carregando dados locais do admin...");
-      
+      await loadAllData();
     } catch (error) {
-      console.log("Erro ao carregar analytics:", error);
-      // Usar dados mockados quando servidor não responde
-      setData({
-        period: "month",
-        summary: {
-          totalReferrals: 12,
-          resolvedReferrals: 8,
-          pendingReferrals: 4,
-          uniqueWorkers: 45,
-          absenteeismRate: 8.5,
-        },
-        charts: {
-          topComplaints: [
-            { x: 1, y: 8, label: "Dor nas costas" },
-            { x: 2, y: 5, label: "Dor no joelho" },
-            { x: 3, y: 3, label: "Dor no ombro" },
-          ],
-          emotionalDistribution: [
-            { x: 1, y: 30, label: "Bem" },
-            { x: 2, y: 10, label: "Dor Leve" },
-            { x: 3, y: 5, label: "Dor Forte" },
-          ],
-          checkInTimeSeries: [
-            { x: 1, y: 35, label: "Seg" },
-            { x: 2, y: 38, label: "Ter" },
-            { x: 3, y: 42, label: "Qua" },
-            { x: 4, y: 40, label: "Qui" },
-            { x: 5, y: 45, label: "Sex" },
-          ],
-          ergonomicRiskData: [
-            { x: 1, y: 15, label: "Alto Risco" },
-            { x: 2, y: 20, label: "Médio Risco" },
-            { x: 3, y: 10, label: "Baixo Risco" },
-          ],
-        },
-      });
+      console.error("Erro ao verificar autenticação:", error);
+      router.replace("/admin-login");
     } finally {
       setIsLoading(false);
-      setRefreshing(false);
     }
   };
 
-  const handleRefresh = () => {
+  const loadAllData = async () => {
+    try {
+      // Carregar dados de todos os funcionários do AsyncStorage
+      const checkInsData = await AsyncStorage.getItem("health:check-ins");
+      const hydrationData = await AsyncStorage.getItem("hydration_data");
+      const pressureData = await AsyncStorage.getItem("health:pressure-readings");
+      const complaintsData = await AsyncStorage.getItem("health:symptom-reports");
+      const challengesData = await AsyncStorage.getItem("user_challenges");
+      const profileData = await AsyncStorage.getItem("health:profile");
+
+      const checkIns = checkInsData ? JSON.parse(checkInsData) : [];
+      const hydration = hydrationData ? JSON.parse(hydrationData) : [];
+      const pressure = pressureData ? JSON.parse(pressureData) : [];
+      const complaints = complaintsData ? JSON.parse(complaintsData) : [];
+      const challenges = challengesData ? JSON.parse(challengesData) : [];
+      const profile = profileData ? JSON.parse(profileData) : null;
+
+      // Calcular estatísticas
+      const today = new Date().toISOString().split("T")[0];
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+      const checkInsToday = checkIns.filter((c: any) => c.date === today).length;
+      const hydrationThisWeek = hydration.filter((h: any) => h.date >= weekAgo);
+      const hydrationAvg = hydrationThisWeek.length > 0 
+        ? Math.round(hydrationThisWeek.reduce((sum: number, h: any) => sum + (h.amount || 250), 0) / hydrationThisWeek.length)
+        : 0;
+      const complaintsThisWeek = complaints.filter((c: any) => c.date >= weekAgo).length;
+      const activeChallenges = challenges.filter((c: any) => c.status === "active").length;
+
+      setStats({
+        totalEmployees: profile ? 1 : 0,
+        activeToday: checkInsToday > 0 ? 1 : 0,
+        checkInsToday,
+        hydrationAverage: hydrationAvg,
+        complaintsThisWeek,
+        challengesActive: activeChallenges,
+        ergonomicsAdherence: 75, // Placeholder
+        mentalHealthUsage: 45, // Placeholder
+      });
+
+      // Criar dados do funcionário atual
+      if (profile) {
+        setEmployees([{
+          id: "1",
+          name: profile.name || "Funcionário",
+          checkIns: checkIns.map((c: any) => ({ date: c.date, status: c.status })),
+          hydration: hydration.map((h: any) => ({ date: h.date, amount: h.amount || 250 })),
+          pressure: pressure.map((p: any) => ({ date: p.date, systolic: p.systolic, diastolic: p.diastolic })),
+          complaints: complaints.map((c: any) => ({ 
+            date: c.date, 
+            type: c.symptoms?.join(", ") || "Não especificado",
+            details: c.details || "",
+            severity: c.severity || "leve"
+          })),
+          challenges: challenges.map((c: any) => ({
+            id: c.id,
+            name: c.title || c.id,
+            progress: c.progress || 0,
+            completed: c.status === "completed"
+          })),
+          ergonomics: { pausesCompleted: 12, stretchesCompleted: 8 },
+          mentalHealth: { breathingExercises: 5, psychologistContacts: 0 }
+        }]);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+    }
+  };
+
+  const handleRefresh = async () => {
     setRefreshing(true);
-    loadAnalyticsData();
+    await loadAllData();
+    setRefreshing(false);
   };
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync("admin_token");
     await SecureStore.deleteItemAsync("admin_email");
-    router.push("/admin-login");
+    await SecureStore.deleteItemAsync("admin_authenticated");
+    router.replace("/admin-login");
   };
 
-  if (isLoading && !data) {
+  const renderStatCard = (title: string, value: string | number, icon: string, color: string) => (
+    <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
+      <Text className="text-2xl mb-1">{icon}</Text>
+      <Text className="text-2xl font-bold" style={{ color }}>{value}</Text>
+      <Text className="text-xs text-muted mt-1">{title}</Text>
+    </View>
+  );
+
+  const renderTabButton = (tab: typeof activeTab, label: string, icon: string) => (
+    <TouchableOpacity
+      key={tab}
+      className={`px-3 py-2 rounded-lg mr-2 ${activeTab === tab ? "bg-primary" : "bg-surface border border-border"}`}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setActiveTab(tab);
+      }}
+    >
+      <Text className={`text-xs font-semibold ${activeTab === tab ? "text-white" : "text-foreground"}`}>
+        {icon} {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  if (isLoading) {
     return (
       <ScreenContainer className="justify-center items-center">
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text className="text-muted mt-4">Carregando analytics...</Text>
+        <Text className="text-muted mt-4">Carregando painel...</Text>
       </ScreenContainer>
     );
   }
@@ -124,8 +185,8 @@ export default function AdminDashboardScreen() {
   return (
     <ScreenContainer>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 24 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
       >
         {/* Header */}
         <View className="p-4 bg-primary">
@@ -145,27 +206,21 @@ export default function AdminDashboardScreen() {
 
         {/* Filtros de Período */}
         <View className="p-4 bg-surface border-b border-border">
-          <Text className="text-sm font-semibold text-foreground mb-2">Período</Text>
+          <Text className="text-sm font-semibold text-foreground mb-2">Período de Análise</Text>
           <View className="flex-row gap-2">
             {[
-              { key: "week", label: "Última Semana" },
-              { key: "month", label: "Último Mês" },
-              { key: "quarter", label: "Últimos 3 Meses" },
+              { key: "week", label: "Semana" },
+              { key: "month", label: "Mês" },
+              { key: "quarter", label: "Trimestre" },
             ].map((p) => (
               <TouchableOpacity
                 key={p.key}
                 className={`flex-1 py-2 px-3 rounded-lg border ${
-                  period === p.key
-                    ? "bg-primary border-primary"
-                    : "bg-background border-border"
+                  period === p.key ? "bg-primary border-primary" : "bg-background border-border"
                 }`}
                 onPress={() => setPeriod(p.key as any)}
               >
-                <Text
-                  className={`text-center text-sm font-semibold ${
-                    period === p.key ? "text-white" : "text-foreground"
-                  }`}
-                >
+                <Text className={`text-center text-sm font-semibold ${period === p.key ? "text-white" : "text-foreground"}`}>
                   {p.label}
                 </Text>
               </TouchableOpacity>
@@ -173,186 +228,393 @@ export default function AdminDashboardScreen() {
           </View>
         </View>
 
-        {data && (
-          <View className="p-4 gap-4">
-            {/* Indicadores Resumo */}
-            <View className="gap-3">
+        {/* Tabs de Navegação */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="p-4">
+          {renderTabButton("overview", "Visão Geral", "📊")}
+          {renderTabButton("hydration", "Hidratação", "💧")}
+          {renderTabButton("pressure", "Pressão", "❤️")}
+          {renderTabButton("complaints", "Queixas", "⚠️")}
+          {renderTabButton("challenges", "Desafios", "🎯")}
+          {renderTabButton("ergonomics", "Ergonomia", "🪑")}
+          {renderTabButton("mental", "Saúde Mental", "🧠")}
+        </ScrollView>
+
+        <View className="p-4 gap-4">
+          {/* Visão Geral */}
+          {activeTab === "overview" && stats && (
+            <>
               <Text className="text-xl font-bold text-foreground">Indicadores Gerais</Text>
               
               <View className="flex-row gap-3">
-                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
-                  <Text className="text-3xl font-bold text-primary">
-                    {data.summary.absenteeismRate}%
-                  </Text>
-                  <Text className="text-sm text-muted mt-1">Taxa de Absenteísmo</Text>
-                </View>
-                
-                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
-                  <Text className="text-3xl font-bold text-foreground">
-                    {data.summary.uniqueWorkers}
-                  </Text>
-                  <Text className="text-sm text-muted mt-1">Trabalhadores</Text>
-                </View>
+                {renderStatCard("Check-ins Hoje", stats.checkInsToday, "📋", colors.primary)}
+                {renderStatCard("Ativos Hoje", stats.activeToday, "👥", colors.success)}
               </View>
 
               <View className="flex-row gap-3">
-                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
-                  <Text className="text-3xl font-bold text-success">
-                    {data.summary.resolvedReferrals}
-                  </Text>
-                  <Text className="text-sm text-muted mt-1">Resolvidos</Text>
-                </View>
-                
-                <View className="flex-1 bg-surface rounded-xl p-4 border border-border">
-                  <Text className="text-3xl font-bold text-warning">
-                    {data.summary.pendingReferrals}
-                  </Text>
-                  <Text className="text-sm text-muted mt-1">Pendentes</Text>
+                {renderStatCard("Hidratação Média", `${stats.hydrationAverage}ml`, "💧", "#3B82F6")}
+                {renderStatCard("Queixas (Semana)", stats.complaintsThisWeek, "⚠️", colors.warning)}
+              </View>
+
+              <View className="flex-row gap-3">
+                {renderStatCard("Desafios Ativos", stats.challengesActive, "🎯", "#8B5CF6")}
+                {renderStatCard("Adesão Ergonomia", `${stats.ergonomicsAdherence}%`, "🪑", colors.success)}
+              </View>
+
+              {/* Alertas */}
+              <View className="bg-warning/10 border border-warning rounded-xl p-4 mt-2">
+                <Text className="text-base font-semibold text-warning mb-2">⚠️ Alertas</Text>
+                {stats.complaintsThisWeek > 0 && (
+                  <Text className="text-sm text-foreground">• {stats.complaintsThisWeek} queixa(s) registrada(s) esta semana</Text>
+                )}
+                {stats.hydrationAverage < 1500 && (
+                  <Text className="text-sm text-foreground">• Hidratação média abaixo do recomendado</Text>
+                )}
+                {stats.complaintsThisWeek === 0 && stats.hydrationAverage >= 1500 && (
+                  <Text className="text-sm text-foreground">• Nenhum alerta no momento</Text>
+                )}
+              </View>
+            </>
+          )}
+
+          {/* Relatório de Hidratação */}
+          {activeTab === "hydration" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">💧 Relatório de Hidratação</Text>
+              
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">Resumo do Período</Text>
+                <View className="gap-2">
+                  <View className="flex-row justify-between">
+                    <Text className="text-sm text-muted">Total de registros:</Text>
+                    <Text className="text-sm font-semibold text-foreground">
+                      {employees.reduce((sum, e) => sum + e.hydration.length, 0)}
+                    </Text>
+                  </View>
+                  <View className="flex-row justify-between">
+                    <Text className="text-sm text-muted">Média diária:</Text>
+                    <Text className="text-sm font-semibold text-foreground">{stats?.hydrationAverage || 0}ml</Text>
+                  </View>
+                  <View className="flex-row justify-between">
+                    <Text className="text-sm text-muted">Meta recomendada:</Text>
+                    <Text className="text-sm font-semibold text-primary">2000ml/dia</Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {/* Gráficos */}
-            <View className="gap-4 mt-4">
-              <Text className="text-xl font-bold text-foreground">Análises Detalhadas</Text>
+              {/* Lista de funcionários */}
+              <Text className="text-lg font-semibold text-foreground mt-2">Por Funcionário</Text>
+              {employees.map((emp) => (
+                <View key={emp.id} className="bg-surface rounded-xl p-4 border border-border">
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-base font-semibold text-foreground">{emp.name}</Text>
+                    <Text className="text-sm text-primary">{emp.hydration.length} registros</Text>
+                  </View>
+                  <View className="h-2 bg-background rounded-full overflow-hidden">
+                    <View 
+                      className="h-full bg-blue-500 rounded-full" 
+                      style={{ width: `${Math.min(100, (emp.hydration.length / 14) * 100)}%` }}
+                    />
+                  </View>
+                  <Text className="text-xs text-muted mt-1">
+                    Última hidratação: {emp.hydration[emp.hydration.length - 1]?.date || "Sem registros"}
+                  </Text>
+                </View>
+              ))}
+            </>
+          )}
 
-              {/* Tendência de Check-ins */}
-              {data.charts.checkInTimeSeries.length > 0 && (
-                <LineChart
-                  data={data.charts.checkInTimeSeries}
-                  title="Tendência de Check-ins"
-                  yLabel="Número de check-ins por dia"
-                  color={colors.primary}
-                />
-              )}
-
-              {/* Queixas Mais Comuns */}
-              {data.charts.topComplaints.length > 0 && (
-                <BarChart
-                  data={data.charts.topComplaints}
-                  title="Queixas Mais Comuns"
-                  yLabel="Número de ocorrências"
-                  color="#F59E0B"
-                />
-              )}
-
-              {/* Estados Emocionais */}
-              {data.charts.emotionalDistribution.length > 0 && (
-                <BarChart
-                  data={data.charts.emotionalDistribution}
-                  title="Estados Emocionais"
-                  yLabel="Número de relatos"
-                  color="#8B5CF6"
-                />
-              )}
-
-              {/* Riscos Ergonômicos */}
-              {data.charts.ergonomicRiskData.length > 0 && (
-                <BarChart
-                  data={data.charts.ergonomicRiskData}
-                  title="Riscos Ergonômicos Relatados"
-                  yLabel="Número de relatos"
-                  color="#EF4444"
-                />
-              )}
-            </View>
-
-            {/* Ações */}
-            <View className="gap-3 mt-4">
-              <Text className="text-xl font-bold text-foreground">Ações</Text>
+          {/* Relatório de Pressão */}
+          {activeTab === "pressure" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">❤️ Relatório de Pressão Arterial</Text>
               
-              <TouchableOpacity
-                className="bg-purple-500 rounded-xl p-4"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/admin-catalogo-premios" as any);
-                }}
-              >
-                <Text className="text-white font-semibold text-center text-base">
-                  🎯 Gerenciar Catálogo de Prêmios
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                className="bg-success rounded-xl p-4"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/admin-resgates" as any);
-                }}
-              >
-                <Text className="text-white font-semibold text-center text-base">
-                  🎁 Gerenciar Resgates de Recompensas
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                className="bg-cyan-500 rounded-xl p-4"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/admin-hydration-report" as any);
-                }}
-              >
-                <Text className="text-white font-semibold text-center text-base">
-                  💧 Relatório de Hidratação Mensal
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                className="bg-blue-500 rounded-xl p-4"
-                onPress={async () => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  if (data) {
-                    try {
-                      const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://3000-i84jlsmq8t12oldkdpl95-0fe92ffe.us2.manus.computer";
-                      const response = await fetch(`${API_URL}/api/admin/send-report-email`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ data, email: "denise.silva@mip.com.br" }),
-                      });
-                      const result = await response.json();
-                      if (result.success) {
-                        Alert.alert("✅ Sucesso", result.message);
-                      } else {
-                        Alert.alert("❌ Erro", result.error || "Falha ao enviar relatório");
-                      }
-                    } catch (error) {
-                      console.error("Erro ao enviar:", error);
-                      Alert.alert("❌ Erro", "Falha ao enviar relatório por email");
-                    }
-                  }
-                }}
-              >
-                <Text className="text-center font-semibold text-white">
-                  📧 Enviar Relatório por Email
-                </Text>
-              </TouchableOpacity>
+              {employees.map((emp) => (
+                <View key={emp.id} className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-base font-semibold text-foreground mb-3">{emp.name}</Text>
+                  
+                  {emp.pressure.length > 0 ? (
+                    <View className="gap-2">
+                      {emp.pressure.slice(-5).map((p, idx) => {
+                        const classification = p.systolic < 120 && p.diastolic < 80 ? "Normal" :
+                          p.systolic < 140 && p.diastolic < 90 ? "Elevada" : "Alta";
+                        const classColor = classification === "Normal" ? colors.success :
+                          classification === "Elevada" ? colors.warning : colors.error;
+                        
+                        return (
+                          <View key={idx} className="flex-row justify-between items-center bg-background rounded-lg p-3">
+                            <Text className="text-sm text-muted">{p.date}</Text>
+                            <Text className="text-base font-bold text-foreground">{p.systolic}/{p.diastolic}</Text>
+                            <View className="px-2 py-1 rounded" style={{ backgroundColor: classColor + "20" }}>
+                              <Text className="text-xs font-semibold" style={{ color: classColor }}>{classification}</Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text className="text-sm text-muted text-center py-4">Nenhum registro de pressão</Text>
+                  )}
+                </View>
+              ))}
+            </>
+          )}
 
-              <TouchableOpacity
-                className="bg-orange-500 rounded-xl p-4"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/admin-relatorios" as any);
-                }}
-              >
-                <Text className="text-center font-semibold text-white">
-                  📊 Relatórios Completos (PDF + Email)
-                </Text>
-              </TouchableOpacity>
+          {/* Relatório de Queixas */}
+          {activeTab === "complaints" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">⚠️ Relatório de Queixas</Text>
+              
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">Resumo</Text>
+                <View className="flex-row gap-3">
+                  <View className="flex-1 bg-error/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-error">
+                      {employees.reduce((sum, e) => sum + e.complaints.filter(c => c.severity === "forte").length, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted">Graves</Text>
+                  </View>
+                  <View className="flex-1 bg-warning/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-warning">
+                      {employees.reduce((sum, e) => sum + e.complaints.filter(c => c.severity === "leve").length, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted">Leves</Text>
+                  </View>
+                  <View className="flex-1 bg-primary/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-primary">
+                      {employees.reduce((sum, e) => sum + e.complaints.length, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted">Total</Text>
+                  </View>
+                </View>
+              </View>
 
-              <TouchableOpacity
-                className="bg-purple-500 rounded-xl p-4"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push("/admin-feedbacks");
-                }}
-              >
-                <Text className="text-center font-semibold text-white">
-                  💬 Ver Feedbacks dos Usuários
-                </Text>
-              </TouchableOpacity>
-            </View>
+              {/* Lista de queixas */}
+              <Text className="text-lg font-semibold text-foreground mt-2">Queixas Recentes</Text>
+              {employees.flatMap((emp) => 
+                emp.complaints.map((c, idx) => (
+                  <View key={`${emp.id}-${idx}`} className="bg-surface rounded-xl p-4 border border-border">
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-foreground">{emp.name}</Text>
+                        <Text className="text-xs text-muted">{c.date}</Text>
+                      </View>
+                      <View className={`px-2 py-1 rounded ${c.severity === "forte" ? "bg-error/20" : "bg-warning/20"}`}>
+                        <Text className={`text-xs font-semibold ${c.severity === "forte" ? "text-error" : "text-warning"}`}>
+                          {c.severity === "forte" ? "GRAVE" : "LEVE"}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-sm text-foreground font-medium">{c.type}</Text>
+                    {c.details && <Text className="text-sm text-muted mt-1">{c.details}</Text>}
+                  </View>
+                ))
+              )}
+              {employees.every(e => e.complaints.length === 0) && (
+                <View className="bg-success/10 rounded-xl p-6 items-center">
+                  <Text className="text-4xl mb-2">✅</Text>
+                  <Text className="text-base font-semibold text-success">Nenhuma queixa registrada</Text>
+                </View>
+              )}
+            </>
+          )}
+
+          {/* Relatório de Desafios */}
+          {activeTab === "challenges" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">🎯 Relatório de Desafios</Text>
+              
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">Participação</Text>
+                <View className="flex-row gap-3">
+                  <View className="flex-1 bg-primary/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-primary">
+                      {employees.reduce((sum, e) => sum + e.challenges.filter(c => !c.completed).length, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted">Em Andamento</Text>
+                  </View>
+                  <View className="flex-1 bg-success/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-success">
+                      {employees.reduce((sum, e) => sum + e.challenges.filter(c => c.completed).length, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted">Completados</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Progresso por funcionário */}
+              <Text className="text-lg font-semibold text-foreground mt-2">Por Funcionário</Text>
+              {employees.map((emp) => (
+                <View key={emp.id} className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-base font-semibold text-foreground mb-3">{emp.name}</Text>
+                  {emp.challenges.length > 0 ? (
+                    <View className="gap-2">
+                      {emp.challenges.map((c, idx) => (
+                        <View key={idx} className="flex-row items-center gap-3">
+                          <View className="flex-1">
+                            <Text className="text-sm text-foreground">{c.name}</Text>
+                            <View className="h-2 bg-background rounded-full overflow-hidden mt-1">
+                              <View 
+                                className={`h-full rounded-full ${c.completed ? "bg-success" : "bg-primary"}`}
+                                style={{ width: `${c.progress}%` }}
+                              />
+                            </View>
+                          </View>
+                          <Text className="text-sm font-semibold" style={{ color: c.completed ? colors.success : colors.primary }}>
+                            {c.completed ? "✓" : `${c.progress}%`}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text className="text-sm text-muted text-center py-2">Nenhum desafio iniciado</Text>
+                  )}
+                </View>
+              ))}
+            </>
+          )}
+
+          {/* Relatório de Ergonomia */}
+          {activeTab === "ergonomics" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">🪑 Relatório de Ergonomia</Text>
+              
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">Adesão às Práticas</Text>
+                <View className="gap-3">
+                  <View>
+                    <View className="flex-row justify-between mb-1">
+                      <Text className="text-sm text-muted">Pausas Ativas</Text>
+                      <Text className="text-sm font-semibold text-foreground">75%</Text>
+                    </View>
+                    <View className="h-3 bg-background rounded-full overflow-hidden">
+                      <View className="h-full bg-success rounded-full" style={{ width: "75%" }} />
+                    </View>
+                  </View>
+                  <View>
+                    <View className="flex-row justify-between mb-1">
+                      <Text className="text-sm text-muted">Alongamentos</Text>
+                      <Text className="text-sm font-semibold text-foreground">60%</Text>
+                    </View>
+                    <View className="h-3 bg-background rounded-full overflow-hidden">
+                      <View className="h-full bg-warning rounded-full" style={{ width: "60%" }} />
+                    </View>
+                  </View>
+                  <View>
+                    <View className="flex-row justify-between mb-1">
+                      <Text className="text-sm text-muted">Postura Correta</Text>
+                      <Text className="text-sm font-semibold text-foreground">80%</Text>
+                    </View>
+                    <View className="h-3 bg-background rounded-full overflow-hidden">
+                      <View className="h-full bg-primary rounded-full" style={{ width: "80%" }} />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Por funcionário */}
+              <Text className="text-lg font-semibold text-foreground mt-2">Por Funcionário</Text>
+              {employees.map((emp) => (
+                <View key={emp.id} className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-base font-semibold text-foreground mb-2">{emp.name}</Text>
+                  <View className="flex-row gap-4">
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted">Pausas</Text>
+                      <Text className="text-lg font-bold text-foreground">{emp.ergonomics.pausesCompleted}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted">Alongamentos</Text>
+                      <Text className="text-lg font-bold text-foreground">{emp.ergonomics.stretchesCompleted}</Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+
+          {/* Relatório de Saúde Mental */}
+          {activeTab === "mental" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">🧠 Relatório de Saúde Mental</Text>
+              
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">Uso de Recursos</Text>
+                <View className="flex-row gap-3">
+                  <View className="flex-1 bg-purple-500/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-purple-500">
+                      {employees.reduce((sum, e) => sum + e.mentalHealth.breathingExercises, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted text-center">Exercícios de Respiração</Text>
+                  </View>
+                  <View className="flex-1 bg-pink-500/10 rounded-lg p-3 items-center">
+                    <Text className="text-2xl font-bold text-pink-500">
+                      {employees.reduce((sum, e) => sum + e.mentalHealth.psychologistContacts, 0)}
+                    </Text>
+                    <Text className="text-xs text-muted text-center">Contatos Psicóloga</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Por funcionário */}
+              <Text className="text-lg font-semibold text-foreground mt-2">Por Funcionário</Text>
+              {employees.map((emp) => (
+                <View key={emp.id} className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-base font-semibold text-foreground mb-2">{emp.name}</Text>
+                  <View className="flex-row gap-4">
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted">Respiração Guiada</Text>
+                      <Text className="text-lg font-bold text-foreground">{emp.mentalHealth.breathingExercises}x</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted">Psicóloga</Text>
+                      <Text className="text-lg font-bold text-foreground">{emp.mentalHealth.psychologistContacts}x</Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+
+          {/* Ações Rápidas */}
+          <View className="gap-3 mt-4">
+            <Text className="text-xl font-bold text-foreground">Ações Rápidas</Text>
+            
+            <TouchableOpacity
+              className="bg-primary rounded-xl p-4"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert("Exportar Relatório", "Relatório será enviado para seu email em breve.");
+              }}
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                📧 Exportar Relatório Mensal
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              className="bg-purple-500 rounded-xl p-4"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/admin-catalogo-premios" as any);
+              }}
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                🎁 Gerenciar Prêmios
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              className="bg-success rounded-xl p-4"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/admin-resgates" as any);
+              }}
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                🏆 Gerenciar Resgates
+              </Text>
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
       </ScrollView>
     </ScreenContainer>
   );

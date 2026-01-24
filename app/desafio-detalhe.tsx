@@ -1,493 +1,925 @@
-import { ScrollView, Text, View, Pressable } from "react-native";
+import { ScrollView, Text, View, Pressable, TextInput, Image, Alert, TouchableOpacity, Platform } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
-import { useChallenges } from "@/hooks/use-challenges";
-import * as Haptics from "expo-haptics";
-import { AVAILABLE_CHALLENGES, DIFFICULTY_COLORS, RANK_ICONS, getDaysRemaining } from "@/lib/challenges-data";
 import { useEffect, useState } from "react";
-import { Alert, TextInput, Image, Platform } from "react-native";
-import type { ChallengeProgress } from "@/lib/challenges-data";
+import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Tipos
+interface ChallengeData {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  difficulty: "easy" | "medium" | "hard";
+  duration: number;
+  goal: number;
+  unit: string;
+  points: number;
+  badge?: string;
+  type: "hydration" | "steps" | "weight" | "checkin" | "breathing" | "stretching" | "custom";
+  guide: string[];
+  tips: string[];
+}
+
+interface DayProgress {
+  date: string;
+  completed: boolean;
+  value?: number;
+  time?: string;
+  photoUri?: string;
+  notes?: string;
+}
+
+interface ChallengeProgress {
+  challengeId: string;
+  startDate: string;
+  endDate: string;
+  status: "active" | "completed" | "abandoned";
+  currentValue: number;
+  days: DayProgress[];
+  difficulties: string[];
+  photos: string[];
+  weight?: { initial: number; current: number; goal: number };
+  imc?: { value: number; classification: string };
+}
+
+// Dados dos desafios disponíveis
+const CHALLENGES: ChallengeData[] = [
+  {
+    id: "challenge-steps-15d",
+    title: "Caminhada Saudável",
+    description: "Caminhe 6.000 passos por dia durante 15 dias consecutivos",
+    icon: "🚶",
+    difficulty: "medium",
+    duration: 15,
+    goal: 6000,
+    unit: "passos/dia",
+    points: 500,
+    badge: "Campeão de Passos",
+    type: "steps",
+    guide: [
+      "Comece com uma caminhada de 10 minutos pela manhã",
+      "Use as escadas ao invés do elevador",
+      "Caminhe durante o intervalo do almoço",
+      "Estacione mais longe do destino",
+      "Faça pequenas caminhadas a cada 2 horas"
+    ],
+    tips: [
+      "Use um pedômetro ou app para contar passos",
+      "Convide um colega para caminhar junto",
+      "Ouça música ou podcast durante a caminhada",
+      "Estabeleça horários fixos para caminhar"
+    ]
+  },
+  {
+    id: "challenge-hydration-7d",
+    title: "Hidratação Consistente",
+    description: "Beba pelo menos 2 litros de água por dia durante 7 dias",
+    icon: "💧",
+    difficulty: "easy",
+    duration: 7,
+    goal: 2000,
+    unit: "ml/dia",
+    points: 300,
+    badge: "Hidratado",
+    type: "hydration",
+    guide: [
+      "Beba um copo de água ao acordar",
+      "Mantenha uma garrafa de água sempre visível",
+      "Beba água antes de cada refeição",
+      "Configure lembretes no celular",
+      "Substitua refrigerantes por água"
+    ],
+    tips: [
+      "Adicione limão ou hortelã para dar sabor",
+      "Use uma garrafa com marcações de horário",
+      "Beba água gelada no calor",
+      "Acompanhe seu progresso no app"
+    ]
+  },
+  {
+    id: "challenge-weight-30d",
+    title: "Desafio de Peso Saudável",
+    description: "Perca peso de forma saudável em 30 dias com acompanhamento",
+    icon: "⚖️",
+    difficulty: "hard",
+    duration: 30,
+    goal: 3,
+    unit: "kg",
+    points: 1000,
+    badge: "Transformação",
+    type: "weight",
+    guide: [
+      "Pese-se sempre no mesmo horário (manhã em jejum)",
+      "Tire foto da balança como registro",
+      "Fotografe suas refeições principais",
+      "Registre seu progresso semanalmente",
+      "Procure um nutricionista se precisar de apoio"
+    ],
+    tips: [
+      "Perda saudável: 0.5 a 1kg por semana",
+      "Foque em alimentação balanceada, não em dietas restritivas",
+      "Combine com atividade física leve",
+      "Beba bastante água",
+      "A equipe de saúde pode agendar nutricionista para você"
+    ]
+  },
+  {
+    id: "challenge-hydration-30d",
+    title: "Mestre da Hidratação",
+    description: "Mantenha-se hidratado por 30 dias seguidos (2L/dia)",
+    icon: "💦",
+    difficulty: "hard",
+    duration: 30,
+    goal: 2000,
+    unit: "ml/dia",
+    points: 1000,
+    badge: "Mestre da Hidratação",
+    type: "hydration",
+    guide: [
+      "Distribua a ingestão ao longo do dia",
+      "Beba 250ml a cada 2 horas",
+      "Aumente a ingestão em dias quentes",
+      "Monitore a cor da urina (deve ser clara)",
+      "Crie o hábito de beber água antes de sentir sede"
+    ],
+    tips: [
+      "Mantenha água no local de trabalho",
+      "Use apps de lembrete de hidratação",
+      "Prefira água em temperatura ambiente",
+      "Evite bebidas açucaradas"
+    ]
+  },
+  {
+    id: "challenge-checkin-30d",
+    title: "Check-in Diário",
+    description: "Faça check-in de bem-estar todos os dias por 30 dias",
+    icon: "✅",
+    difficulty: "medium",
+    duration: 30,
+    goal: 30,
+    unit: "check-ins",
+    points: 800,
+    badge: "Cuidador da Saúde",
+    type: "checkin",
+    guide: [
+      "Faça o check-in no mesmo horário todos os dias",
+      "Seja honesto sobre como está se sentindo",
+      "Use o momento para refletir sobre seu dia",
+      "Reporte qualquer desconforto ou dor",
+      "Acompanhe sua evolução ao longo do tempo"
+    ],
+    tips: [
+      "Configure um lembrete diário",
+      "Faça o check-in logo ao chegar no trabalho",
+      "Aproveite para registrar hidratação também",
+      "Compartilhe dificuldades com a equipe de saúde"
+    ]
+  },
+  {
+    id: "challenge-breathing-14d",
+    title: "Respiração Consciente",
+    description: "Pratique exercícios de respiração guiada por 14 dias",
+    icon: "🌬️",
+    difficulty: "easy",
+    duration: 14,
+    goal: 14,
+    unit: "sessões",
+    points: 400,
+    badge: "Zen",
+    type: "breathing",
+    guide: [
+      "Reserve 5 minutos por dia para respirar",
+      "Encontre um local tranquilo",
+      "Use a técnica 4-7-8 (inspire 4s, segure 7s, expire 8s)",
+      "Pratique antes de situações estressantes",
+      "Combine com alongamentos leves"
+    ],
+    tips: [
+      "Faça no intervalo do almoço",
+      "Use fones de ouvido para maior concentração",
+      "Pratique sentado com postura ereta",
+      "Feche os olhos para melhor foco"
+    ]
+  },
+  {
+    id: "challenge-stretching-21d",
+    title: "Alongamento Diário",
+    description: "Faça 10 minutos de alongamento todos os dias por 21 dias",
+    icon: "🧘",
+    difficulty: "medium",
+    duration: 21,
+    goal: 21,
+    unit: "sessões",
+    points: 600,
+    badge: "Flexível",
+    type: "stretching",
+    guide: [
+      "Alongue-se pela manhã ao acordar",
+      "Faça pausas a cada 2 horas no trabalho",
+      "Foque em pescoço, ombros e costas",
+      "Mantenha cada posição por 20-30 segundos",
+      "Respire profundamente durante o alongamento"
+    ],
+    tips: [
+      "Use os vídeos de alongamento do app",
+      "Alongue-se antes de sentir dor",
+      "Convide colegas para alongar junto",
+      "Não force além do confortável"
+    ]
+  }
+];
+
+const DIFFICULTY_COLORS = {
+  easy: "#22C55E",
+  medium: "#F59E0B",
+  hard: "#EF4444",
+};
+
+const DIFFICULTY_LABELS = {
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+};
 
 export default function DesafioDetalheScreen() {
   const router = useRouter();
   const colors = useColors();
   const { id } = useLocalSearchParams();
-  const { getChallengeProgress, getChallengeRanking, activeChallenges, updateChallengeProgress } = useChallenges();
-
-  const [progress, setProgress] = useState<ChallengeProgress | null>(null);
-  const [inputValue, setInputValue] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-
-  // Garantir que id seja string e fazer comparação correta
-  const challengeId = Array.isArray(id) ? id[0] : id;
-  const challenge = AVAILABLE_CHALLENGES.find((c) => c.id === challengeId);
-  const activeChallenge = activeChallenges.find((c) => c.id === challengeId);
   
-  // Debug log
-  console.log("Challenge ID from params:", challengeId);
-  console.log("Challenge found:", challenge ? "Yes" : "No");
-  console.log("Available challenge IDs:", AVAILABLE_CHALLENGES.map(c => c.id));
+  const [challenge, setChallenge] = useState<ChallengeData | null>(null);
+  const [progress, setProgress] = useState<ChallengeProgress | null>(null);
+  const [isStarted, setIsStarted] = useState(false);
+  const [activeTab, setActiveTab] = useState<"info" | "progress" | "photos" | "difficulties">("info");
+  
+  // Estados para formulários
+  const [dailyValue, setDailyValue] = useState("");
+  const [dailyTime, setDailyTime] = useState("");
+  const [dailyNotes, setDailyNotes] = useState("");
+  const [difficulty, setDifficulty] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+
+  const challengeId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
-    loadProgress();
-  }, [id]);
+    loadChallenge();
+  }, [challengeId]);
 
-  const loadProgress = async () => {
-    if (challengeId && typeof challengeId === "string") {
-      const p = await getChallengeProgress(challengeId);
-      setProgress(p);
+  const loadChallenge = async () => {
+    const found = CHALLENGES.find(c => c.id === challengeId);
+    if (found) {
+      setChallenge(found);
+      
+      // Carregar progresso salvo
+      const savedProgress = await AsyncStorage.getItem(`challenge_progress_${challengeId}`);
+      if (savedProgress) {
+        const parsed = JSON.parse(savedProgress);
+        setProgress(parsed);
+        setIsStarted(parsed.status === "active");
+      }
     }
+  };
+
+  const calculateIMC = (weightKg: number, heightM: number) => {
+    const imc = weightKg / (heightM * heightM);
+    let classification = "";
+    
+    if (imc < 18.5) classification = "Abaixo do peso";
+    else if (imc < 25) classification = "Peso normal";
+    else if (imc < 30) classification = "Sobrepeso";
+    else if (imc < 35) classification = "Obesidade Grau I";
+    else if (imc < 40) classification = "Obesidade Grau II";
+    else classification = "Obesidade Grau III";
+    
+    return { value: Math.round(imc * 10) / 10, classification };
+  };
+
+  const startChallenge = async () => {
+    if (!challenge) return;
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + challenge.duration * 24 * 60 * 60 * 1000);
+    
+    let initialProgress: ChallengeProgress = {
+      challengeId: challenge.id,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      status: "active",
+      currentValue: 0,
+      days: [],
+      difficulties: [],
+      photos: [],
+    };
+
+    // Se for desafio de peso, calcular IMC
+    if (challenge.type === "weight" && weight && height) {
+      const weightNum = parseFloat(weight);
+      const heightNum = parseFloat(height) / 100; // converter cm para m
+      const imc = calculateIMC(weightNum, heightNum);
+      
+      initialProgress.weight = {
+        initial: weightNum,
+        current: weightNum,
+        goal: weightNum - challenge.goal
+      };
+      initialProgress.imc = imc;
+      
+      // Mostrar mensagem baseada no IMC
+      if (imc.classification === "Sobrepeso" || imc.classification.includes("Obesidade")) {
+        Alert.alert(
+          "📊 Seu IMC: " + imc.value,
+          `Classificação: ${imc.classification}\n\n` +
+          "Dicas para alcançar seu objetivo:\n" +
+          "• Procure um nutricionista para orientação personalizada\n" +
+          "• A equipe de saúde pode agendar uma consulta para você\n" +
+          "• Foque em mudanças graduais e sustentáveis\n" +
+          "• Combine alimentação saudável com atividade física",
+          [{ text: "Entendi", style: "default" }]
+        );
+      }
+    }
+    
+    await AsyncStorage.setItem(`challenge_progress_${challenge.id}`, JSON.stringify(initialProgress));
+    setProgress(initialProgress);
+    setIsStarted(true);
+    
+    Alert.alert("🎯 Desafio Iniciado!", `Você tem ${challenge.duration} dias para completar. Boa sorte!`);
+  };
+
+  const registerDailyProgress = async () => {
+    if (!challenge || !progress) return;
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    const today = new Date().toISOString().split("T")[0];
+    const existingDay = progress.days.find(d => d.date === today);
+    
+    if (existingDay) {
+      Alert.alert("Já registrado", "Você já registrou o progresso de hoje!");
+      return;
+    }
+    
+    const value = parseFloat(dailyValue) || 0;
+    const newDay: DayProgress = {
+      date: today,
+      completed: true,
+      value,
+      time: dailyTime || new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      notes: dailyNotes,
+    };
+    
+    const updatedProgress: ChallengeProgress = {
+      ...progress,
+      currentValue: progress.currentValue + 1,
+      days: [...progress.days, newDay],
+    };
+    
+    // Atualizar peso se for desafio de peso
+    if (challenge.type === "weight" && value > 0 && progress.weight) {
+      updatedProgress.weight = {
+        ...progress.weight,
+        current: value
+      };
+      // Recalcular IMC
+      if (height) {
+        const heightM = parseFloat(height) / 100;
+        updatedProgress.imc = calculateIMC(value, heightM);
+      }
+    }
+    
+    // Verificar se completou
+    if (updatedProgress.currentValue >= challenge.duration) {
+      updatedProgress.status = "completed";
+      Alert.alert(
+        "🎉 Parabéns!",
+        `Você completou o desafio "${challenge.title}" e ganhou ${challenge.points} pontos!`,
+        [{ text: "Celebrar!", style: "default" }]
+      );
+    }
+    
+    await AsyncStorage.setItem(`challenge_progress_${challenge.id}`, JSON.stringify(updatedProgress));
+    setProgress(updatedProgress);
+    setDailyValue("");
+    setDailyTime("");
+    setDailyNotes("");
+    
+    Alert.alert("✅ Registrado!", "Progresso do dia salvo com sucesso!");
+  };
+
+  const addDifficulty = async () => {
+    if (!difficulty.trim() || !progress) return;
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    const updatedProgress = {
+      ...progress,
+      difficulties: [...progress.difficulties, `${new Date().toLocaleDateString("pt-BR")}: ${difficulty}`]
+    };
+    
+    await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedProgress));
+    setProgress(updatedProgress);
+    setDifficulty("");
+    
+    Alert.alert("📝 Registrado", "Sua dificuldade foi registrada. A equipe de saúde pode ajudar!");
+  };
+
+  const pickImage = async () => {
+    if (!progress) return;
+    
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    
+    if (!result.canceled && result.assets[0]) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
+      const updatedProgress = {
+        ...progress,
+        photos: [...progress.photos, result.assets[0].uri]
+      };
+      
+      await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedProgress));
+      setProgress(updatedProgress);
+      
+      Alert.alert("📸 Foto adicionada!", "Sua foto foi salva como comprovação.");
+    }
+  };
+
+  const takePhoto = async () => {
+    if (!progress) return;
+    
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permissão necessária", "Precisamos de acesso à câmera para tirar fotos.");
+      return;
+    }
+    
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    
+    if (!result.canceled && result.assets[0]) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
+      const updatedProgress = {
+        ...progress,
+        photos: [...progress.photos, result.assets[0].uri]
+      };
+      
+      await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedProgress));
+      setProgress(updatedProgress);
+      
+      Alert.alert("📸 Foto adicionada!", "Sua foto foi salva como comprovação.");
+    }
+  };
+
+  const renderCalendar = () => {
+    if (!challenge || !progress) return null;
+    
+    const days = [];
+    const startDate = new Date(progress.startDate);
+    
+    for (let i = 0; i < challenge.duration; i++) {
+      const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split("T")[0];
+      const dayProgress = progress.days.find(d => d.date === dateStr);
+      const isToday = dateStr === new Date().toISOString().split("T")[0];
+      const isPast = date < new Date() && !isToday;
+      
+      days.push(
+        <View
+          key={i}
+          className={`w-10 h-10 rounded-full items-center justify-center m-1 ${
+            dayProgress?.completed ? "bg-success" :
+            isToday ? "bg-primary" :
+            isPast ? "bg-error/30" :
+            "bg-surface border border-border"
+          }`}
+        >
+          <Text className={`text-xs font-bold ${
+            dayProgress?.completed || isToday ? "text-white" : "text-foreground"
+          }`}>
+            {i + 1}
+          </Text>
+        </View>
+      );
+    }
+    
+    return (
+      <View className="flex-row flex-wrap justify-center">
+        {days}
+      </View>
+    );
   };
 
   if (!challenge) {
     return (
-      <ScreenContainer className="p-4">
-        <View className="flex-1 items-center justify-center gap-4">
-          <Text className="text-6xl">❌</Text>
-          <Text className="text-xl font-bold text-foreground text-center">
-            Desafio não encontrado
-          </Text>
-          <Pressable
-            onPress={() => router.back()}
-            style={({ pressed }) => [
-              {
-                opacity: pressed ? 0.7 : 1,
-                backgroundColor: colors.primary,
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 8,
-              },
-            ]}
-          >
-            <Text className="text-white font-semibold">Voltar</Text>
-          </Pressable>
-        </View>
+      <ScreenContainer className="p-4 items-center justify-center">
+        <Text className="text-6xl mb-4">❌</Text>
+        <Text className="text-xl font-bold text-foreground text-center mb-4">
+          Desafio não encontrado
+        </Text>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }]}
+        >
+          <Text className="text-white font-semibold">Voltar</Text>
+        </Pressable>
       </ScreenContainer>
     );
   }
 
-  const ranking = getChallengeRanking(challenge.id);
-  const daysRemaining = activeChallenge?.endDate ? getDaysRemaining(activeChallenge.endDate) : challenge.duration;
-
   return (
-    <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        <View className="gap-6">
-          {/* Cabeçalho */}
-          <View className="gap-3">
-            <Pressable
-              onPress={() => router.back()}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text className="text-primary text-base">← Voltar</Text>
-            </Pressable>
-
-            <View className="flex-row items-center gap-3">
-              <Text className="text-6xl">{challenge.icon}</Text>
-              <View className="flex-1">
-                <View
-                  style={{
-                    backgroundColor: DIFFICULTY_COLORS[challenge.difficulty] + "20",
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: DIFFICULTY_COLORS[challenge.difficulty],
-                      fontSize: 12,
-                      fontWeight: "700",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {challenge.difficulty === "easy" && "FÁCIL"}
-                    {challenge.difficulty === "medium" && "MÉDIO"}
-                    {challenge.difficulty === "hard" && "DIFÍCIL"}
-                  </Text>
-                </View>
-              </View>
+    <ScreenContainer>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View className="p-4">
+          <Pressable onPress={() => router.back()} style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}>
+            <Text className="text-primary text-base mb-4">← Voltar</Text>
+          </Pressable>
+          
+          <View className="flex-row items-center gap-4 mb-4">
+            <View className="w-20 h-20 rounded-2xl items-center justify-center" style={{ backgroundColor: DIFFICULTY_COLORS[challenge.difficulty] + "20" }}>
+              <Text className="text-5xl">{challenge.icon}</Text>
             </View>
-
-            <Text className="text-3xl font-bold text-foreground">{challenge.title}</Text>
-            <Text className="text-base text-muted leading-relaxed">{challenge.description}</Text>
-          </View>
-
-          {/* Informações do Desafio */}
-          <View
-            style={{
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              borderWidth: 1,
-              borderRadius: 12,
-              padding: 16,
-            }}
-          >
-            <View className="gap-3">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-muted">🎯 Meta</Text>
-                <Text className="text-sm font-semibold text-foreground">
-                  {challenge.goal} {challenge.unit}
+            <View className="flex-1">
+              <View className="px-3 py-1 rounded-full self-start mb-2" style={{ backgroundColor: DIFFICULTY_COLORS[challenge.difficulty] + "20" }}>
+                <Text className="text-xs font-bold" style={{ color: DIFFICULTY_COLORS[challenge.difficulty] }}>
+                  {DIFFICULTY_LABELS[challenge.difficulty]}
                 </Text>
               </View>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-muted">⏱️ Duração</Text>
-                <Text className="text-sm font-semibold text-foreground">
-                  {challenge.duration} dias
-                </Text>
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-muted">💎 Pontos</Text>
-                <Text className="text-sm font-semibold text-primary">
-                  +{challenge.points} pontos
-                </Text>
-              </View>
-              {challenge.badge && (
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm text-muted">🏅 Medalha</Text>
-                  <Text className="text-sm font-semibold text-foreground">
-                    {challenge.badge}
-                  </Text>
-                </View>
-              )}
-              {activeChallenge && (
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm text-muted">📅 Dias Restantes</Text>
-                  <Text className="text-sm font-semibold text-foreground">
-                    {daysRemaining} dias
-                  </Text>
-                </View>
-              )}
+              <Text className="text-2xl font-bold text-foreground">{challenge.title}</Text>
             </View>
           </View>
-
-          {/* Progresso Pessoal */}
-          {progress && (
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 12,
-                padding: 16,
-              }}
-            >
-              <Text className="text-lg font-semibold text-foreground mb-3">
-                📊 Seu Progresso
-              </Text>
-
-              {/* Barra de Progresso */}
-              <View className="gap-2">
-                <View
-                  style={{
-                    height: 12,
-                    backgroundColor: colors.background,
-                    borderRadius: 6,
-                    overflow: "hidden",
-                  }}
-                >
-                  <View
-                    style={{
-                      height: "100%",
-                      width: `${progress.progress}%`,
-                      backgroundColor: colors.primary,
-                      borderRadius: 6,
-                    }}
-                  />
-                </View>
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm text-muted">
-                    {progress.currentValue} / {progress.goalValue} {challenge.unit}
-                  </Text>
-                  <Text className="text-sm font-semibold text-primary">
-                    {Math.round(progress.progress)}%
-                  </Text>
-                </View>
-              </View>
-
-              {progress.completed && (
-                <View
-                  style={{
-                    backgroundColor: colors.primary + "10",
-                    borderColor: colors.primary,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    padding: 12,
-                    marginTop: 12,
-                  }}
-                >
-                  <Text className="text-center font-semibold text-primary">
-                    🎉 Desafio Completado!
-                  </Text>
-                </View>
-              )}
+          
+          <Text className="text-base text-muted leading-relaxed">{challenge.description}</Text>
+          
+          {/* Info Cards */}
+          <View className="flex-row gap-3 mt-4">
+            <View className="flex-1 bg-surface rounded-xl p-3 border border-border items-center">
+              <Text className="text-xs text-muted">Duração</Text>
+              <Text className="text-lg font-bold text-foreground">{challenge.duration} dias</Text>
             </View>
-          )}
+            <View className="flex-1 bg-surface rounded-xl p-3 border border-border items-center">
+              <Text className="text-xs text-muted">Pontos</Text>
+              <Text className="text-lg font-bold text-primary">+{challenge.points}</Text>
+            </View>
+            <View className="flex-1 bg-surface rounded-xl p-3 border border-border items-center">
+              <Text className="text-xs text-muted">Meta</Text>
+              <Text className="text-lg font-bold text-foreground">{challenge.goal}</Text>
+            </View>
+          </View>
+        </View>
 
-          {/* Ranking da Equipe */}
-          {ranking.length > 0 && (
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 12,
-                padding: 16,
-              }}
-            >
-              <Text className="text-lg font-semibold text-foreground mb-3">
-                🏆 Ranking da Equipe
-              </Text>
+        {/* Tabs */}
+        {isStarted && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mb-4">
+            {[
+              { key: "info", label: "📋 Guia" },
+              { key: "progress", label: "📅 Progresso" },
+              { key: "photos", label: "📸 Fotos" },
+              { key: "difficulties", label: "⚠️ Dificuldades" },
+            ].map((tab) => (
+              <TouchableOpacity
+                key={tab.key}
+                className={`px-4 py-2 rounded-full mr-2 ${activeTab === tab.key ? "bg-primary" : "bg-surface border border-border"}`}
+                onPress={() => setActiveTab(tab.key as any)}
+              >
+                <Text className={`text-sm font-semibold ${activeTab === tab.key ? "text-white" : "text-foreground"}`}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
-              <View className="gap-2">
-                {ranking.slice(0, 10).map((entry) => (
-                  <View
-                    key={entry.userId}
-                    style={{
-                      backgroundColor: colors.background,
-                      borderRadius: 8,
-                      padding: 12,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 12,
-                    }}
-                  >
-                    <Text className="text-2xl">
-                      {RANK_ICONS[entry.rank as keyof typeof RANK_ICONS] || `${entry.rank}º`}
-                    </Text>
-                    <View className="flex-1">
-                      <Text className="text-sm font-semibold text-foreground">
-                        {entry.userName}
-                      </Text>
-                      <Text className="text-xs text-muted">
-                        {entry.currentValue} {challenge.unit}
-                      </Text>
+        <View className="px-4 gap-4">
+          {/* Conteúdo baseado na tab */}
+          {(!isStarted || activeTab === "info") && (
+            <>
+              {/* Guia do Desafio */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">📖 Como Completar</Text>
+                {challenge.guide.map((step, idx) => (
+                  <View key={idx} className="flex-row gap-3 mb-2">
+                    <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
+                      <Text className="text-xs font-bold text-white">{idx + 1}</Text>
                     </View>
-                    <View
-                      style={{
-                        backgroundColor: colors.primary + "20",
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 6,
-                      }}
-                    >
-                      <Text className="text-xs font-semibold text-primary">
-                        {Math.round(entry.progress)}%
-                      </Text>
-                    </View>
+                    <Text className="flex-1 text-sm text-foreground leading-relaxed">{step}</Text>
                   </View>
                 ))}
               </View>
 
-              {ranking.length > 10 && (
-                <Text className="text-xs text-muted text-center mt-3">
-                  +{ranking.length - 10} participantes
-                </Text>
+              {/* Dicas */}
+              <View className="bg-success/10 rounded-xl p-4 border border-success">
+                <Text className="text-lg font-semibold text-success mb-3">💡 Dicas para Encaixar na Rotina</Text>
+                {challenge.tips.map((tip, idx) => (
+                  <Text key={idx} className="text-sm text-foreground mb-2">• {tip}</Text>
+                ))}
+              </View>
+
+              {/* Formulário de peso/altura para desafio de peso */}
+              {challenge.type === "weight" && !isStarted && (
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-lg font-semibold text-foreground mb-3">⚖️ Seus Dados</Text>
+                  <Text className="text-sm text-muted mb-3">Informe seu peso e altura para calcularmos seu IMC</Text>
+                  
+                  <View className="gap-3">
+                    <View>
+                      <Text className="text-sm text-muted mb-1">Peso atual (kg)</Text>
+                      <TextInput
+                        className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
+                        placeholder="Ex: 75"
+                        keyboardType="numeric"
+                        value={weight}
+                        onChangeText={setWeight}
+                        placeholderTextColor={colors.muted}
+                      />
+                    </View>
+                    <View>
+                      <Text className="text-sm text-muted mb-1">Altura (cm)</Text>
+                      <TextInput
+                        className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
+                        placeholder="Ex: 170"
+                        keyboardType="numeric"
+                        value={height}
+                        onChangeText={setHeight}
+                        placeholderTextColor={colors.muted}
+                      />
+                    </View>
+                  </View>
+                </View>
               )}
-            </View>
+
+              {/* Botão Iniciar */}
+              {!isStarted && (
+                <TouchableOpacity
+                  className="bg-primary rounded-xl py-4"
+                  onPress={startChallenge}
+                >
+                  <Text className="text-white font-bold text-center text-lg">🚀 Iniciar Desafio</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
 
-          {/* Registrar Progresso */}
-          {activeChallenge && !progress?.completed && (
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 12,
-                padding: 16,
-              }}
-            >
-              <Text className="text-lg font-semibold text-foreground mb-3">
-                ✅ Registrar Progresso de Hoje
-              </Text>
-
-              <View className="gap-3">
-                {/* Upload de Foto (Opcional) */}
-                <View className="gap-2">
-                  <Text className="text-sm font-semibold text-foreground">
-                    📸 Foto de Evidência (Opcional)
+          {/* Tab de Progresso */}
+          {isStarted && activeTab === "progress" && progress && (
+            <>
+              {/* Barra de Progresso */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <View className="flex-row justify-between mb-2">
+                  <Text className="text-sm text-muted">Progresso</Text>
+                  <Text className="text-sm font-bold text-primary">
+                    {progress.currentValue}/{challenge.duration} dias
                   </Text>
-                  {photoUri ? (
-                    <View className="gap-2">
+                </View>
+                <View className="h-4 bg-background rounded-full overflow-hidden">
+                  <View
+                    className="h-full bg-primary rounded-full"
+                    style={{ width: `${(progress.currentValue / challenge.duration) * 100}%` }}
+                  />
+                </View>
+                {progress.status === "completed" && (
+                  <View className="bg-success/20 rounded-lg p-3 mt-3">
+                    <Text className="text-success font-bold text-center">🎉 Desafio Completado!</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Calendário */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">📅 Calendário</Text>
+                <View className="flex-row mb-2">
+                  <View className="flex-row items-center mr-4">
+                    <View className="w-4 h-4 rounded-full bg-success mr-1" />
+                    <Text className="text-xs text-muted">Completado</Text>
+                  </View>
+                  <View className="flex-row items-center mr-4">
+                    <View className="w-4 h-4 rounded-full bg-primary mr-1" />
+                    <Text className="text-xs text-muted">Hoje</Text>
+                  </View>
+                  <View className="flex-row items-center">
+                    <View className="w-4 h-4 rounded-full bg-error/30 mr-1" />
+                    <Text className="text-xs text-muted">Perdido</Text>
+                  </View>
+                </View>
+                {renderCalendar()}
+              </View>
+
+              {/* IMC (se for desafio de peso) */}
+              {challenge.type === "weight" && progress.imc && (
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-lg font-semibold text-foreground mb-3">📊 Seu IMC</Text>
+                  <View className="flex-row items-center justify-between">
+                    <View>
+                      <Text className="text-3xl font-bold text-foreground">{progress.imc.value}</Text>
+                      <Text className="text-sm text-muted">{progress.imc.classification}</Text>
+                    </View>
+                    {progress.weight && (
+                      <View className="items-end">
+                        <Text className="text-sm text-muted">Peso atual</Text>
+                        <Text className="text-xl font-bold text-foreground">{progress.weight.current} kg</Text>
+                        <Text className="text-xs text-success">
+                          {progress.weight.initial - progress.weight.current > 0 
+                            ? `↓ ${(progress.weight.initial - progress.weight.current).toFixed(1)} kg`
+                            : "Início do desafio"}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* Registrar Progresso do Dia */}
+              {progress.status === "active" && (
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-lg font-semibold text-foreground mb-3">✏️ Registrar Hoje</Text>
+                  
+                  <View className="gap-3">
+                    {challenge.type === "weight" && (
+                      <View>
+                        <Text className="text-sm text-muted mb-1">Peso de hoje (kg)</Text>
+                        <TextInput
+                          className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
+                          placeholder="Ex: 74.5"
+                          keyboardType="numeric"
+                          value={dailyValue}
+                          onChangeText={setDailyValue}
+                          placeholderTextColor={colors.muted}
+                        />
+                      </View>
+                    )}
+                    
+                    <View>
+                      <Text className="text-sm text-muted mb-1">Horário</Text>
+                      <TextInput
+                        className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
+                        placeholder="Ex: 08:30"
+                        value={dailyTime}
+                        onChangeText={setDailyTime}
+                        placeholderTextColor={colors.muted}
+                      />
+                    </View>
+                    
+                    <View>
+                      <Text className="text-sm text-muted mb-1">Observações (opcional)</Text>
+                      <TextInput
+                        className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
+                        placeholder="Como foi hoje?"
+                        multiline
+                        numberOfLines={2}
+                        value={dailyNotes}
+                        onChangeText={setDailyNotes}
+                        placeholderTextColor={colors.muted}
+                      />
+                    </View>
+                    
+                    <TouchableOpacity
+                      className="bg-success rounded-lg py-3"
+                      onPress={registerDailyProgress}
+                    >
+                      <Text className="text-white font-semibold text-center">✓ Registrar Dia</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Histórico */}
+              {progress.days.length > 0 && (
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-lg font-semibold text-foreground mb-3">📜 Histórico</Text>
+                  {progress.days.slice().reverse().map((day, idx) => (
+                    <View key={idx} className="flex-row items-center justify-between py-2 border-b border-border">
+                      <View>
+                        <Text className="text-sm font-semibold text-foreground">{day.date}</Text>
+                        {day.time && <Text className="text-xs text-muted">{day.time}</Text>}
+                      </View>
+                      {day.value && <Text className="text-sm text-primary font-semibold">{day.value} {challenge.unit.split("/")[0]}</Text>}
+                      <Text className="text-success">✓</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </>
+          )}
+
+          {/* Tab de Fotos */}
+          {isStarted && activeTab === "photos" && progress && (
+            <>
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">📸 Adicionar Foto</Text>
+                <Text className="text-sm text-muted mb-4">
+                  Tire fotos como comprovação: pesagens, refeições, atividades realizadas
+                </Text>
+                <View className="flex-row gap-3">
+                  <TouchableOpacity
+                    className="flex-1 bg-primary rounded-lg py-3"
+                    onPress={takePhoto}
+                  >
+                    <Text className="text-white font-semibold text-center">📷 Tirar Foto</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-1 bg-surface border border-primary rounded-lg py-3"
+                    onPress={pickImage}
+                  >
+                    <Text className="text-primary font-semibold text-center">🖼️ Galeria</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Galeria de Fotos */}
+              {progress.photos.length > 0 ? (
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-lg font-semibold text-foreground mb-3">
+                    🖼️ Suas Fotos ({progress.photos.length})
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {progress.photos.map((uri, idx) => (
                       <Image
-                        source={{ uri: photoUri }}
-                        style={{
-                          width: "100%",
-                          height: 200,
-                          borderRadius: 8,
-                          backgroundColor: colors.surface,
-                        }}
+                        key={idx}
+                        source={{ uri }}
+                        className="w-24 h-24 rounded-lg"
                         resizeMode="cover"
                       />
-                      <Pressable
-                        onPress={() => setPhotoUri(null)}
-                        style={({ pressed }) => [{
-                          backgroundColor: colors.error + "20",
-                          borderColor: colors.error,
-                          borderWidth: 1,
-                          padding: 10,
-                          borderRadius: 8,
-                          opacity: pressed ? 0.7 : 1,
-                        }]}
-                      >
-                        <Text className="text-center text-error font-semibold">
-                          🗑️ Remover Foto
-                        </Text>
-                      </Pressable>
-                    </View>
-                  ) : (
-                    <Pressable
-                      onPress={async () => {
-                        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                        if (status !== "granted") {
-                          Alert.alert(
-                            "Permissão Necessária",
-                            "Precisamos de permissão para acessar a câmera"
-                          );
-                          return;
-                        }
-
-                        const result = await ImagePicker.launchCameraAsync({
-                          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                          allowsEditing: true,
-                          aspect: [4, 3],
-                          quality: 0.7,
-                        });
-
-                        if (!result.canceled && result.assets[0]) {
-                          setPhotoUri(result.assets[0].uri);
-                          if (Platform.OS !== "web") {
-                            await Haptics.notificationAsync(
-                              Haptics.NotificationFeedbackType.Success
-                            );
-                          }
-                        }
-                      }}
-                      style={({ pressed }) => [{
-                        backgroundColor: colors.primary + "20",
-                        borderColor: colors.primary,
-                        borderWidth: 1,
-                        borderStyle: "dashed",
-                        padding: 20,
-                        borderRadius: 8,
-                        alignItems: "center",
-                        opacity: pressed ? 0.7 : 1,
-                      }]}
-                    >
-                      <Text className="text-4xl mb-2">📸</Text>
-                      <Text className="text-center text-primary font-semibold">
-                        Tirar Foto
-                      </Text>
-                      <Text className="text-xs text-muted text-center mt-1">
-                        Registre sua conquista!
-                      </Text>
-                    </Pressable>
-                  )}
+                    ))}
+                  </View>
                 </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      backgroundColor: colors.background,
-                      borderColor: colors.border,
-                      borderWidth: 1,
-                      borderRadius: 8,
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      fontSize: 16,
-                      color: colors.foreground,
-                    }}
-                    placeholder={`Ex: ${challenge.type === 'steps' ? '6000' : challenge.type === 'hydration' ? '8' : '1'}`}
-                    placeholderTextColor={colors.muted}
-                    keyboardType="numeric"
-                    value={inputValue}
-                    onChangeText={setInputValue}
-                  />
-                  <Text className="text-sm text-muted">{challenge.unit}</Text>
-                </View>
-
-                <Pressable
-                  onPress={async () => {
-                    if (!inputValue || isNaN(Number(inputValue))) {
-                      Alert.alert("Atenção", "Digite um valor válido");
-                      return;
-                    }
-
-                    setIsRegistering(true);
-                    try {
-                      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      const success = await updateChallengeProgress(
-                        challenge.id,
-                        Number(inputValue),
-                        true
-                      );
-
-                      if (success) {
-                        await loadProgress();
-                        setInputValue("");
-                        Alert.alert(
-                          "Sucesso! 🎉",
-                          "Progresso registrado com sucesso!"
-                        );
-                      } else {
-                        Alert.alert("Erro", "Não foi possível registrar o progresso");
-                      }
-                    } catch (error) {
-                      Alert.alert("Erro", "Ocorreu um erro ao registrar");
-                    } finally {
-                      setIsRegistering(false);
-                    }
-                  }}
-                  disabled={isRegistering}
-                  style={({ pressed }) => [{
-                    backgroundColor: colors.primary,
-                    paddingVertical: 14,
-                    borderRadius: 8,
-                    opacity: pressed || isRegistering ? 0.7 : 1,
-                  }]}
-                >
-                  <Text className="text-white font-semibold text-center text-base">
-                    {isRegistering ? "Registrando..." : "Registrar Progresso"}
+              ) : (
+                <View className="bg-surface rounded-xl p-6 border border-border items-center">
+                  <Text className="text-4xl mb-2">📷</Text>
+                  <Text className="text-muted text-center">
+                    Nenhuma foto adicionada ainda.{"\n"}
+                    Registre seu progresso com fotos!
                   </Text>
-                </Pressable>
-              </View>
-            </View>
+                </View>
+              )}
+            </>
           )}
 
-          {/* Dicas */}
-          <View
-            style={{
-              backgroundColor: colors.primary + "10",
-              borderColor: colors.primary,
-              borderWidth: 1,
-              borderRadius: 12,
-              padding: 16,
-            }}
-          >
-            <Text className="text-base text-foreground font-semibold mb-2">
-              💡 Dicas para Completar
-            </Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              {challenge.type === "steps" && "• Use um app de contagem de passos\n• Caminhe durante as pausas\n• Suba escadas em vez de usar elevador"}
-              {challenge.type === "hydration" && "• Configure lembretes de água\n• Tenha sempre uma garrafa por perto\n• Beba água antes de sentir sede"}
-              {challenge.type === "checkin" && "• Faça check-in logo pela manhã\n• Configure lembretes diários\n• Seja honesto sobre como se sente"}
-              {challenge.type === "dds" && "• Assista os vídeos com atenção\n• Faça anotações importantes\n• Compartilhe com a equipe"}
-            </Text>
-          </View>
+          {/* Tab de Dificuldades */}
+          {isStarted && activeTab === "difficulties" && progress && (
+            <>
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">⚠️ Relatar Dificuldade</Text>
+                <Text className="text-sm text-muted mb-3">
+                  Está tendo dificuldades? Conte para nós. A equipe de saúde pode ajudar!
+                </Text>
+                <TextInput
+                  className="bg-background border border-border rounded-lg px-4 py-3 text-foreground mb-3"
+                  placeholder="Descreva sua dificuldade..."
+                  multiline
+                  numberOfLines={3}
+                  value={difficulty}
+                  onChangeText={setDifficulty}
+                  placeholderTextColor={colors.muted}
+                />
+                <TouchableOpacity
+                  className="bg-warning rounded-lg py-3"
+                  onPress={addDifficulty}
+                >
+                  <Text className="text-white font-semibold text-center">📝 Registrar Dificuldade</Text>
+                </TouchableOpacity>
+              </View>
 
-          {/* Espaçamento final */}
-          <View className="h-8" />
+              {/* Lista de Dificuldades */}
+              {progress.difficulties.length > 0 && (
+                <View className="bg-surface rounded-xl p-4 border border-border">
+                  <Text className="text-lg font-semibold text-foreground mb-3">📋 Dificuldades Registradas</Text>
+                  {progress.difficulties.map((diff, idx) => (
+                    <View key={idx} className="bg-warning/10 rounded-lg p-3 mb-2">
+                      <Text className="text-sm text-foreground">{diff}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Suporte */}
+              <View className="bg-primary/10 rounded-xl p-4 border border-primary">
+                <Text className="text-lg font-semibold text-primary mb-2">🤝 Precisa de Apoio?</Text>
+                <Text className="text-sm text-foreground mb-3">
+                  A equipe de saúde ocupacional pode ajudar você a superar as dificuldades:
+                </Text>
+                <View className="gap-2">
+                  <Text className="text-sm text-foreground">• Agendar consulta com nutricionista</Text>
+                  <Text className="text-sm text-foreground">• Orientação sobre exercícios</Text>
+                  <Text className="text-sm text-foreground">• Acompanhamento personalizado</Text>
+                  <Text className="text-sm text-foreground">• Suporte psicológico se necessário</Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>

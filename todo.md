@@ -1700,3 +1700,44 @@
 - [x] Removido loading screen condicional que causava piscar
 - [x] Desativado useNotifications no _layout temporariamente
 - [x] App agora carrega diretamente sem tela de "Carregando..."
+
+
+---
+
+## 🚀 NOVA FUNCIONALIDADE: Dashboard Admin Completo + Sistema de Desafios (24/01/2026)
+
+### Dashboard Admin - Relatórios Completos:
+- [ ] Gráficos de hidratação por funcionário (diário/semanal/mensal)
+- [ ] Relatório de pressão arterial com histórico e alertas
+- [ ] Lista de queixas/reclamações com detalhes completos
+- [ ] Relatório de check-ins (quem está bem, quem reportou dor)
+- [ ] Adesão à ergonomia (pausas ativas, alongamentos)
+- [ ] Uso da respiração guiada
+- [ ] Contatos com psicóloga/saúde mental
+- [ ] Comparativo mês a mês da saúde geral
+- [ ] Exportação de relatórios (PDF/Excel)
+- [ ] Filtros por período (semana/mês/trimestre)
+
+### Sistema de Desafios Funcional:
+- [ ] Corrigir erro "desafio não disponível"
+- [ ] Lista de desafios disponíveis para escolher
+- [ ] Botão "Iniciar Desafio" funcional
+- [ ] Guia personalizado para cada desafio
+- [ ] Dicas de como encaixar na rotina do usuário
+- [ ] Progresso do desafio com etapas
+- [ ] Sistema de pontos ao completar
+- [ ] Registro por foto como evidência
+
+
+### Sistema de Desafios - Requisitos Detalhados:
+- [ ] Calendário visual de dias cumpridos
+- [ ] Campo para registrar horários de cumprimento
+- [ ] Campo para relatar dificuldades encontradas
+- [ ] Anexo de fotos JPEG como comprovação
+- [ ] Cálculo automático de IMC para desafios de peso
+- [ ] Mensagens personalizadas baseadas no IMC
+- [ ] Sugestão de nutricionista quando necessário
+- [ ] Histórico de pesagens com fotos
+- [ ] Galeria de fotos de refeições
+- [ ] Registro de peso perdido ao longo do tempo
+- [ ] Guia personalizado baseado na rotina do usuário

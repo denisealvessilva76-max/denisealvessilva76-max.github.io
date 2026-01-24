@@ -3,72 +3,126 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import * as Haptics from "expo-haptics";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AVAILABLE_CHALLENGES = [
   {
-    id: "hidratacao-7dias",
-    title: "Desafio de Hidratação",
-    description: "Beba 8 copos de água por dia durante 7 dias consecutivos",
+    id: "challenge-hydration-7d",
+    title: "Hidratação Consistente",
+    description: "Beba pelo menos 2 litros de água por dia durante 7 dias",
     duration: "7 dias",
-    points: 100,
+    points: 300,
     icon: "💧",
     difficulty: "Fácil",
     color: "bg-blue-500",
+    type: "hydration",
   },
   {
-    id: "alongamento-14dias",
-    title: "Alongamento Diário",
-    description: "Faça 10 minutos de alongamento todos os dias por 2 semanas",
-    duration: "14 dias",
-    points: 200,
-    icon: "🧘",
-    difficulty: "Médio",
-    color: "bg-purple-500",
-  },
-  {
-    id: "respiracao-30dias",
-    title: "Respiração Consciente",
-    description: "Pratique exercícios de respiração guiada diariamente por 1 mês",
-    duration: "30 dias",
+    id: "challenge-steps-15d",
+    title: "Caminhada Saudável",
+    description: "Caminhe 6.000 passos por dia durante 15 dias consecutivos",
+    duration: "15 dias",
     points: 500,
-    icon: "🌬️",
+    icon: "🚶",
     difficulty: "Médio",
     color: "bg-green-500",
+    type: "steps",
   },
   {
-    id: "checkin-30dias",
-    title: "Check-in Consistente",
-    description: "Faça check-in diário sem falhas por 30 dias",
+    id: "challenge-weight-30d",
+    title: "Desafio de Peso Saudável",
+    description: "Perca peso de forma saudável em 30 dias com acompanhamento e cálculo de IMC",
     duration: "30 dias",
-    points: 300,
-    icon: "📋",
-    difficulty: "Fácil",
-    color: "bg-orange-500",
+    points: 1000,
+    icon: "⚖️",
+    difficulty: "Difícil",
+    color: "bg-red-500",
+    type: "weight",
   },
   {
-    id: "postura-21dias",
-    title: "Postura Correta",
-    description: "Mantenha postura ergonômica e faça pausas a cada 2 horas por 21 dias",
-    duration: "21 dias",
-    points: 250,
-    icon: "🪑",
-    difficulty: "Médio",
-    color: "bg-yellow-500",
-  },
-  {
-    id: "sono-14dias",
-    title: "Sono de Qualidade",
-    description: "Durma pelo menos 7 horas por noite durante 14 dias",
+    id: "challenge-breathing-14d",
+    title: "Respiração Consciente",
+    description: "Pratique exercícios de respiração guiada por 14 dias",
     duration: "14 dias",
-    points: 150,
-    icon: "😴",
+    points: 400,
+    icon: "🌬️",
     difficulty: "Fácil",
-    color: "bg-indigo-500",
+    color: "bg-purple-500",
+    type: "breathing",
+  },
+  {
+    id: "challenge-stretching-21d",
+    title: "Alongamento Diário",
+    description: "Faça 10 minutos de alongamento todos os dias por 21 dias",
+    duration: "21 dias",
+    points: 600,
+    icon: "🧘",
+    difficulty: "Médio",
+    color: "bg-orange-500",
+    type: "stretching",
+  },
+  {
+    id: "challenge-checkin-30d",
+    title: "Check-in Diário",
+    description: "Faça check-in de bem-estar todos os dias por 30 dias",
+    duration: "30 dias",
+    points: 800,
+    icon: "✅",
+    difficulty: "Médio",
+    color: "bg-teal-500",
+    type: "checkin",
+  },
+  {
+    id: "challenge-hydration-30d",
+    title: "Mestre da Hidratação",
+    description: "Mantenha-se hidratado por 30 dias seguidos (2L/dia)",
+    duration: "30 dias",
+    points: 1000,
+    icon: "💦",
+    difficulty: "Difícil",
+    color: "bg-cyan-500",
+    type: "hydration",
   },
 ];
 
+interface ChallengeStatus {
+  id: string;
+  status: "available" | "active" | "completed";
+  progress: number;
+}
+
 export default function DesafiosScreen() {
   const router = useRouter();
+  const [challengeStatuses, setChallengeStatuses] = useState<ChallengeStatus[]>([]);
+
+  useEffect(() => {
+    loadChallengeStatuses();
+  }, []);
+
+  const loadChallengeStatuses = async () => {
+    const statuses: ChallengeStatus[] = [];
+    
+    for (const challenge of AVAILABLE_CHALLENGES) {
+      const savedProgress = await AsyncStorage.getItem(`challenge_progress_${challenge.id}`);
+      if (savedProgress) {
+        const parsed = JSON.parse(savedProgress);
+        statuses.push({
+          id: challenge.id,
+          status: parsed.status,
+          progress: (parsed.currentValue / parsed.days?.length || 0) * 100
+        });
+      } else {
+        statuses.push({
+          id: challenge.id,
+          status: "available",
+          progress: 0
+        });
+      }
+    }
+    
+    setChallengeStatuses(statuses);
+  };
 
   const handleStartChallenge = (challengeId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -91,13 +145,34 @@ export default function DesafiosScreen() {
     }
   };
 
+  const getStatusBadge = (challengeId: string) => {
+    const status = challengeStatuses.find(s => s.id === challengeId);
+    if (!status) return null;
+    
+    if (status.status === "completed") {
+      return (
+        <View className="bg-success/20 px-2 py-1 rounded">
+          <Text className="text-xs font-semibold text-success">✓ Completado</Text>
+        </View>
+      );
+    }
+    if (status.status === "active") {
+      return (
+        <View className="bg-primary/20 px-2 py-1 rounded">
+          <Text className="text-xs font-semibold text-primary">Em Andamento</Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   return (
     <ScreenContainer className="p-6">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <View className="gap-6">
           {/* Cabeçalho */}
           <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">Desafios de Saúde</Text>
+            <Text className="text-3xl font-bold text-foreground">🎯 Desafios de Saúde</Text>
             <Text className="text-base text-muted">
               Escolha um desafio e melhore seus hábitos de saúde
             </Text>
@@ -107,7 +182,8 @@ export default function DesafiosScreen() {
           <Card className="bg-primary/10 border border-primary gap-2">
             <Text className="text-sm font-semibold text-primary">🎯 Como Funciona</Text>
             <Text className="text-sm text-foreground leading-relaxed">
-              Complete desafios para ganhar pontos e subir no ranking. Quanto mais difícil o desafio, mais pontos você ganha!
+              Escolha um desafio, siga o guia personalizado e registre seu progresso diariamente. 
+              Tire fotos como comprovação e ganhe pontos ao completar!
             </Text>
           </Card>
 
@@ -126,7 +202,10 @@ export default function DesafiosScreen() {
                       <Text className="text-3xl">{challenge.icon}</Text>
                     </View>
                     <View className="flex-1 gap-2">
-                      <Text className="text-lg font-bold text-foreground">{challenge.title}</Text>
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-lg font-bold text-foreground flex-1">{challenge.title}</Text>
+                        {getStatusBadge(challenge.id)}
+                      </View>
                       <Text className="text-sm text-muted leading-relaxed">
                         {challenge.description}
                       </Text>
@@ -158,11 +237,21 @@ export default function DesafiosScreen() {
             ))}
           </View>
 
+          {/* Dica sobre Desafio de Peso */}
+          <Card className="bg-warning/10 border border-warning gap-2">
+            <Text className="text-sm font-semibold text-warning">⚖️ Desafio de Peso</Text>
+            <Text className="text-sm text-foreground leading-relaxed">
+              No desafio de peso, você pode calcular seu IMC, tirar fotos das pesagens na sala de saúde ocupacional, 
+              fotografar suas refeições e acompanhar sua evolução. Se precisar, a equipe pode agendar um nutricionista!
+            </Text>
+          </Card>
+
           {/* Dica */}
           <Card className="bg-success/10 border border-success gap-2">
             <Text className="text-sm font-semibold text-success">💡 Dica</Text>
             <Text className="text-sm text-foreground leading-relaxed">
-              Comece com desafios fáceis para criar o hábito. Depois, avance para desafios mais longos e complexos!
+              Comece com desafios fáceis para criar o hábito. Cada desafio tem um guia personalizado 
+              para ajudar você a encaixar na sua rotina!
             </Text>
           </Card>
 
@@ -175,7 +264,7 @@ export default function DesafiosScreen() {
             }}
           >
             <Text className="text-center font-semibold text-foreground">
-              Voltar
+              ← Voltar
             </Text>
           </TouchableOpacity>
         </View>
