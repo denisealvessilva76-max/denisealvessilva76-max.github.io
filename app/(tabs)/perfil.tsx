@@ -290,6 +290,25 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </Card>
 
+          {/* Dashboard Admin (Estatísticas) */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">📊 Dashboard Admin</Text>
+            <Text className="text-sm text-muted">
+              Visualize estatísticas da equipe e envie notificações
+            </Text>
+            <TouchableOpacity
+              className="bg-purple-600 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("../admin-stats" as any);
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Acessar Dashboard
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
           {/* Dashboard de Evolução */}
           <Card className="gap-3">
             <Text className="text-lg font-semibold text-foreground">📊 Dashboard de Evolução</Text>

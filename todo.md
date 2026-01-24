@@ -1469,3 +1469,37 @@
 - [x] Estatísticas de gamificação
 - [x] Opção de período customizado (query param)
 - [ ] Adicionar endpoint para gerar PDF - TODO futuro
+
+
+---
+
+## 🔧 TELA DE ADMINISTRAÇÃO NO APP
+
+### Dashboard Admin (Visualização de Estatísticas)
+- [x] Criar tela app/admin-stats.tsx
+- [x] Integrar com endpoint GET /api/admin/dashboard-stats
+- [x] Card de check-ins (hoje/semana/mês)
+- [x] Card de hidratação média
+- [x] Card de alertas de pressão arterial
+- [x] Card de queixas pendentes
+- [x] Card de taxa de conclusão de desafios
+- [x] Lista de ranking (top 10)
+- [x] Botão de atualizar dados
+- [x] Loading states e error handling
+
+### Envio de Notificações
+- [x] Criar tela app/admin-send-notification.tsx
+- [x] Integrar com endpoint POST /api/admin/send-notification
+- [x] Seletor de tipo de envio (usuário específico ou grupo)
+- [x] Seletor de grupo (all, high_pressure, pending_complaints, inactive)
+- [x] Seletor de template (exam_reminder, appointment, safety_alert, custom)
+- [x] Campos de título e mensagem
+- [x] Validação de formulário
+- [x] Feedback de sucesso/erro
+- [ ] Contador de usuários que receberão a notificação - TODO futuro
+
+### Navegação e Acesso
+- [x] Adicionar botão "Dashboard Admin" no perfil
+- [x] Navegação entre telas admin (stats → send-notification)
+- [ ] Implementar verificação de permissão (role === 'admin') - TODO futuro
+- [ ] Adicionar mensagem de acesso negado para não-admins - TODO futuro
