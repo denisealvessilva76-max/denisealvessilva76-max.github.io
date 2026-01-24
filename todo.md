@@ -1395,3 +1395,21 @@
 - [x] Adicionar contato da Assistente Social Luciana
 - [x] Número: (31) 99589-2351
 - [x] Incluir botão de WhatsApp para contato direto
+
+
+---
+
+## 📊 DASHBOARD DE EVOLUÇÃO PESSOAL (NOVA FUNCIONALIDADE)
+
+### Funcionalidades
+- [x] Criar hook de estatísticas (use-evolution-stats.ts)
+- [x] Seletor de período (30/90 dias)
+- [x] Gráfico de check-ins diários (linha do tempo)
+- [x] Gráfico de hidratação (ml consumidos por dia)
+- [x] Gráfico de pressão arterial (tendências sistólica/diastólica)
+- [x] Estatísticas de desafios completados
+- [x] Indicadores de consistência (sequências de dias)
+- [x] Comparação com período anterior (% de melhora)
+- [x] Botão de acesso no perfil
+- [x] Cards de resumo com métricas principais
+- [ ] Exportar relatório pessoal em PDF (funcionalidade futura)

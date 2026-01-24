@@ -290,6 +290,25 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </Card>
 
+          {/* Dashboard de Evolução */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">📊 Dashboard de Evolução</Text>
+            <Text className="text-sm text-muted">
+              Veja seu progresso e estatísticas de saúde ao longo do tempo
+            </Text>
+            <TouchableOpacity
+              className="bg-teal-600 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/evolucao");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Ver Minha Evolução
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
           {/* Preferências e Notificações */}
           <Card className="gap-3">
             <Text className="text-lg font-semibold text-foreground">⚙️ Preferências</Text>
