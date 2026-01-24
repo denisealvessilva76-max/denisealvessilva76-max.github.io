@@ -37,8 +37,8 @@ export type DashboardStats = {
 };
 
 const STORAGE_KEYS = {
-  CHECK_INS: "health_check_ins",
-  HYDRATION: "hydration_records",
+  CHECK_INS: "health:check-ins",
+  HYDRATION: "hydration_data",
   CHALLENGES: "user_challenges",
 };
 
@@ -168,14 +168,23 @@ export function usePersonalDashboard() {
     const data: DashboardStats["symptoms"]["lastSevenDays"] = [];
     const now = new Date();
 
+    // Mapear status para nível de sintoma (0-10)
+    const statusToLevel: Record<string, number> = {
+      "Tudo bem": 0,
+      "Cansado": 3,
+      "Dor leve": 4,
+      "Dor moderada": 7,
+      "Dor intensa": 10,
+    };
+
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split("T")[0];
 
-      const checkIn = checkIns.find((c: any) => c.date.startsWith(dateStr));
-      const level = checkIn?.painLevel || 0;
-      const hasSymptom = checkIn?.hasPain || false;
+      const checkIn = checkIns.find((c: any) => c.date === dateStr);
+      const level = checkIn ? (statusToLevel[checkIn.status] || 0) : 0;
+      const hasSymptom = checkIn && checkIn.status !== "Tudo bem";
 
       data.push({
         date: dateStr,

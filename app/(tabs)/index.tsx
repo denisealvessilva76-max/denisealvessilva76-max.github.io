@@ -1,6 +1,7 @@
 import { ScrollView, Text, View, TouchableOpacity, Pressable, RefreshControl } from "react-native";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
@@ -28,6 +29,13 @@ export default function HomeScreen() {
   useEffect(() => {
     setTodayCheckIn(getTodayCheckIn());
   }, [checkIns]);
+
+  // Recarregar dashboard ao voltar para a tela
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const handleCheckIn = async (status: CheckInStatus) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

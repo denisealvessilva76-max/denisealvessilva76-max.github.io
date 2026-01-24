@@ -1604,3 +1604,42 @@
 - [ ] Implementar envio real via Expo Push API - TODO
 - [ ] Testar envio de notificação do admin para usuários - TODO
 
+
+
+---
+
+## 🚨 BUGS CRÍTICOS REPORTADOS PELO USUÁRIO (24/01/2026)
+
+### 1. Evolução de Sintomas Sem Dados
+- [x] Gráfico "Evolução de Sintomas" aparece vazio mesmo após registrar dados
+- [x] Verificar hook use-personal-dashboard (chaves de storage diferentes!)
+- [x] Corrigir lógica de agregação de sintomas dos últimos 7 dias (mapear status)
+- [x] Testar com dados reais de check-ins (padronizado health:check-ins)
+
+### 2. Check-in Não Marca como Realizado
+- [x] Após fazer check-in, continua mostrando "URGENTE" em vez de "✓ Realizado"
+- [x] Verificar atualização de estado após completar check-in
+- [x] Corrigir lógica de verificação hasCheckInToday (já estava correta)
+- [x] Atualizar UI imediatamente após check-in (useFocusEffect)
+
+### 3. Hidratação Não Marca como Realizado
+- [x] Após registrar água, continua mostrando "URGENTE" em vez de "✓ Realizado"
+- [x] Verificar atualização de estado após registrar hidratação
+- [x] Corrigir lógica de verificação de meta atingida
+- [x] Atualizar UI imediatamente após registro (useFocusEffect)
+
+### 4. Resumo da Semana Não Atualiza
+- [x] Cards de "Resumo da Semana" mostram 0 em tudo
+- [x] Check-ins: 0, Hidratação: 0/dia, Desafios: 0%
+- [x] Verificar cálculo de estatísticas semanais (corrigido com chaves)
+- [x] Corrigir agregação de dados do AsyncStorage (padronizado)
+- [x] Testar com dados mockados e reais (useFocusEffect recarrega)
+
+### 5. Login Admin Não Funciona
+- [x] Erro "Email ou senha incorretos" ao tentar acessar área admin
+- [x] Credenciais atuais: admin@canteiro.com / admin123
+- [x] Trocar para credenciais mais simples (admin / 1234)
+- [x] Verificar validação de login em admin-login.tsx (trim + toLowerCase)
+- [x] Adicionar logs de debug (console.log)
+- [x] Testar login e persistência de sessão (SecureStore)
+- [x] Adicionar hint visual com credenciais na tela de login

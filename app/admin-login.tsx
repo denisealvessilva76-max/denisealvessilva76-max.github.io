@@ -23,11 +23,15 @@ export default function AdminLoginScreen() {
     setIsLoading(true);
     try {
       // Autenticação LOCAL (offline) - Credenciais de admin fixas
-      const ADMIN_EMAIL = "admin@canteiro.com";
-      const ADMIN_PASSWORD = "admin123";
+      const ADMIN_EMAIL = "admin";
+      const ADMIN_PASSWORD = "1234";
 
-      // Verificar credenciais localmente
-      if (email.toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      console.log("[LOGIN] Tentativa de login:", { email, password });
+      console.log("[LOGIN] Credenciais esperadas:", { ADMIN_EMAIL, ADMIN_PASSWORD });
+
+      // Verificar credenciais localmente (case-insensitive para email)
+      if (email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
+        console.log("[LOGIN] Credenciais corretas!");
         // Gerar token local simples
         const localToken = `local_${Date.now()}_${Math.random().toString(36)}`;
 
@@ -70,6 +74,9 @@ export default function AdminLoginScreen() {
               </Text>
               <Text className="text-base text-muted text-center">
                 Visualize dados de saúde dos empregados
+              </Text>
+              <Text className="text-sm text-muted text-center mt-2">
+                🔑 Login: admin | Senha: 1234
               </Text>
             </View>
 
