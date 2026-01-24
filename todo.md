@@ -1684,3 +1684,19 @@
 - [x] Removidos imports de useOnboarding, useRouter, useSegments
 - [x] Removido useEffect de redirecionamento
 - [x] initialRouteName definido como "(tabs)"
+
+
+---
+
+## 🐛 Bug CRÍTICO: Loop AINDA Persiste (24/01/2026 - 13:15)
+
+### Problema:
+- [ ] Loop continua mesmo após remover onboarding automático
+- [ ] Tela pisca entre Home e "Carregando..."
+- [ ] Problema pode estar em outro componente
+
+### Correções Aplicadas:
+- [x] Removido useFocusEffect da Home que causava refresh infinito
+- [x] Removido loading screen condicional que causava piscar
+- [x] Desativado useNotifications no _layout temporariamente
+- [x] App agora carrega diretamente sem tela de "Carregando..."

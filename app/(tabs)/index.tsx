@@ -1,7 +1,7 @@
 import { ScrollView, Text, View, TouchableOpacity, Pressable, RefreshControl } from "react-native";
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
+// useFocusEffect removido para evitar loops
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
@@ -30,12 +30,7 @@ export default function HomeScreen() {
     setTodayCheckIn(getTodayCheckIn());
   }, [checkIns]);
 
-  // Recarregar dashboard ao voltar para a tela
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh])
-  );
+  // Refresh manual apenas - useFocusEffect removido para evitar loops
 
   const handleCheckIn = async (status: CheckInStatus) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -106,13 +101,7 @@ export default function HomeScreen() {
     }
   };
 
-  if (isLoading || dashboardLoading) {
-    return (
-      <ScreenContainer className="p-4 items-center justify-center">
-        <Text className="text-foreground">Carregando...</Text>
-      </ScreenContainer>
-    );
-  }
+  // Removido loading screen que causava loop - mostrar conteúdo direto
 
   return (
     <ScreenContainer className="p-4">
