@@ -1643,3 +1643,25 @@
 - [x] Adicionar logs de debug (console.log)
 - [x] Testar login e persistência de sessão (SecureStore)
 - [x] Adicionar hint visual com credenciais na tela de login
+
+
+---
+
+## 🐛 Bug Crítico: Loop de Redirecionamento ao Iniciar App (24/01/2026)
+
+### Problema Reportado:
+- [x] Tela fica piscando em loop ao abrir o app
+- [x] Mostra "Carregando..." indefinidamente
+- [x] App não consegue sair da tela inicial
+- [x] Loop de redirecionamento entre onboarding e tabs
+
+### Causa Identificada:
+- [x] Lógica de redirecionamento no app/_layout.tsx criando loop infinito
+- [x] useEffect disparando múltiplas vezes sem controle
+- [x] Verificação de onboarding_completed causando re-renders contínuos
+
+### Solução Implementada:
+- [x] Adicionada flag `hasRedirected` para evitar múltiplos redirects
+- [x] useEffect só executa redirecionamento uma vez
+- [x] Logs de debug adicionados para rastreamento
+- [x] Condição de guarda: `if (isLoading || hasRedirected) return`

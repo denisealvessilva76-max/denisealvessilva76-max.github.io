@@ -43,20 +43,24 @@ export default function RootLayout() {
   const { isOnboardingCompleted, isLoading } = useOnboarding();
   const router = useRouter();
   const segments = useSegments();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
-  // Redirecionar para onboarding apenas na primeira vez
+  // Redirecionar para onboarding apenas uma vez
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || hasRedirected) return;
 
     const inOnboarding = segments[0] === "onboarding";
-    const inTabs = segments[0] === "(tabs)";
 
     // Apenas redireciona se o usuário não completou e não está no onboarding
     if (!isOnboardingCompleted && !inOnboarding) {
+      console.log("[REDIRECT] Redirecionando para onboarding");
+      setHasRedirected(true);
       router.replace("/onboarding");
+    } else if (isOnboardingCompleted && !hasRedirected) {
+      console.log("[REDIRECT] Onboarding já completado, indo para tabs");
+      setHasRedirected(true);
     }
-    // Não força redirecionamento se já completou - deixa o onboarding screen fazer isso
-  }, [isOnboardingCompleted, isLoading]); // Removido segments e router das dependências
+  }, [isOnboardingCompleted, isLoading, hasRedirected, segments, router])
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
