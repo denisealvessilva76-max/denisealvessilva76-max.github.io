@@ -180,6 +180,99 @@ export const adminNotifications = mysqlTable("admin_notifications", {
 export type AdminNotification = typeof adminNotifications.$inferSelect;
 export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
 
+/**
+ * Tabela de funcionários (employees) - dados completos
+ */
+export const employees = mysqlTable("employees", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"), // Referência opcional ao users.id se logado
+  workerId: varchar("workerId", { length: 64 }).notNull().unique(), // ID anônimo
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  department: varchar("department", { length: 100 }),
+  position: varchar("position", { length: 100 }),
+  weight: int("weight"), // kg
+  height: int("height"), // cm
+  workType: varchar("workType", { length: 20 }), // leve, moderado, pesado
+  isActive: int("isActive").default(1),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = typeof employees.$inferInsert;
+
+/**
+ * Tabela para registros de ergonomia (pausas, alongamentos)
+ */
+export const ergonomicsRecords = mysqlTable("ergonomics_records", {
+  id: int("id").autoincrement().primaryKey(),
+  employeeId: int("employeeId").notNull(),
+  date: date("date").notNull(),
+  pausesCompleted: int("pausesCompleted").default(0),
+  stretchesCompleted: int("stretchesCompleted").default(0),
+  postureReminders: int("postureReminders").default(0),
+  totalPauseMinutes: int("totalPauseMinutes").default(0),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ErgonomicsRecord = typeof ergonomicsRecords.$inferSelect;
+export type InsertErgonomicsRecord = typeof ergonomicsRecords.$inferInsert;
+
+/**
+ * Tabela para registros de saúde mental
+ */
+export const mentalHealthRecords = mysqlTable("mental_health_records", {
+  id: int("id").autoincrement().primaryKey(),
+  employeeId: int("employeeId").notNull(),
+  date: date("date").notNull(),
+  breathingExercises: int("breathingExercises").default(0),
+  meditationMinutes: int("meditationMinutes").default(0),
+  psychologistContacts: int("psychologistContacts").default(0),
+  moodScore: int("moodScore"), // 1-10
+  stressLevel: int("stressLevel"), // 1-10
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MentalHealthRecord = typeof mentalHealthRecords.$inferSelect;
+export type InsertMentalHealthRecord = typeof mentalHealthRecords.$inferInsert;
+
+/**
+ * Tabela para push tokens dos dispositivos
+ */
+export const pushTokens = mysqlTable("push_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  employeeId: int("employeeId").notNull(),
+  token: varchar("token", { length: 500 }).notNull(),
+  platform: varchar("platform", { length: 20 }).notNull(), // ios, android, web
+  isActive: int("isActive").default(1),
+  lastUsed: timestamp("lastUsed"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PushToken = typeof pushTokens.$inferSelect;
+export type InsertPushToken = typeof pushTokens.$inferInsert;
+
+/**
+ * Tabela para notificações agendadas de desafios
+ */
+export const challengeNotifications = mysqlTable("challenge_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  employeeId: int("employeeId").notNull(),
+  challengeId: varchar("challengeId", { length: 100 }).notNull(),
+  notificationType: varchar("notificationType", { length: 50 }).notNull(), // daily-reminder, near-end, completed
+  scheduledTime: timestamp("scheduledTime").notNull(),
+  sent: int("sent").default(0),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChallengeNotification = typeof challengeNotifications.$inferSelect;
+export type InsertChallengeNotification = typeof challengeNotifications.$inferInsert;
+
 // TODO: Add your tables here
 
 /**

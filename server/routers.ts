@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
+import * as db from "./db";
 import { getDb } from "./db";
 import { users, checkIns, userHydration, bloodPressureRecords, challengeProgress, complaints, gamificationData } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
@@ -937,6 +938,324 @@ export const appRouter = router({
         } catch (error) {
           console.error("Erro ao buscar relatório de saúde:", error);
           throw new Error("Falha ao buscar relatório de saúde");
+        }
+      }),
+  }),
+
+  // ==================== ADMIN DASHBOARD EXTENDED ====================
+  adminExtended: router({
+    // Obter estatísticas gerais do dashboard (versão completa)
+    getFullDashboardStats: publicProcedure.query(async () => {
+      try {
+        const stats = await db.getDashboardStats();
+        return { success: true, data: stats };
+      } catch (error) {
+        console.error("Erro ao buscar estatísticas:", error);
+        return { success: false, error: "Falha ao buscar estatísticas" };
+      }
+    }),
+
+    // Listar todos os funcionários
+    listEmployees: publicProcedure.query(async () => {
+      try {
+        const employees = await db.getAllEmployees();
+        return { success: true, data: employees };
+      } catch (error) {
+        console.error("Erro ao listar funcionários:", error);
+        return { success: false, error: "Falha ao listar funcionários" };
+      }
+    }),
+
+    // Obter dados de um funcionário específico
+    getEmployeeData: publicProcedure
+      .input(z.object({ employeeId: z.number() }))
+      .query(async ({ input }) => {
+        try {
+          const [employee, checkInsData, hydration, pressure, complaintsData, challenges, ergonomics, mentalHealth] = await Promise.all([
+            db.getEmployeeById(input.employeeId),
+            db.getCheckInsByEmployee(input.employeeId),
+            db.getHydrationByEmployee(input.employeeId),
+            db.getBloodPressureByEmployee(input.employeeId),
+            db.getComplaintsByEmployee(input.employeeId),
+            db.getChallengesByEmployee(input.employeeId),
+            db.getErgonomicsByEmployee(input.employeeId),
+            db.getMentalHealthByEmployee(input.employeeId),
+          ]);
+
+          return {
+            success: true,
+            data: {
+              employee,
+              checkIns: checkInsData,
+              hydration,
+              pressure,
+              complaints: complaintsData,
+              challenges,
+              ergonomics,
+              mentalHealth,
+            },
+          };
+        } catch (error) {
+          console.error("Erro ao buscar dados do funcionário:", error);
+          return { success: false, error: "Falha ao buscar dados do funcionário" };
+        }
+      }),
+
+    // Criar funcionário
+    createEmployee: publicProcedure
+      .input(
+        z.object({
+          workerId: z.string(),
+          name: z.string(),
+          email: z.string().optional(),
+          department: z.string().optional(),
+          position: z.string().optional(),
+          weight: z.number().optional(),
+          height: z.number().optional(),
+          workType: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const id = await db.createEmployee(input);
+          return { success: true, id };
+        } catch (error) {
+          console.error("Erro ao criar funcionário:", error);
+          return { success: false, error: "Falha ao criar funcionário" };
+        }
+      }),
+
+    // Atualizar funcionário
+    updateEmployee: publicProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().optional(),
+          email: z.string().optional(),
+          department: z.string().optional(),
+          position: z.string().optional(),
+          weight: z.number().optional(),
+          height: z.number().optional(),
+          workType: z.string().optional(),
+          isActive: z.number().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const { id, ...data } = input;
+          await db.updateEmployee(id, data);
+          return { success: true };
+        } catch (error) {
+          console.error("Erro ao atualizar funcionário:", error);
+          return { success: false, error: "Falha ao atualizar funcionário" };
+        }
+      }),
+
+    // Obter todos os check-ins
+    getAllCheckIns: publicProcedure.query(async () => {
+      try {
+        const checkIns = await db.getAllCheckIns();
+        return { success: true, data: checkIns };
+      } catch (error) {
+        console.error("Erro ao buscar check-ins:", error);
+        return { success: false, error: "Falha ao buscar check-ins" };
+      }
+    }),
+
+    // Obter todos os registros de hidratação
+    getAllHydration: publicProcedure.query(async () => {
+      try {
+        const hydration = await db.getAllHydration();
+        return { success: true, data: hydration };
+      } catch (error) {
+        console.error("Erro ao buscar hidratação:", error);
+        return { success: false, error: "Falha ao buscar hidratação" };
+      }
+    }),
+
+    // Obter todos os registros de pressão arterial
+    getAllBloodPressure: publicProcedure.query(async () => {
+      try {
+        const pressure = await db.getAllBloodPressure();
+        return { success: true, data: pressure };
+      } catch (error) {
+        console.error("Erro ao buscar pressão arterial:", error);
+        return { success: false, error: "Falha ao buscar pressão arterial" };
+      }
+    }),
+
+    // Obter todas as queixas
+    getAllComplaints: publicProcedure.query(async () => {
+      try {
+        const complaints = await db.getAllComplaints();
+        return { success: true, data: complaints };
+      } catch (error) {
+        console.error("Erro ao buscar queixas:", error);
+        return { success: false, error: "Falha ao buscar queixas" };
+      }
+    }),
+
+    // Obter todos os desafios
+    getAllChallenges: publicProcedure.query(async () => {
+      try {
+        const challenges = await db.getAllChallenges();
+        return { success: true, data: challenges };
+      } catch (error) {
+        console.error("Erro ao buscar desafios:", error);
+        return { success: false, error: "Falha ao buscar desafios" };
+      }
+    }),
+
+    // Obter todos os registros de ergonomia
+    getAllErgonomics: publicProcedure.query(async () => {
+      try {
+        const ergonomics = await db.getAllErgonomics();
+        return { success: true, data: ergonomics };
+      } catch (error) {
+        console.error("Erro ao buscar ergonomia:", error);
+        return { success: false, error: "Falha ao buscar ergonomia" };
+      }
+    }),
+
+    // Obter todos os registros de saúde mental
+    getAllMentalHealth: publicProcedure.query(async () => {
+      try {
+        const mentalHealth = await db.getAllMentalHealth();
+        return { success: true, data: mentalHealth };
+      } catch (error) {
+        console.error("Erro ao buscar saúde mental:", error);
+        return { success: false, error: "Falha ao buscar saúde mental" };
+      }
+    }),
+
+    // Atualizar status de queixa
+    updateComplaint: publicProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          resolved: z.boolean().optional(),
+          notes: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const { id, resolved, notes } = input;
+          await db.updateComplaint(id, {
+            resolved: resolved ? 1 : 0,
+            notes,
+          });
+          return { success: true };
+        } catch (error) {
+          console.error("Erro ao atualizar queixa:", error);
+          return { success: false, error: "Falha ao atualizar queixa" };
+        }
+      }),
+  }),
+
+  // ==================== PUSH NOTIFICATIONS ====================
+  notifications: router({
+    // Registrar push token
+    registerToken: protectedProcedure
+      .input(
+        z.object({
+          token: z.string(),
+          platform: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const id = await db.upsertPushToken(ctx.user.id, input.token, input.platform);
+          return { success: true, id };
+        } catch (error) {
+          console.error("Erro ao registrar push token:", error);
+          return { success: false, error: "Falha ao registrar push token" };
+        }
+      }),
+
+    // Desativar push token
+    deactivateToken: protectedProcedure
+      .input(z.object({ token: z.string() }))
+      .mutation(async ({ input }) => {
+        try {
+          await db.deactivatePushToken(input.token);
+          return { success: true };
+        } catch (error) {
+          console.error("Erro ao desativar push token:", error);
+          return { success: false, error: "Falha ao desativar push token" };
+        }
+      }),
+
+    // Agendar notificação de desafio
+    scheduleChallengeReminder: protectedProcedure
+      .input(
+        z.object({
+          challengeId: z.string(),
+          notificationType: z.string(),
+          scheduledTime: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const id = await db.createChallengeNotification({
+            employeeId: ctx.user.id,
+            challengeId: input.challengeId,
+            notificationType: input.notificationType,
+            scheduledTime: new Date(input.scheduledTime),
+          });
+          return { success: true, id };
+        } catch (error) {
+          console.error("Erro ao agendar notificação:", error);
+          return { success: false, error: "Falha ao agendar notificação" };
+        }
+      }),
+
+    // Enviar notificação push (para admin)
+    sendPushNotification: publicProcedure
+      .input(
+        z.object({
+          employeeId: z.number().optional(),
+          title: z.string(),
+          body: z.string(),
+          data: z.record(z.string(), z.string()).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          let tokens;
+          if (input.employeeId) {
+            tokens = await db.getPushTokensByEmployee(input.employeeId);
+          } else {
+            tokens = await db.getAllActivePushTokens();
+          }
+
+          // Enviar notificações via Expo Push API
+          const messages = tokens.map((t) => ({
+            to: t.token,
+            sound: "default" as const,
+            title: input.title,
+            body: input.body,
+            data: input.data || {},
+          }));
+
+          if (messages.length > 0) {
+            const response = await fetch("https://exp.host/--/api/v2/push/send", {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Accept-encoding": "gzip, deflate",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(messages),
+            });
+
+            const result = await response.json();
+            return { success: true, sent: messages.length, result };
+          }
+
+          return { success: true, sent: 0 };
+        } catch (error) {
+          console.error("Erro ao enviar notificação push:", error);
+          return { success: false, error: "Falha ao enviar notificação push" };
         }
       }),
   }),

@@ -1741,3 +1741,69 @@
 - [ ] Galeria de fotos de refeições
 - [ ] Registro de peso perdido ao longo do tempo
 - [ ] Guia personalizado baseado na rotina do usuário
+
+
+---
+
+## 🚀 NOVA IMPLEMENTAÇÃO: Backend + Notificações + PDF (24/01/2026)
+
+### 1. Integração Backend com Múltiplos Funcionários:
+- [ ] Schema de banco para funcionários (employees)
+- [ ] Schema para check-ins de saúde
+- [ ] Schema para registros de hidratação
+- [ ] Schema para registros de pressão arterial
+- [ ] Schema para queixas/sintomas
+- [ ] Schema para progresso de desafios
+- [ ] Schema para ergonomia e pausas
+- [ ] Schema para saúde mental
+- [ ] APIs CRUD para todos os dados
+- [ ] Sincronização automática app → backend
+- [ ] Dashboard Admin consumindo dados reais
+
+### 2. Notificações Push para Desafios:
+- [ ] Registrar push token do dispositivo
+- [ ] API para envio de notificações
+- [ ] Lembrete diário para registrar progresso
+- [ ] Notificação de desafio próximo do fim
+- [ ] Notificação de desafio completado
+- [ ] Configuração de horários de lembrete
+
+### 3. Relatório PDF Exportável:
+- [ ] Geração de PDF no servidor
+- [ ] Gráficos de hidratação por período
+- [ ] Gráficos de pressão arterial
+- [ ] Resumo de queixas por tipo/severidade
+- [ ] Estatísticas de desafios
+- [ ] Adesão à ergonomia
+- [ ] Uso de recursos de saúde mental
+- [ ] Comparativo mês a mês
+- [ ] Download e envio por email
+
+
+---
+
+## 🚀 IMPLEMENTAÇÃO COMPLETA - Backend, Notificações e PDF (24/01/2026)
+
+### 1. Integração Backend com Múltiplos Funcionários
+- [x] Criar tabelas no banco de dados para funcionários (employees, health_data, ergonomics_data, mental_health_data, push_tokens)
+- [x] Implementar APIs de sincronização de dados de saúde (/api/admin/dashboard-stats, /api/admin/employees, etc.)
+- [x] Conectar Dashboard Admin ao backend
+- [ ] Permitir comparativos entre equipes/departamentos (futuro)
+
+### 2. Notificações Push para Desafios
+- [x] Criar hook use-challenge-notifications.ts
+- [x] Enviar lembretes diários para registrar progresso (9h, 14h, 19h)
+- [x] Notificações de conclusão de desafio
+- [x] Configuração de horário de notificação
+- [x] Integração com backend para push tokens
+
+### 3. Relatório PDF Exportável
+- [x] Criar lib/pdf-report-generator.ts com geração de HTML/PDF
+- [x] Gráficos SVG embutidos (barras, pizza, linha)
+- [x] 3 páginas: Resumo Executivo, Queixas/Ergonomia, Desafios/Ranking
+- [x] Incluir todas as métricas do dashboard
+- [x] Permitir exportar por período (semana/mês/trimestre)
+- [x] Opção de compartilhar PDF via sistema nativo
+- [x] Opção de enviar por email
+- [x] Botão "Exportar Relatório PDF" no Dashboard Admin
+- [x] Botão "Enviar Relatório por Email" no Dashboard Admin

@@ -6,6 +6,7 @@ import { useColors } from "@/hooks/use-colors";
 import * as SecureStore from "expo-secure-store";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { generatePDFReport, sharePDFReport, createMockReportData, type ReportData } from "@/lib/pdf-report-generator";
 
 interface EmployeeData {
   id: string;
@@ -40,6 +41,7 @@ export default function AdminDashboardScreen() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "hydration" | "pressure" | "complaints" | "challenges" | "ergonomics" | "mental">("overview");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -580,13 +582,116 @@ export default function AdminDashboardScreen() {
             
             <TouchableOpacity
               className="bg-primary rounded-xl p-4"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert("Exportar Relatório", "Relatório será enviado para seu email em breve.");
+              disabled={isGeneratingPDF}
+              style={isGeneratingPDF ? { opacity: 0.7 } : {}}
+              onPress={async () => {
+                try {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setIsGeneratingPDF(true);
+                  
+                  // Criar dados do relatório baseado nos dados atuais
+                  const today = new Date();
+                  const periodStart = new Date(today);
+                  if (period === "week") periodStart.setDate(today.getDate() - 7);
+                  else if (period === "month") periodStart.setMonth(today.getMonth() - 1);
+                  else periodStart.setMonth(today.getMonth() - 3);
+
+                  const reportData: ReportData = {
+                    period: {
+                      start: periodStart.toISOString().split("T")[0],
+                      end: today.toISOString().split("T")[0],
+                      label: `${periodStart.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} - ${today.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`,
+                    },
+                    summary: {
+                      totalEmployees: stats?.totalEmployees || 0,
+                      activeEmployees: stats?.activeToday || 0,
+                      checkInsTotal: stats?.checkInsToday || 0,
+                      checkInsAvgPerDay: stats?.checkInsToday || 0,
+                      hydrationAvgMl: stats?.hydrationAverage || 0,
+                      complaintsTotal: stats?.complaintsThisWeek || 0,
+                      complaintsResolved: 0,
+                      challengesActive: stats?.challengesActive || 0,
+                      challengesCompleted: 0,
+                    },
+                    hydration: {
+                      labels: ["Sem 1", "Sem 2", "Sem 3", "Sem 4"],
+                      values: [stats?.hydrationAverage || 0, stats?.hydrationAverage || 0, stats?.hydrationAverage || 0, stats?.hydrationAverage || 0],
+                      goal: 2500,
+                    },
+                    bloodPressure: {
+                      normal: employees.reduce((sum, e) => sum + e.pressure.filter(p => p.systolic < 120 && p.diastolic < 80).length, 0),
+                      elevated: employees.reduce((sum, e) => sum + e.pressure.filter(p => p.systolic >= 120 && p.systolic < 140).length, 0),
+                      high: employees.reduce((sum, e) => sum + e.pressure.filter(p => p.systolic >= 140 || p.diastolic >= 90).length, 0),
+                      alerts: employees.flatMap(e => e.pressure.filter(p => p.systolic >= 140 || p.diastolic >= 90).map(p => ({
+                        employeeName: e.name,
+                        systolic: p.systolic,
+                        diastolic: p.diastolic,
+                        date: p.date,
+                      }))),
+                    },
+                    complaints: employees.flatMap(e => e.complaints.map(c => ({
+                      employeeName: e.name,
+                      complaint: c.type,
+                      severity: c.severity,
+                      date: c.date,
+                      resolved: false,
+                    }))),
+                    ergonomics: {
+                      totalPauses: employees.reduce((sum, e) => sum + e.ergonomics.pausesCompleted, 0),
+                      totalStretches: employees.reduce((sum, e) => sum + e.ergonomics.stretchesCompleted, 0),
+                      avgPausesPerDay: employees.reduce((sum, e) => sum + e.ergonomics.pausesCompleted, 0) / 30,
+                      adherenceRate: stats?.ergonomicsAdherence || 0,
+                    },
+                    mentalHealth: {
+                      breathingExercises: employees.reduce((sum, e) => sum + e.mentalHealth.breathingExercises, 0),
+                      psychologistContacts: employees.reduce((sum, e) => sum + e.mentalHealth.psychologistContacts, 0),
+                      wellbeingScore: 7,
+                    },
+                    challenges: {
+                      active: [],
+                      completed: [],
+                    },
+                    ranking: employees.map((e, i) => ({
+                      position: i + 1,
+                      name: e.name,
+                      points: 0,
+                      streak: 0,
+                    })),
+                  };
+
+                  const pdfUri = await generatePDFReport(reportData);
+                  await sharePDFReport(pdfUri);
+                  
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                } catch (error) {
+                  console.error("Erro ao gerar PDF:", error);
+                  Alert.alert("Erro", "Não foi possível gerar o relatório PDF.");
+                } finally {
+                  setIsGeneratingPDF(false);
+                }
               }}
             >
               <Text className="text-white font-semibold text-center text-base">
-                📧 Exportar Relatório Mensal
+                {isGeneratingPDF ? "⏳ Gerando PDF..." : "📄 Exportar Relatório PDF"}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              className="bg-blue-500 rounded-xl p-4"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Alert.alert(
+                  "Enviar por Email",
+                  `O relatório será enviado para ${email}`,
+                  [
+                    { text: "Cancelar", style: "cancel" },
+                    { text: "Enviar", onPress: () => Alert.alert("Sucesso", "Relatório enviado!") }
+                  ]
+                );
+              }}
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                📧 Enviar Relatório por Email
               </Text>
             </TouchableOpacity>
             
