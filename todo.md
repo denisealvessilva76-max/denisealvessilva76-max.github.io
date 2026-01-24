@@ -1432,3 +1432,40 @@
 - [x] Testar notificações em diferentes cenários (botão de teste)
 - [x] Adicionar opção de ativar/desativar
 - [x] Persistir configurações no AsyncStorage
+
+
+---
+
+## 🚀 3 ENDPOINTS DE API PRIORITÁRIOS (NOVA IMPLEMENTAÇÃO)
+
+### 1. GET /api/admin/dashboard-stats (Estatísticas do Dashboard Admin)
+- [x] Criar schema de resposta com Zod
+- [x] Implementar query para estatísticas agregadas
+- [x] Total de check-ins (hoje/semana/mês)
+- [x] Média de hidratação da equipe
+- [x] Lista de alertas de pressão arterial elevada
+- [x] Queixas pendentes de resposta
+- [x] Taxa de conclusão de desafios
+- [x] Ranking de pontuação (top 10)
+- [ ] Adicionar cache (5 minutos) - TODO futuro
+
+### 2. POST /api/admin/send-notification (Enviar Notificações Push)
+- [x] Criar schema de input com Zod
+- [x] Implementar envio para usuário específico
+- [x] Implementar envio para grupo (filtros)
+- [x] Suporte a templates de mensagens
+- [ ] Salvar histórico de notificações enviadas - TODO futuro
+- [ ] Integrar com expo-notifications (push tokens) - TODO futuro
+- [ ] Validar permissões de admin - TODO futuro
+- [ ] Rate limiting (máx 100/hora) - TODO futuro
+
+### 3. GET /api/user/health-report (Relatório de Saúde do Usuário)
+- [x] Criar schema de resposta completo
+- [x] Histórico de check-ins (últimos 90 dias)
+- [x] Histórico de pressão arterial com tendências
+- [x] Histórico de hidratação
+- [x] Desafios completados
+- [x] Queixas registradas
+- [x] Estatísticas de gamificação
+- [x] Opção de período customizado (query param)
+- [ ] Adicionar endpoint para gerar PDF - TODO futuro
