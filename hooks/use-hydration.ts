@@ -81,7 +81,7 @@ export function useHydration() {
   const logWaterIntake = async (glassesConsumed: number = 1): Promise<boolean> => {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const waterPerGlass = 250; // ml
+      const waterPerGlass = 150; // ml (padrão de canteiro de obras)
       const waterIntake = glassesConsumed * waterPerGlass;
 
       const currentEntry = hydrationData[today] || {
@@ -169,7 +169,7 @@ export function useHydration() {
       const currentEntry = hydrationData[today];
 
       const waterRemaining = reminderSettings.dailyGoal - (currentEntry?.waterIntake || 0);
-      const glassesRemaining = Math.ceil(waterRemaining / 250);
+      const glassesRemaining = Math.ceil(waterRemaining / 150); // 150ml por copo
 
       const messages = [
         `💧 Hora de beber água! Você ainda precisa de ${glassesRemaining} copo(s) para atingir a meta diária.`,

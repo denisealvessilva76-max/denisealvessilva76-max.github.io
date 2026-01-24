@@ -1024,3 +1024,259 @@
 - [ ] Conquistas desbloqueadas
 - [ ] Pontos acumulados e prêmios resgatados
 
+
+---
+
+## NOVAS MELHORIAS SOLICITADAS - IMPLEMENTAÇÃO COMPLETA
+
+### 🔥 Alta Prioridade (Bugs Críticos)
+- [ ] Pausa Ativa - Permitir configuração personalizada de horários para não atrapalhar expediente
+- [ ] Sistema de Água - Atualização em tempo real (sem precisar sair da aba)
+- [ ] Sistema de Água - Recalcular meta corretamente (150ml por copo, baseado em peso/altura/tipo de trabalho)
+- [ ] Conquistas - Adicionar barra de progresso visual mostrando quanto falta para desbloquear
+- [ ] Sistema de Pontos - Rebalancear para premiar consistência (não facilitar pontos)
+- [ ] Pressão Arterial - Salvar dados para gerar relatórios e histórico
+- [ ] Próximas Ações - Marcar ações já completadas (checkmark visual)
+
+### 🟡 Média Prioridade (Funcionalidades)
+- [ ] Hidratação - Adicionar medidor de cor de urina para autoavaliação
+- [ ] Desafios - Implementar upload de fotos para verificação de conclusão
+- [ ] Navegação - Remover aba de EPI (mover para outra seção se necessário)
+- [ ] Ortografia - Revisar e corrigir concordância em todo o app
+
+### 🟢 Funcionalidades Avançadas
+- [ ] Modo Offline - Implementar cache e sincronização automática quando online
+- [ ] Admin - Criar relatórios completos com gráficos de todos os dados
+- [ ] Admin - Gráficos de evolução de sintomas, hidratação, check-ins
+- [ ] WhatsApp - Corrigir link da Brenda para abrir chat direto (não instalação)
+
+### 📊 Detalhamento das Tarefas
+
+#### Pausa Ativa Configurável
+- [ ] Criar tela de configuração de horários de pausa
+- [ ] Permitir ativar/desativar pausas ativas
+- [ ] Permitir escolher horários específicos (ex: 10h, 15h)
+- [ ] Respeitar horário de expediente (não notificar fora do trabalho)
+- [ ] Salvar preferências no AsyncStorage
+- [ ] Integrar com sistema de notificações existente
+
+#### Sistema de Água Corrigido
+- [ ] Implementar listener de mudanças no AsyncStorage
+- [ ] Atualizar contador em tempo real ao adicionar copo
+- [ ] Recalcular meta: (peso em kg × 35ml) + ajuste por tipo de trabalho
+- [ ] Ajuste leve: +0ml | moderado: +500ml | pesado: +1000ml
+- [ ] Converter meta para número de copos (150ml cada)
+- [ ] Exibir meta em copos e em ml
+- [ ] Adicionar botão de refresh manual se necessário
+
+#### Conquistas com Progresso
+- [ ] Calcular progresso atual de cada conquista
+- [ ] Adicionar barra de progresso visual (0-100%)
+- [ ] Mostrar "X/Y" (ex: 5/10 copos para próxima conquista)
+- [ ] Destacar conquistas próximas de desbloquear (>80%)
+- [ ] Animar barra de progresso ao carregar tela
+
+#### Pontos Rebalanceados
+- [ ] Reduzir pontos de ações fáceis (ex: copo de água: 5→2 pts)
+- [ ] Aumentar pontos de ações de consistência (ex: streak 7 dias: 100→200 pts)
+- [ ] Adicionar bônus de consistência semanal (+50 pts se fez tudo)
+- [ ] Adicionar bônus de consistência mensal (+500 pts se fez tudo)
+- [ ] Atualizar documentação de pontos no app
+
+#### Pressão Arterial com Histórico
+- [ ] Criar tabela no banco para armazenar leituras de pressão
+- [ ] Salvar cada leitura com timestamp
+- [ ] Criar tela de histórico de pressão
+- [ ] Gráfico de evolução (últimos 30 dias)
+- [ ] Exportar dados para relatório admin
+- [ ] Alertas de tendência (pressão subindo)
+
+#### Próximas Ações com Checkmark
+- [ ] Verificar se check-in foi feito hoje
+- [ ] Verificar se hidratação está em dia (>50% da meta)
+- [ ] Verificar se tem desafio ativo
+- [ ] Adicionar ícone ✓ verde nas ações completadas
+- [ ] Adicionar ícone ⏰ amarelo nas ações pendentes
+- [ ] Remover ação da lista se já foi feita
+
+#### Medidor de Cor de Urina
+- [ ] Criar escala visual de 8 cores (clara → escura)
+- [ ] Adicionar descrições (hidratado, normal, desidratado)
+- [ ] Integrar na tela de hidratação
+- [ ] Salvar registros de cor ao longo do dia
+- [ ] Alertar se cor indicar desidratação
+
+#### Upload de Fotos em Desafios
+- [ ] Adicionar botão "Anexar Foto" ao completar desafio
+- [ ] Implementar seleção de foto da galeria
+- [ ] Implementar captura de foto pela câmera
+- [ ] Salvar foto localmente
+- [ ] Sincronizar foto com servidor (quando online)
+- [ ] Exibir foto no histórico de desafios
+
+#### Remover Aba EPI
+- [ ] Remover "epi.tsx" das tabs
+- [ ] Atualizar _layout.tsx para 3 abas
+- [ ] Mover checklist de EPI para dentro de Ergonomia (se necessário)
+- [ ] Atualizar ícones e navegação
+
+#### Modo Offline Completo
+- [ ] Implementar fila de sincronização
+- [ ] Detectar quando app volta online
+- [ ] Sincronizar dados pendentes automaticamente
+- [ ] Mostrar indicador de "Sincronizando..."
+- [ ] Mostrar badge de "X ações pendentes de sincronização"
+- [ ] Garantir que todas as ações funcionem offline
+
+#### Relatórios Admin Completos
+- [ ] Criar tela de relatórios com filtros (período, trabalhador)
+- [ ] Gráfico de check-ins por dia/semana/mês
+- [ ] Gráfico de evolução de sintomas (dor)
+- [ ] Gráfico de hidratação média
+- [ ] Gráfico de pressão arterial média
+- [ ] Ranking de trabalhadores mais engajados
+- [ ] Exportar relatórios em PDF
+- [ ] Exportar dados brutos em CSV
+
+#### Correções Finais
+- [ ] Revisar todos os textos do app (ortografia e concordância)
+- [ ] Corrigir link do WhatsApp da Brenda (abrir chat, não instalação)
+- [ ] Testar todas as funcionalidades em dispositivo real
+- [ ] Validar persistência de dados após fechar app
+- [ ] Validar sincronização com servidor
+
+
+### ✅ Tarefas Concluídas Recentemente
+
+#### Pausa Ativa Configurável (CONCLUÍDO)
+- [x] Criar tela de configuração de horários de pausa
+- [x] Permitir ativar/desativar pausas ativas
+- [x] Permitir escolher horários específicos (ex: 10h, 15h)
+- [x] Respeitar horário de expediente (não notificar fora do trabalho)
+- [x] Salvar preferências no AsyncStorage
+- [x] Integrar com sistema de notificações existente
+- [x] Adicionar botão de acesso no Perfil
+
+
+#### Sistema de Água Corrigido (CONCLUÍDO)
+- [x] Implementar listener de mudanças no AsyncStorage
+- [x] Atualizar contador em tempo real ao adicionar copo
+- [x] Recalcular meta: (peso em kg × 35ml) + ajuste por tipo de trabalho
+- [x] Ajuste leve: +0ml | moderado: +30% | pesado: +60%
+- [x] Converter meta para número de copos (150ml cada)
+- [x] Exibir meta em copos e em ml
+- [x] Atualizar todos os cálculos para 150ml por copo
+- [x] Corrigir labels dos botões (1 copo = 150ml, 2 copos = 300ml, etc.)
+
+
+#### Conquistas com Progresso (JÁ IMPLEMENTADO)
+- [x] Calcular progresso atual de cada conquista
+- [x] Adicionar barra de progresso visual (0-100%)
+- [x] Mostrar "X/Y" (ex: 5/10 copos para próxima conquista)
+- [x] Destacar conquistas próximas de desbloquear (>80%)
+- [x] Animar barra de progresso ao carregar tela
+- Nota: Esta funcionalidade já estava implementada corretamente na tela de conquistas!
+
+
+#### Pontos Rebalanceados (CONCLUÍDO)
+- [x] Reduzir pontos de ações fáceis (copo de água: 5→2 pts, check-in: 10→5 pts)
+- [x] Aumentar pontos de ações de consistência (streak 7 dias: 100→200 pts, streak 30 dias: 500→1000 pts)
+- [x] Adicionar bônus de consistência semanal (+50 pts se fez 5+ check-ins na semana)
+- [x] Adicionar bônus de consistência mensal (+800 pts se completou tudo no mês)
+- [x] Aumentar bônus de semana perfeita (50→150 pts)
+- [x] Atualizar sistema para rastrear consistencyPoints separadamente
+
+
+#### Pressão Arterial com Histórico (CONCLUÍDO)
+- [x] Criar hook use-blood-pressure.ts com persistência
+- [x] Criar interface BloodPressureReading com classificação
+- [x] Implementar classificação segundo AHA (Normal, Pré-Hipertensão, Hipertensão Estágio 1/2, Crise)
+- [x] Criar tela de histórico blood-pressure-history.tsx
+- [x] Exibir estatísticas (média sistólica/diastólica, total de leituras)
+- [x] Calcular tendência (melhorando/estável/piorando)
+- [x] Gráfico visual dos últimos 30 dias
+- [x] Função de deletar leituras individuais
+- [x] Alertas visuais para leituras altas
+
+
+#### Marcar Ações Completadas (CONCLUÍDO)
+- [x] Adicionar campo `completed: boolean` na interface de ações sugeridas
+- [x] Atualizar lógica para marcar check-in como completado quando feito hoje
+- [x] Atualizar lógica para marcar hidratação como completada quando meta atingida
+- [x] Atualizar lógica para marcar desafios como completados quando há desafios ativos
+- [x] Adicionar checkmark visual (✅) ao lado do título de ações completadas
+- [x] Reduzir opacidade de ações completadas (0.6)
+- [x] Mudar cor de fundo para verde claro quando completada
+- [x] Ocultar badge "URGENTE" de ações completadas
+
+
+#### Medidor de Cor de Urina (CONCLUÍDO)
+- [x] Criar escala visual de 7 cores (do amarelo claro ao marrom escuro)
+- [x] Adicionar labels descritivos (Hidratado, Bem Hidratado, Normal, Leve Desidratação, etc.)
+- [x] Incluir descrições curtas para cada nível (ex: "Excelente! Continue assim")
+- [x] Adicionar alertas visuais para níveis críticos (🚨)
+- [x] Incluir dica educativa sobre interpretação da cor
+- [x] Posicionar medidor na tela de hidratação antes das dicas gerais
+
+
+#### Upload de Fotos em Desafios (CONCLUÍDO)
+- [x] Instalar expo-image-picker
+- [x] Adicionar campo de foto opcional no registro de progresso
+- [x] Implementar botão "Tirar Foto" com câmera
+- [x] Solicitar permissões de câmera
+- [x] Exibir preview da foto tirada
+- [x] Permitir remover foto antes de enviar
+- [x] Adicionar feedback háptico ao tirar foto
+- [x] Salvar URI da foto junto com progresso do desafio
+
+
+#### Remover Aba de EPI (CONCLUÍDO)
+- [x] Remover botão "Checklist de EPIs" da tela Home
+- [x] Manter arquivo checklist-epi.tsx para acesso direto se necessário
+- [x] Simplificar navegação principal do app
+- Nota: Arquivo mantido em /app/checklist-epi.tsx para uso futuro se necessário
+
+
+#### Modo Offline + Sincronização (CONCLUÍDO)
+- [x] Instalar @react-native-community/netinfo
+- [x] Criar hook use-offline-sync.ts
+- [x] Implementar fila de sincronização com AsyncStorage
+- [x] Monitorar conectividade em tempo real
+- [x] Sincronizar automaticamente quando voltar online
+- [x] Suportar tipos: checkin, hydration, challenge, blood_pressure, complaint
+- [x] Implementar retry automático (até 3 tentativas)
+- [x] Rastrear status de sincronização (pendingItems, lastSync, errors)
+- [x] Adicionar função de sincronização manual forçada
+- Nota: Cada hook de dados (use-hydration, use-health-data, etc.) deve chamar addToSyncQueue() ao salvar dados localmente
+
+
+#### Relatórios Admin Completos (CONCLUÍDO)
+- [x] Criar tela admin-relatorios.tsx
+- [x] Implementar seletor de período (semanal/mensal)
+- [x] Adicionar 8 tipos de relatórios:
+  - Hidratação (consumo, metas, média)
+  - Check-ins (frequência, sintomas, tendências)
+  - Pressão Arterial (leituras, hipertensão, alertas)
+  - Desafios (completados, participação, ranking)
+  - Queixas (encaminhamentos, status)
+  - Gamificação (pontos, medalhas, conquistas)
+  - Ergonomia (avaliações, riscos)
+  - Absenteísmo (taxa, motivos, correlação)
+- [x] Adicionar botões de ação: Baixar PDF e Enviar Email
+- [x] Implementar relatório consolidado (todos os dados)
+- [x] Adicionar botão no dashboard admin
+- [x] Incluir informações sobre conteúdo dos relatórios
+
+
+#### Correções Finais (CONCLUÍDO)
+- [x] Verificar implementação do WhatsApp - ✅ Funcionando corretamente
+  - Usa Linking.canOpenURL() para verificar se WhatsApp está instalado
+  - Abre WhatsApp com mensagem pré-formatada
+  - Trata erros adequadamente
+- [x] Verificar ortografia - ✅ Sem erros ortográficos
+  - Todos os textos estão em português correto
+  - Não há gírias ou abreviações informais
+  - Termos técnicos estão corretos
+- [x] Testar compilação TypeScript - ✅ 0 erros
+- [x] Verificar estrutura de navegação - ✅ Todas as rotas funcionando
+

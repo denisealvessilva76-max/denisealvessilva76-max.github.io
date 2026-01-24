@@ -6,8 +6,9 @@ import { useChallenges } from "@/hooks/use-challenges";
 import * as Haptics from "expo-haptics";
 import { AVAILABLE_CHALLENGES, DIFFICULTY_COLORS, RANK_ICONS, getDaysRemaining } from "@/lib/challenges-data";
 import { useEffect, useState } from "react";
-import { Alert, TextInput } from "react-native";
+import { Alert, TextInput, Image, Platform } from "react-native";
 import type { ChallengeProgress } from "@/lib/challenges-data";
+import * as ImagePicker from "expo-image-picker";
 
 export default function DesafioDetalheScreen() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function DesafioDetalheScreen() {
   const [progress, setProgress] = useState<ChallengeProgress | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   const challenge = AVAILABLE_CHALLENGES.find((c) => c.id === id);
   const activeChallenge = activeChallenges.find((c) => c.id === id);
@@ -298,6 +300,88 @@ export default function DesafioDetalheScreen() {
               </Text>
 
               <View className="gap-3">
+                {/* Upload de Foto (Opcional) */}
+                <View className="gap-2">
+                  <Text className="text-sm font-semibold text-foreground">
+                    📸 Foto de Evidência (Opcional)
+                  </Text>
+                  {photoUri ? (
+                    <View className="gap-2">
+                      <Image
+                        source={{ uri: photoUri }}
+                        style={{
+                          width: "100%",
+                          height: 200,
+                          borderRadius: 8,
+                          backgroundColor: colors.surface,
+                        }}
+                        resizeMode="cover"
+                      />
+                      <Pressable
+                        onPress={() => setPhotoUri(null)}
+                        style={({ pressed }) => [{
+                          backgroundColor: colors.error + "20",
+                          borderColor: colors.error,
+                          borderWidth: 1,
+                          padding: 10,
+                          borderRadius: 8,
+                          opacity: pressed ? 0.7 : 1,
+                        }]}
+                      >
+                        <Text className="text-center text-error font-semibold">
+                          🗑️ Remover Foto
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <Pressable
+                      onPress={async () => {
+                        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                        if (status !== "granted") {
+                          Alert.alert(
+                            "Permissão Necessária",
+                            "Precisamos de permissão para acessar a câmera"
+                          );
+                          return;
+                        }
+
+                        const result = await ImagePicker.launchCameraAsync({
+                          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                          allowsEditing: true,
+                          aspect: [4, 3],
+                          quality: 0.7,
+                        });
+
+                        if (!result.canceled && result.assets[0]) {
+                          setPhotoUri(result.assets[0].uri);
+                          if (Platform.OS !== "web") {
+                            await Haptics.notificationAsync(
+                              Haptics.NotificationFeedbackType.Success
+                            );
+                          }
+                        }
+                      }}
+                      style={({ pressed }) => [{
+                        backgroundColor: colors.primary + "20",
+                        borderColor: colors.primary,
+                        borderWidth: 1,
+                        borderStyle: "dashed",
+                        padding: 20,
+                        borderRadius: 8,
+                        alignItems: "center",
+                        opacity: pressed ? 0.7 : 1,
+                      }]}
+                    >
+                      <Text className="text-4xl mb-2">📸</Text>
+                      <Text className="text-center text-primary font-semibold">
+                        Tirar Foto
+                      </Text>
+                      <Text className="text-xs text-muted text-center mt-1">
+                        Registre sua conquista!
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
                 <View
                   style={{
                     flexDirection: "row",

@@ -328,6 +328,18 @@ export default function AdminDashboardScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
+                className="bg-orange-500 rounded-xl p-4"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push("/admin-relatorios" as any);
+                }}
+              >
+                <Text className="text-center font-semibold text-white">
+                  📊 Relatórios Completos (PDF + Email)
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 className="bg-purple-500 rounded-xl p-4"
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

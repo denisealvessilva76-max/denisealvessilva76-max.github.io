@@ -290,6 +290,25 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </Card>
 
+          {/* Configuração de Pausas Ativas */}
+          <Card className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">⚙️ Pausas Ativas</Text>
+            <Text className="text-sm text-muted">
+              Personalize os horários das pausas ativas e lembretes de hidratação
+            </Text>
+            <TouchableOpacity
+              className="bg-purple-500 rounded-lg py-3 active:opacity-80"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/configurar-pausas");
+              }}
+            >
+              <Text className="text-center font-semibold text-white">
+                Configurar Horários
+              </Text>
+            </TouchableOpacity>
+          </Card>
+
           {/* Configuração de Notificações */}
           <Card className="gap-3">
             <Text className="text-lg font-semibold text-foreground">🔔 Notificações</Text>

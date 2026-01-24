@@ -316,13 +316,22 @@ export default function HomeScreen() {
                       router.push(action.action as any);
                     }}
                     className="flex-row items-center gap-3 p-3 rounded-xl bg-surface border border-border active:opacity-70"
+                    style={{
+                      opacity: action.completed ? 0.6 : 1,
+                      backgroundColor: action.completed ? colors.success + "10" : colors.surface,
+                    }}
                   >
                     <Text className="text-2xl">{action.icon}</Text>
                     <View className="flex-1">
-                      <Text className="text-sm font-semibold text-foreground">{action.title}</Text>
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-sm font-semibold text-foreground">{action.title}</Text>
+                        {action.completed && (
+                          <Text className="text-lg">✅</Text>
+                        )}
+                      </View>
                       <Text className="text-xs text-muted mt-1">{action.description}</Text>
                     </View>
-                    {action.priority === "high" && (
+                    {action.priority === "high" && !action.completed && (
                       <View className="bg-error/20 px-2 py-1 rounded">
                         <Text className="text-xs font-semibold text-error">URGENTE</Text>
                       </View>
@@ -358,17 +367,7 @@ export default function HomeScreen() {
                 🧘 Vídeos de Alongamento
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              className="bg-green-500/20 rounded-xl p-4 active:opacity-80 border border-green-500"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/checklist-epi" as any);
-              }}
-            >
-              <Text className="text-center font-semibold text-green-500">
-                🦺 Checklist de EPIs
-              </Text>
-            </TouchableOpacity>
+
           </View>
 
           {/* Dica do Dia */}

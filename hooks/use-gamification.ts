@@ -15,17 +15,26 @@ import { useMedalNotifications } from "./use-medal-notifications";
 
 const GAMIFICATION_STORAGE_KEY = "gamification_data";
 
-// Sistema de pontos por atividade
+// Sistema de pontos por atividade (REBALANCEADO para premiar consistência)
 export const POINTS_SYSTEM = {
-  CHECK_IN_DAILY: 10,
-  HYDRATION_GLASS: 5,
-  CHALLENGE_COMPLETE: 20,
-  BREATHING_EXERCISE: 15,
-  WATCH_VIDEO: 10,
-  READ_HEALTH_TIP: 5,
-  STREAK_7_DAYS: 100,
-  STREAK_30_DAYS: 500,
-  PERFECT_WEEK_BONUS: 50,
+  // Ações diárias básicas (reduzido para não facilitar)
+  CHECK_IN_DAILY: 5,           // Antes: 10 | Agora: 5
+  HYDRATION_GLASS: 2,          // Antes: 5  | Agora: 2
+  READ_HEALTH_TIP: 3,          // Antes: 5  | Agora: 3
+  
+  // Ações de esforço (mantido ou aumentado)
+  CHALLENGE_COMPLETE: 25,      // Antes: 20 | Agora: 25
+  BREATHING_EXERCISE: 15,      // Mantido
+  WATCH_VIDEO: 10,             // Mantido
+  
+  // Bônus de consistência (MUITO aumentado)
+  STREAK_7_DAYS: 200,          // Antes: 100  | Agora: 200
+  STREAK_30_DAYS: 1000,        // Antes: 500  | Agora: 1000
+  PERFECT_WEEK_BONUS: 150,     // Antes: 50   | Agora: 150
+  PERFECT_MONTH_BONUS: 800,    // NOVO: Bônus mensal
+  
+  // Bônus de consistência semanal (NOVO)
+  WEEKLY_CONSISTENCY_BONUS: 50, // Se fez check-in 5+ dias na semana
 };
 
 export interface ExtendedGamificationStats extends GamificationStats {
@@ -35,6 +44,7 @@ export interface ExtendedGamificationStats extends GamificationStats {
   videoPoints: number;
   healthTipPoints: number;
   bonusPoints: number;
+  consistencyPoints: number; // NOVO: Pontos de consistência
   rank: number;
   title: string;
 }
@@ -55,6 +65,7 @@ export function useGamification(checkIns: CheckIn[]) {
     videoPoints: 0,
     healthTipPoints: 0,
     bonusPoints: 0,
+    consistencyPoints: 0,
     rank: 0,
     title: "Iniciante",
   });
@@ -186,6 +197,7 @@ export function useGamification(checkIns: CheckIn[]) {
       videoPoints: stats.videoPoints,
       healthTipPoints: stats.healthTipPoints,
       bonusPoints,
+      consistencyPoints: bonusPoints, // Pontos de consistência = bônus
       rank: stats.rank,
       title,
     };

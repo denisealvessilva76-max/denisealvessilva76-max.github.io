@@ -32,6 +32,7 @@ export type DashboardStats = {
     icon: string;
     action: string; // rota para navegar
     priority: "high" | "medium" | "low";
+    completed: boolean; // NOVO: indica se a ação já foi completada
   }>;
 };
 
@@ -217,6 +218,18 @@ export function usePersonalDashboard() {
         icon: "📋",
         action: "/health-check",
         priority: "high",
+        completed: false,
+      });
+    } else {
+      // Check-in já feito hoje
+      actions.push({
+        id: "checkin",
+        title: "Check-in Diário",
+        description: "✅ Completado hoje",
+        icon: "📋",
+        action: "/health-check",
+        priority: "high",
+        completed: true,
       });
     }
 
@@ -230,6 +243,18 @@ export function usePersonalDashboard() {
         icon: "💧",
         action: "/hydration-tracker",
         priority: "high",
+        completed: false,
+      });
+    } else {
+      // Hidratação em dia
+      actions.push({
+        id: "hydration",
+        title: "Hidratação",
+        description: "✅ Meta diária atingida",
+        icon: "💧",
+        action: "/hydration-tracker",
+        priority: "high",
+        completed: true,
       });
     }
 
@@ -242,6 +267,7 @@ export function usePersonalDashboard() {
         icon: "⚠️",
         action: "/complaint-form",
         priority: "high",
+        completed: false,
       });
     }
 
@@ -254,10 +280,21 @@ export function usePersonalDashboard() {
         icon: "🎯",
         action: "/desafios",
         priority: "medium",
+        completed: false,
+      });
+    } else {
+      actions.push({
+        id: "challenge",
+        title: "Desafios Ativos",
+        description: `✅ ${context.activeChallenges} desafio(s) em andamento`,
+        icon: "🎯",
+        action: "/desafios",
+        priority: "medium",
+        completed: true,
       });
     }
 
-    // Alongamento
+    // Alongamento (sempre sugerido)
     actions.push({
       id: "stretch",
       title: "Fazer Alongamento",
@@ -265,6 +302,7 @@ export function usePersonalDashboard() {
       icon: "🧘",
       action: "/videos-alongamento",
       priority: "medium",
+      completed: false,
     });
 
     // Respiração guiada
@@ -276,6 +314,7 @@ export function usePersonalDashboard() {
         icon: "🌬️",
         action: "/respiracao-guiada",
         priority: "low",
+        completed: false,
       });
     }
 

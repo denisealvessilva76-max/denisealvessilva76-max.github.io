@@ -77,8 +77,8 @@ export default function HydrationTrackerScreen() {
       baseGoal *= 0.95;
     }
 
-    // Arredondar para múltiplo de 250ml (1 copo)
-    return Math.round(baseGoal / 250) * 250;
+    // Arredondar para múltiplo de 150ml (1 copo padrão de canteiro)
+    return Math.round(baseGoal / 150) * 150;
   };
 
   const handleSaveProfile = async () => {
@@ -111,7 +111,7 @@ export default function HydrationTrackerScreen() {
       setShowProfileModal(false);
       Alert.alert(
         "Sucesso!",
-        `Sua meta diária foi calculada: ${calculatedGoal}ml (${calculatedGoal / 250} copos)`
+        `Sua meta diária foi calculada: ${calculatedGoal}ml (${Math.ceil(calculatedGoal / 150)} copos de 150ml)`
       );
     } catch (error) {
       Alert.alert("Erro", "Não foi possível salvar o perfil");
@@ -142,7 +142,7 @@ export default function HydrationTrackerScreen() {
   const waterIntake = todayData?.waterIntake || 0;
   const glassesConsumed = todayData?.glassesConsumed || 0;
   const waterRemaining = Math.max(0, reminderSettings.dailyGoal - waterIntake);
-  const glassesRemaining = Math.ceil(waterRemaining / 250);
+  const glassesRemaining = Math.ceil(waterRemaining / 150); // 150ml por copo
 
   const getWorkTypeLabel = (type: WorkType) => {
     const labels = {
@@ -268,9 +268,10 @@ export default function HydrationTrackerScreen() {
             <Text className="text-lg font-semibold text-foreground">Registrar Consumo</Text>
             <View className="gap-2">
               {[
-                { glasses: 1, label: "1 Copo (250ml)", emoji: "🥤" },
-                { glasses: 2, label: "2 Copos (500ml)", emoji: "🥤🥤" },
-                { glasses: 4, label: "1 Garrafa (1L)", emoji: "🍶" },
+                { glasses: 1, label: "1 Copo (150ml)", emoji: "🥤" },
+                { glasses: 2, label: "2 Copos (300ml)", emoji: "🥤🥤" },
+                { glasses: 3, label: "3 Copos (450ml)", emoji: "🥤🥤🥤" },
+                { glasses: 7, label: "1 Garrafa (1L)", emoji: "🍶" },
               ].map((item) => (
                 <Pressable
                   key={item.glasses}
@@ -293,6 +294,50 @@ export default function HydrationTrackerScreen() {
                   <Text className="text-background font-semibold text-base">{item.label}</Text>
                 </Pressable>
               ))}
+            </View>
+          </View>
+
+          {/* Medidor de Cor de Urina */}
+          <View className="gap-4 bg-surface rounded-2xl p-6">
+            <Text className="text-lg font-semibold text-foreground">🚨 Medidor de Hidratação</Text>
+            <Text className="text-sm text-muted">
+              Compare a cor da sua urina com a escala abaixo para avaliar seu nível de hidratação:
+            </Text>
+            
+            {/* Escala de Cores */}
+            <View className="gap-3">
+              {[
+                { color: "#F9F6E8", label: "Hidratado", description: "Excelente! Continue assim." },
+                { color: "#F5E9A8", label: "Bem Hidratado", description: "Bom nível de hidratação." },
+                { color: "#EDD870", label: "Hidratação Normal", description: "Nível adequado." },
+                { color: "#E0C040", label: "Leve Desidratação", description: "Beba mais água." },
+                { color: "#D4A520", label: "Desidratação Moderada", description: "⚠️ Aumente o consumo de água." },
+                { color: "#B8860B", label: "Desidratação Severa", description: "🚨 Beba água imediatamente!" },
+                { color: "#8B6914", label: "Desidratação Crítica", description: "🚨 Procure ajuda médica!" },
+              ].map((item, index) => (
+                <View key={index} className="flex-row items-center gap-3">
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      backgroundColor: item.color,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                    }}
+                  />
+                  <View className="flex-1">
+                    <Text className="text-sm font-semibold text-foreground">{item.label}</Text>
+                    <Text className="text-xs text-muted">{item.description}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+            
+            <View className="bg-warning/20 p-3 rounded-lg border border-warning">
+              <Text className="text-xs text-foreground leading-relaxed">
+                💡 <Text className="font-semibold">Dica:</Text> Urina clara (amarelo claro) indica boa hidratação. Urina escura é sinal de desidratação.
+              </Text>
             </View>
           </View>
 
