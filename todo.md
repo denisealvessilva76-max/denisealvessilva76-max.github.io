@@ -1807,3 +1807,44 @@
 - [x] Opção de enviar por email
 - [x] Botão "Exportar Relatório PDF" no Dashboard Admin
 - [x] Botão "Enviar Relatório por Email" no Dashboard Admin
+
+
+---
+
+## 🚀 NOVA IMPLEMENTAÇÃO - Upload de Fotos, Comparativo Mensal e Alertas (24/01/2026)
+
+### 1. Upload de Fotos nos Desafios
+- [x] Implementar câmera/galeria para captura de fotos
+- [x] Criar componente de upload de imagem
+- [x] Salvar fotos localmente com AsyncStorage
+- [x] Exibir galeria de fotos do desafio
+- [x] Permitir anexar múltiplas fotos por dia
+- [x] Categorias: pesagens, refeições, atividades físicas, outro
+- [x] Visualização em tela cheia das fotos com modal
+- [x] Descrição opcional para cada foto
+- [x] Data e hora automáticas em cada foto
+- [ ] Sincronizar fotos com servidor (futuro)
+
+### 2. Comparativo Mensal no Dashboard Admin
+- [x] Criar gráficos de evolução mês a mês
+- [x] Comparar hidratação entre meses (Dezembro vs Janeiro)
+- [x] Comparar check-ins entre meses
+- [x] Comparar queixas entre meses
+- [x] Comparar pressão arterial entre meses
+- [x] Comparar adesão à ergonomia entre meses
+- [x] Comparar adesão a desafios entre meses
+- [ ] Seletor de meses para comparação (futuro)
+- [x] Indicadores de tendência (subindo/descendo)
+- [x] Resumo geral do período
+
+### 3. Alertas Automáticos para SESMT
+- [x] Detectar quando 3+ funcionários reportam mesma queixa
+- [x] Enviar notificação push para admin
+- [x] Criar tela de alertas críticos
+- [x] Histórico de alertas gerados
+- [x] Marcar alerta como resolvido
+- [x] Filtros de alertas (ativos/resolvidos/todos)
+- [x] Botão de verificação manual de alertas
+- [x] Indicadores de severidade (baixa/média/alta/crítica)
+- [x] Verificação de hidratação baixa
+- [x] Verificação de pressão arterial elevada

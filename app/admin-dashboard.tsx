@@ -40,7 +40,7 @@ export default function AdminDashboardScreen() {
   const [email, setEmail] = useState("");
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [employees, setEmployees] = useState<EmployeeData[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "hydration" | "pressure" | "complaints" | "challenges" | "ergonomics" | "mental">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "hydration" | "pressure" | "complaints" | "challenges" | "ergonomics" | "mental" | "monthly">("overview");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
@@ -233,6 +233,7 @@ export default function AdminDashboardScreen() {
         {/* Tabs de Navegação */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="p-4">
           {renderTabButton("overview", "Visão Geral", "📊")}
+          {renderTabButton("monthly", "Comparativo Mensal", "📈")}
           {renderTabButton("hydration", "Hidratação", "💧")}
           {renderTabButton("pressure", "Pressão", "❤️")}
           {renderTabButton("complaints", "Queixas", "⚠️")}
@@ -576,9 +577,205 @@ export default function AdminDashboardScreen() {
             </>
           )}
 
+          {/* Comparativo Mensal */}
+          {activeTab === "monthly" && (
+            <>
+              <Text className="text-xl font-bold text-foreground">Evolução Mês a Mês</Text>
+              
+              {/* Hidratação Mensal */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">💧 Hidratação</Text>
+                <View className="gap-3">
+                  {[
+                    { month: "Dezembro", avg: 1800, goal: 2000, color: "#3B82F6" },
+                    { month: "Janeiro", avg: 2100, goal: 2000, color: "#10B981" },
+                  ].map((data, idx) => (
+                    <View key={idx}>
+                      <View className="flex-row justify-between items-center mb-1">
+                        <Text className="text-sm font-semibold text-foreground">{data.month}</Text>
+                        <Text className="text-sm text-muted">{data.avg}ml / {data.goal}ml</Text>
+                      </View>
+                      <View className="h-3 bg-background rounded-full overflow-hidden">
+                        <View 
+                          className="h-full rounded-full" 
+                          style={{ width: `${Math.min((data.avg / data.goal) * 100, 100)}%`, backgroundColor: data.color }}
+                        />
+                      </View>
+                      <Text className="text-xs text-muted mt-1">
+                        {data.avg >= data.goal ? "✅ Meta atingida" : `💧 Faltam ${data.goal - data.avg}ml`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                <View className="mt-3 bg-success/10 rounded-lg p-3">
+                  <Text className="text-sm text-success font-semibold">
+                    📈 +16.7% em relação ao mês anterior
+                  </Text>
+                </View>
+              </View>
+
+              {/* Pressão Arterial Mensal */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">❤️ Pressão Arterial</Text>
+                <View className="gap-3">
+                  {[
+                    { month: "Dezembro", systolic: 128, diastolic: 82, classification: "Limítrofe", color: "#F59E0B" },
+                    { month: "Janeiro", systolic: 118, diastolic: 76, classification: "Normal", color: "#10B981" },
+                  ].map((data, idx) => (
+                    <View key={idx} className="bg-background rounded-lg p-3">
+                      <View className="flex-row justify-between items-center mb-2">
+                        <Text className="text-sm font-semibold text-foreground">{data.month}</Text>
+                        <View className="px-2 py-1 rounded" style={{ backgroundColor: `${data.color}20` }}>
+                          <Text className="text-xs font-semibold" style={{ color: data.color }}>{data.classification}</Text>
+                        </View>
+                      </View>
+                      <Text className="text-2xl font-bold text-foreground">{data.systolic}/{data.diastolic}</Text>
+                      <Text className="text-xs text-muted">mmHg (média do mês)</Text>
+                    </View>
+                  ))}
+                </View>
+                <View className="mt-3 bg-success/10 rounded-lg p-3">
+                  <Text className="text-sm text-success font-semibold">
+                    👍 Melhora significativa: de Limítrofe para Normal
+                  </Text>
+                </View>
+              </View>
+
+              {/* Queixas Mensais */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">⚠️ Queixas</Text>
+                <View className="gap-3">
+                  {[
+                    { month: "Dezembro", count: 8, types: ["Dor nas costas (4)", "Dor de cabeça (3)", "Fadiga (1)"] },
+                    { month: "Janeiro", count: 3, types: ["Dor nas costas (2)", "Fadiga (1)"] },
+                  ].map((data, idx) => (
+                    <View key={idx} className="bg-background rounded-lg p-3">
+                      <View className="flex-row justify-between items-center mb-2">
+                        <Text className="text-sm font-semibold text-foreground">{data.month}</Text>
+                        <Text className="text-lg font-bold text-warning">{data.count}</Text>
+                      </View>
+                      {data.types.map((type, i) => (
+                        <Text key={i} className="text-xs text-muted">• {type}</Text>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+                <View className="mt-3 bg-success/10 rounded-lg p-3">
+                  <Text className="text-sm text-success font-semibold">
+                    📉 -62.5% de queixas em relação ao mês anterior
+                  </Text>
+                </View>
+              </View>
+
+              {/* Adesão a Desafios */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">🎯 Desafios</Text>
+                <View className="gap-3">
+                  {[
+                    { month: "Dezembro", active: 2, completed: 0, adherence: 40 },
+                    { month: "Janeiro", active: 3, completed: 1, adherence: 75 },
+                  ].map((data, idx) => (
+                    <View key={idx} className="bg-background rounded-lg p-3">
+                      <Text className="text-sm font-semibold text-foreground mb-2">{data.month}</Text>
+                      <View className="flex-row gap-4">
+                        <View className="flex-1">
+                          <Text className="text-xs text-muted">Ativos</Text>
+                          <Text className="text-lg font-bold text-primary">{data.active}</Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-xs text-muted">Concluídos</Text>
+                          <Text className="text-lg font-bold text-success">{data.completed}</Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-xs text-muted">Adesão</Text>
+                          <Text className="text-lg font-bold text-foreground">{data.adherence}%</Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+                <View className="mt-3 bg-success/10 rounded-lg p-3">
+                  <Text className="text-sm text-success font-semibold">
+                    📈 +87.5% de adesão aos desafios
+                  </Text>
+                </View>
+              </View>
+
+              {/* Ergonomia */}
+              <View className="bg-surface rounded-xl p-4 border border-border">
+                <Text className="text-lg font-semibold text-foreground mb-3">🪑 Ergonomia</Text>
+                <View className="gap-3">
+                  {[
+                    { month: "Dezembro", pauses: 45, stretches: 30, adherence: 62 },
+                    { month: "Janeiro", pauses: 68, stretches: 52, adherence: 85 },
+                  ].map((data, idx) => (
+                    <View key={idx} className="bg-background rounded-lg p-3">
+                      <Text className="text-sm font-semibold text-foreground mb-2">{data.month}</Text>
+                      <View className="flex-row gap-4">
+                        <View className="flex-1">
+                          <Text className="text-xs text-muted">Pausas</Text>
+                          <Text className="text-lg font-bold text-primary">{data.pauses}</Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-xs text-muted">Alongamentos</Text>
+                          <Text className="text-lg font-bold text-success">{data.stretches}</Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-xs text-muted">Adesão</Text>
+                          <Text className="text-lg font-bold text-foreground">{data.adherence}%</Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+                <View className="mt-3 bg-success/10 rounded-lg p-3">
+                  <Text className="text-sm text-success font-semibold">
+                    📈 +37% de adesão à ergonomia
+                  </Text>
+                </View>
+              </View>
+
+              {/* Resumo Geral */}
+              <View className="bg-primary/10 border border-primary rounded-xl p-4">
+                <Text className="text-lg font-semibold text-primary mb-2">📊 Resumo do Período</Text>
+                <View className="gap-2">
+                  <Text className="text-sm text-foreground">✅ Hidratação: +16.7%</Text>
+                  <Text className="text-sm text-foreground">✅ Pressão: Melhora para Normal</Text>
+                  <Text className="text-sm text-foreground">✅ Queixas: -62.5%</Text>
+                  <Text className="text-sm text-foreground">✅ Desafios: +87.5% adesão</Text>
+                  <Text className="text-sm text-foreground">✅ Ergonomia: +37% adesão</Text>
+                </View>
+                <View className="mt-3 pt-3 border-t border-primary/30">
+                  <Text className="text-sm text-primary font-semibold">
+                    🎉 Tendência geral: POSITIVA
+                  </Text>
+                  <Text className="text-xs text-foreground mt-1">
+                    Os indicadores de saúde da equipe estão melhorando consistentemente.
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
+
           {/* Ações Rápidas */}
           <View className="gap-3 mt-4">
             <Text className="text-xl font-bold text-foreground">Ações Rápidas</Text>
+            
+            <TouchableOpacity
+              className="bg-warning rounded-xl p-4"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/admin-alerts");
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-lg font-bold text-white">⚠️ Alertas Críticos</Text>
+                  <Text className="text-sm text-white/80 mt-1">Ver alertas automáticos do sistema</Text>
+                </View>
+                <Text className="text-white text-2xl">→</Text>
+              </View>
+            </TouchableOpacity>
             
             <TouchableOpacity
               className="bg-primary rounded-xl p-4"

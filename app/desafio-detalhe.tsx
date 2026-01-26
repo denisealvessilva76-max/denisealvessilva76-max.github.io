@@ -33,6 +33,14 @@ interface DayProgress {
   notes?: string;
 }
 
+interface PhotoEntry {
+  uri: string;
+  date: string;
+  time: string;
+  category: "pesagem" | "refeicao" | "atividade" | "outro";
+  description?: string;
+}
+
 interface ChallengeProgress {
   challengeId: string;
   startDate: string;
@@ -41,7 +49,7 @@ interface ChallengeProgress {
   currentValue: number;
   days: DayProgress[];
   difficulties: string[];
-  photos: string[];
+  photos: PhotoEntry[];
   weight?: { initial: number; current: number; goal: number };
   imc?: { value: number; classification: string };
 }
@@ -262,6 +270,12 @@ export default function DesafioDetalheScreen() {
   const [difficulty, setDifficulty] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
+  
+  // Estados para fotos
+  const [photoCategory, setPhotoCategory] = useState<"pesagem" | "refeicao" | "atividade" | "outro">("atividade");
+  const [photoDescription, setPhotoDescription] = useState("");
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoEntry | null>(null);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   const challengeId = Array.isArray(id) ? id[0] : id;
 
@@ -442,13 +456,22 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
+      const newPhoto: PhotoEntry = {
+        uri: result.assets[0].uri,
+        date: new Date().toLocaleDateString("pt-BR"),
+        time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        category: photoCategory,
+        description: photoDescription || undefined,
+      };
+      
       const updatedProgress = {
         ...progress,
-        photos: [...progress.photos, result.assets[0].uri]
+        photos: [...progress.photos, newPhoto]
       };
       
       await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedProgress));
       setProgress(updatedProgress);
+      setPhotoDescription("");
       
       Alert.alert("📸 Foto adicionada!", "Sua foto foi salva como comprovação.");
     }
@@ -472,13 +495,22 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
+      const newPhoto: PhotoEntry = {
+        uri: result.assets[0].uri,
+        date: new Date().toLocaleDateString("pt-BR"),
+        time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        category: photoCategory,
+        description: photoDescription || undefined,
+      };
+      
       const updatedProgress = {
         ...progress,
-        photos: [...progress.photos, result.assets[0].uri]
+        photos: [...progress.photos, newPhoto]
       };
       
       await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedProgress));
       setProgress(updatedProgress);
+      setPhotoDescription("");
       
       Alert.alert("📸 Foto adicionada!", "Sua foto foi salva como comprovação.");
     }
@@ -823,6 +855,42 @@ export default function DesafioDetalheScreen() {
                 <Text className="text-sm text-muted mb-4">
                   Tire fotos como comprovação: pesagens, refeições, atividades realizadas
                 </Text>
+                
+                {/* Seletor de Categoria */}
+                <View className="mb-4">
+                  <Text className="text-sm text-muted mb-2">Categoria da foto:</Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {[
+                      { id: "pesagem", label: "⚖️ Pesagem", icon: "⚖️" },
+                      { id: "refeicao", label: "🍽️ Refeição", icon: "🍽️" },
+                      { id: "atividade", label: "🏃 Atividade", icon: "🏃" },
+                      { id: "outro", label: "📝 Outro", icon: "📝" },
+                    ].map((cat) => (
+                      <TouchableOpacity
+                        key={cat.id}
+                        className={`px-3 py-2 rounded-lg border ${photoCategory === cat.id ? "bg-primary border-primary" : "bg-background border-border"}`}
+                        onPress={() => setPhotoCategory(cat.id as typeof photoCategory)}
+                      >
+                        <Text className={photoCategory === cat.id ? "text-white font-semibold" : "text-foreground"}>
+                          {cat.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+                
+                {/* Descrição opcional */}
+                <View className="mb-4">
+                  <Text className="text-sm text-muted mb-2">Descrição (opcional):</Text>
+                  <TextInput
+                    className="bg-background border border-border rounded-lg px-4 py-3 text-foreground"
+                    placeholder="Ex: Pesagem após treino, Almoço saudável..."
+                    value={photoDescription}
+                    onChangeText={setPhotoDescription}
+                    placeholderTextColor={colors.muted}
+                  />
+                </View>
+                
                 <View className="flex-row gap-3">
                   <TouchableOpacity
                     className="flex-1 bg-primary rounded-lg py-3"
@@ -846,13 +914,27 @@ export default function DesafioDetalheScreen() {
                     🖼️ Suas Fotos ({progress.photos.length})
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
-                    {progress.photos.map((uri, idx) => (
-                      <Image
+                    {progress.photos.map((photo, idx) => (
+                      <TouchableOpacity
                         key={idx}
-                        source={{ uri }}
-                        className="w-24 h-24 rounded-lg"
-                        resizeMode="cover"
-                      />
+                        onPress={() => {
+                          setSelectedPhoto(photo);
+                          setShowPhotoModal(true);
+                        }}
+                      >
+                        <View className="relative">
+                          <Image
+                            source={{ uri: photo.uri }}
+                            className="w-24 h-24 rounded-lg"
+                            resizeMode="cover"
+                          />
+                          <View className="absolute bottom-0 left-0 right-0 bg-black/60 rounded-b-lg px-1 py-0.5">
+                            <Text className="text-white text-xs text-center">
+                              {photo.category === "pesagem" ? "⚖️" : photo.category === "refeicao" ? "🍽️" : photo.category === "atividade" ? "🏃" : "📝"}
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 </View>
@@ -863,6 +945,34 @@ export default function DesafioDetalheScreen() {
                     Nenhuma foto adicionada ainda.{"\n"}
                     Registre seu progresso com fotos!
                   </Text>
+                </View>
+              )}
+              
+              {/* Modal de Visualização */}
+              {showPhotoModal && selectedPhoto && (
+                <View className="absolute inset-0 bg-black/90 z-50 items-center justify-center" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                  <TouchableOpacity
+                    className="absolute top-12 right-4 z-10 bg-white/20 rounded-full p-2"
+                    onPress={() => setShowPhotoModal(false)}
+                  >
+                    <Text className="text-white text-xl">✕</Text>
+                  </TouchableOpacity>
+                  <Image
+                    source={{ uri: selectedPhoto.uri }}
+                    className="w-full h-96"
+                    resizeMode="contain"
+                  />
+                  <View className="bg-white/10 rounded-lg p-4 mt-4 mx-4">
+                    <Text className="text-white text-center font-semibold">
+                      {selectedPhoto.category === "pesagem" ? "⚖️ Pesagem" : selectedPhoto.category === "refeicao" ? "🍽️ Refeição" : selectedPhoto.category === "atividade" ? "🏃 Atividade" : "📝 Outro"}
+                    </Text>
+                    <Text className="text-white/70 text-center text-sm mt-1">
+                      {selectedPhoto.date} às {selectedPhoto.time}
+                    </Text>
+                    {selectedPhoto.description && (
+                      <Text className="text-white text-center mt-2">{selectedPhoto.description}</Text>
+                    )}
+                  </View>
                 </View>
               )}
             </>
