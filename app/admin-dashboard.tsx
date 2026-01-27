@@ -915,6 +915,18 @@ export default function AdminDashboardScreen() {
                 🏆 Gerenciar Resgates
               </Text>
             </TouchableOpacity>
+            
+            <TouchableOpacity
+              className="bg-pink-500 rounded-xl p-4"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push("/admin-challenge-photos" as any);
+              }}
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                📸 Fotos dos Desafios
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

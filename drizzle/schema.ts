@@ -257,6 +257,24 @@ export type PushToken = typeof pushTokens.$inferSelect;
 export type InsertPushToken = typeof pushTokens.$inferInsert;
 
 /**
+ * Tabela para armazenar fotos dos desafios
+ */
+export const challengePhotos = mysqlTable("challenge_photos", {
+  id: int("id").autoincrement().primaryKey(),
+  workerId: varchar("workerId", { length: 64 }).notNull(), // ID anônimo do trabalhador
+  challengeId: varchar("challengeId", { length: 100 }).notNull(), // ID do desafio
+  challengeName: varchar("challengeName", { length: 200 }).notNull(),
+  photoUrl: text("photoUrl").notNull(), // URL do S3
+  category: varchar("category", { length: 50 }).notNull(), // pesagem, refeicao, atividade, outro
+  description: text("description"),
+  uploadedAt: timestamp("uploadedAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChallengePhoto = typeof challengePhotos.$inferSelect;
+export type InsertChallengePhoto = typeof challengePhotos.$inferInsert;
+
+/**
  * Tabela para notificações agendadas de desafios
  */
 export const challengeNotifications = mysqlTable("challenge_notifications", {

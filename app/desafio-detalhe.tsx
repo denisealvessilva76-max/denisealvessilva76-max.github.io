@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { trpc } from "@/lib/trpc";
+import * as FileSystem from "expo-file-system/legacy";
 
 // Tipos
 interface ChallengeData {
@@ -277,6 +279,9 @@ export default function DesafioDetalheScreen() {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoEntry | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
 
+  // Mutation para upload de fotos
+  const uploadPhotoMutation = trpc.challengePhotos.upload.useMutation();
+
   const challengeId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
@@ -456,6 +461,11 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
+      // Converter imagem para base64
+      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      
       const newPhoto: PhotoEntry = {
         uri: result.assets[0].uri,
         date: new Date().toLocaleDateString("pt-BR"),
@@ -473,7 +483,27 @@ export default function DesafioDetalheScreen() {
       setProgress(updatedProgress);
       setPhotoDescription("");
       
-      Alert.alert("📸 Foto adicionada!", "Sua foto foi salva como comprovação.");
+      // Sincronizar com backend
+      try {
+        const uploadResult = await uploadPhotoMutation.mutateAsync({
+          workerId: "user-001", // TODO: usar ID real do usuário
+          challengeId: challenge!.id,
+          challengeName: challenge!.title,
+          photoBase64: `data:image/jpeg;base64,${base64}`,
+          category: photoCategory,
+          description: photoDescription || undefined,
+          uploadedAt: new Date().toISOString(),
+        });
+        
+        if (uploadResult.success) {
+          Alert.alert("📸 Foto enviada!", "Sua foto foi salva e sincronizada com o servidor.");
+        } else {
+          Alert.alert("⚠️ Foto salva localmente", "A foto foi salva no dispositivo, mas não foi possível sincronizar com o servidor.");
+        }
+      } catch (error) {
+        console.error("Erro ao sincronizar foto:", error);
+        Alert.alert("📸 Foto salva localmente", "A foto foi salva no dispositivo.");
+      }
     }
   };
 
@@ -495,6 +525,11 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
+      // Converter imagem para base64
+      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      
       const newPhoto: PhotoEntry = {
         uri: result.assets[0].uri,
         date: new Date().toLocaleDateString("pt-BR"),
@@ -512,7 +547,27 @@ export default function DesafioDetalheScreen() {
       setProgress(updatedProgress);
       setPhotoDescription("");
       
-      Alert.alert("📸 Foto adicionada!", "Sua foto foi salva como comprovação.");
+      // Sincronizar com backend
+      try {
+        const uploadResult = await uploadPhotoMutation.mutateAsync({
+          workerId: "user-001", // TODO: usar ID real do usuário
+          challengeId: challenge!.id,
+          challengeName: challenge!.title,
+          photoBase64: `data:image/jpeg;base64,${base64}`,
+          category: photoCategory,
+          description: photoDescription || undefined,
+          uploadedAt: new Date().toISOString(),
+        });
+        
+        if (uploadResult.success) {
+          Alert.alert("📸 Foto enviada!", "Sua foto foi salva e sincronizada com o servidor.");
+        } else {
+          Alert.alert("⚠️ Foto salva localmente", "A foto foi salva no dispositivo, mas não foi possível sincronizar com o servidor.");
+        }
+      } catch (error) {
+        console.error("Erro ao sincronizar foto:", error);
+        Alert.alert("📸 Foto salva localmente", "A foto foi salva no dispositivo.");
+      }
     }
   };
 

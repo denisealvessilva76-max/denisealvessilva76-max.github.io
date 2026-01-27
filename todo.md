@@ -1848,3 +1848,26 @@
 - [x] Indicadores de severidade (baixa/média/alta/crítica)
 - [x] Verificação de hidratação baixa
 - [x] Verificação de pressão arterial elevada
+
+
+---
+
+## 🚀 NOVA IMPLEMENTAÇÃO: Sincronização de Fotos dos Desafios
+
+### Objetivo:
+Permitir que fotos anexadas pelos funcionários nos desafios sejam enviadas ao servidor (S3) e visualizadas no Dashboard Admin para acompanhamento e validação pelo SESMT.
+
+### Requisitos:
+- [x] Criar tabela no banco de dados para armazenar metadados das fotos
+- [x] Implementar API de upload de fotos para S3
+- [x] Atualizar tela de desafios para enviar fotos ao backend
+- [x] Criar aba "Fotos dos Desafios" no Dashboard Admin
+- [x] Exibir galeria de fotos por funcionário e desafio
+- [x] Filtrar fotos por categoria (pesagem, refeição, atividade)
+- [x] Permitir visualização em tela cheia no Dashboard
+- [x] Filtro por ID de funcionário
+- [x] Modal com detalhes completos da foto
+- [x] Integração com API de listagem de fotos
+- [x] Sincronizar automaticamente ao tirar/selecionar foto
+- [x] Conversão de imagem para base64 e upload para S3
+- [x] Feedback visual de sucesso/erro ao usuário

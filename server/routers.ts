@@ -4,8 +4,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { storagePut } from "./storage";
 import { getDb } from "./db";
-import { users, checkIns, userHydration, bloodPressureRecords, challengeProgress, complaints, gamificationData } from "../drizzle/schema";
+import { users, checkIns, userHydration, bloodPressureRecords, challengeProgress, complaints, gamificationData, challengePhotos } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 export const appRouter = router({
@@ -1256,6 +1257,143 @@ export const appRouter = router({
         } catch (error) {
           console.error("Erro ao enviar notificação push:", error);
           return { success: false, error: "Falha ao enviar notificação push" };
+        }
+      }),
+  }),
+
+  // Router de fotos de desafios
+  challengePhotos: router({
+    // Upload de foto do desafio
+    upload: publicProcedure
+      .input(
+        z.object({
+          workerId: z.string(),
+          challengeId: z.string(),
+          challengeName: z.string(),
+          photoBase64: z.string(),
+          category: z.enum(["pesagem", "refeicao", "atividade", "outro"]),
+          description: z.string().optional(),
+          uploadedAt: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          // Decodificar base64 para buffer
+          const base64Data = input.photoBase64.replace(/^data:image\/\w+;base64,/, "");
+          const buffer = Buffer.from(base64Data, "base64");
+
+          // Gerar nome único para o arquivo
+          const timestamp = Date.now();
+          const randomSuffix = Math.random().toString(36).substring(7);
+          const fileKey = `challenge-photos/${input.workerId}/${input.challengeId}/${timestamp}-${randomSuffix}.jpg`;
+
+          // Upload para S3
+          const { url } = await storagePut(fileKey, buffer, "image/jpeg");
+
+          // Salvar metadados no banco
+          const db = await getDb();
+          if (!db) {
+            return { success: false, error: "Banco de dados não disponível" };
+          }
+
+          const [photo] = await db
+            .insert(challengePhotos)
+            .values({
+              workerId: input.workerId,
+              challengeId: input.challengeId,
+              challengeName: input.challengeName,
+              photoUrl: url,
+              category: input.category,
+              description: input.description || null,
+              uploadedAt: new Date(input.uploadedAt),
+            })
+            .$returningId();
+
+          return {
+            success: true,
+            photoId: photo.id,
+            photoUrl: url,
+          };
+        } catch (error) {
+          console.error("Erro ao fazer upload de foto:", error);
+          return {
+            success: false,
+            error: "Falha ao fazer upload da foto",
+          };
+        }
+      }),
+
+    // Listar fotos de um desafio específico
+    listByChallenge: publicProcedure
+      .input(
+        z.object({
+          workerId: z.string(),
+          challengeId: z.string(),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) return { success: false, photos: [] };
+
+          const photos = await db
+            .select()
+            .from(challengePhotos)
+            .where(
+              and(
+                eq(challengePhotos.workerId, input.workerId),
+                eq(challengePhotos.challengeId, input.challengeId)
+              )
+            )
+            .orderBy(sql`${challengePhotos.uploadedAt} DESC`);
+
+          return { success: true, photos };
+        } catch (error) {
+          console.error("Erro ao listar fotos:", error);
+          return { success: false, photos: [] };
+        }
+      }),
+
+    // Listar todas as fotos para o Dashboard Admin
+    listAll: publicProcedure
+      .input(
+        z.object({
+          workerId: z.string().optional(),
+          challengeId: z.string().optional(),
+          category: z.enum(["pesagem", "refeicao", "atividade", "outro"]).optional(),
+          limit: z.number().default(100),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) return { success: false, photos: [] };
+
+          let query = db.select().from(challengePhotos);
+
+          const conditions = [];
+          if (input.workerId) {
+            conditions.push(eq(challengePhotos.workerId, input.workerId));
+          }
+          if (input.challengeId) {
+            conditions.push(eq(challengePhotos.challengeId, input.challengeId));
+          }
+          if (input.category) {
+            conditions.push(eq(challengePhotos.category, input.category));
+          }
+
+          if (conditions.length > 0) {
+            query = query.where(and(...conditions)) as any;
+          }
+
+          const photos = await query
+            .orderBy(sql`${challengePhotos.uploadedAt} DESC`)
+            .limit(input.limit);
+
+          return { success: true, photos };
+        } catch (error) {
+          console.error("Erro ao listar todas as fotos:", error);
+          return { success: false, photos: [] };
         }
       }),
   }),
