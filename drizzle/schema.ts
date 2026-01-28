@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date, decimal, json } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, date, decimal, json, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -181,12 +181,14 @@ export type AdminNotification = typeof adminNotifications.$inferSelect;
 export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
 
 /**
- * Tabela de funcionários (employees) - dados completos
+ * Tabela de funcionários (employees) - dados completos com autenticação
  */
 export const employees = mysqlTable("employees", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId"), // Referência opcional ao users.id se logado
-  workerId: varchar("workerId", { length: 64 }).notNull().unique(), // ID anônimo
+  cpf: varchar("cpf", { length: 11 }).notNull().unique(), // CPF sem pontos/traços
+  matricula: varchar("matricula", { length: 20 }).notNull().unique(),
+  workerId: varchar("workerId", { length: 64 }).notNull().unique(), // ID anônimo (gerado automaticamente)
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
   department: varchar("department", { length: 100 }),
@@ -197,6 +199,7 @@ export const employees = mysqlTable("employees", {
   isActive: int("isActive").default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastLogin: timestamp("lastLogin"),
 });
 
 export type Employee = typeof employees.$inferSelect;

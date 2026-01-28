@@ -6,7 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { storagePut } from "./storage";
 import { getDb } from "./db";
-import { users, checkIns, userHydration, bloodPressureRecords, challengeProgress, complaints, gamificationData, challengePhotos } from "../drizzle/schema";
+import { users, checkIns, userHydration, bloodPressureRecords, challengeProgress, complaints, gamificationData, challengePhotos, employees } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 export const appRouter = router({
@@ -20,6 +20,175 @@ export const appRouter = router({
       return {
         success: true,
       } as const;
+    }),
+  }),
+
+  // Router de autenticação de funcionários
+  employeeAuth: router({
+    // Registrar novo funcionário
+    register: publicProcedure
+      .input(
+        z.object({
+          cpf: z.string().length(11), // CPF sem pontos/traços
+          matricula: z.string(),
+          nome: z.string(),
+          setor: z.string().optional(),
+          cargo: z.string().optional(),
+          email: z.string().email().optional(),
+          telefone: z.string().optional(),
+          peso: z.number().optional(),
+          altura: z.number().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) {
+            return { success: false, error: "Banco de dados não disponível" };
+          }
+
+          // Verificar se CPF já existe
+          const existingEmployee = await db.query.employees.findFirst({
+            where: (employeesTable, { eq }) => eq(employeesTable.cpf, input.cpf),
+          });
+
+          if (existingEmployee) {
+            return { success: false, error: "CPF já cadastrado" };
+          }
+
+          // Verificar se matrícula já existe
+          const existingMatricula = await db.query.employees.findFirst({
+            where: (employeesTable, { eq }) => eq(employeesTable.matricula, input.matricula),
+          });
+
+          if (existingMatricula) {
+            return { success: false, error: "Matrícula já cadastrada" };
+          }
+
+          // Gerar workerId único
+          const workerId = `EMP-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+          // Criar funcionário
+          const [newEmployee] = await db
+            .insert(employees)
+            .values({
+              cpf: input.cpf,
+              matricula: input.matricula,
+              workerId,
+              name: input.nome,
+              department: input.setor,
+              position: input.cargo,
+              email: input.email,
+              weight: input.peso,
+              height: input.altura,
+            });
+
+          return {
+            success: true,
+            employee: {
+              id: newEmployee.insertId,
+              cpf: input.cpf,
+              nome: input.nome,
+              workerId,
+            },
+          };
+        } catch (error) {
+          console.error("Erro ao registrar funcionário:", error);
+          return { success: false, error: "Erro ao registrar funcionário" };
+        }
+      }),
+
+    // Login de funcionário
+    login: publicProcedure
+      .input(
+        z.object({
+          cpf: z.string().length(11),
+          matricula: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) {
+            return { success: false, error: "Banco de dados não disponível" };
+          }
+
+          // Buscar funcionário por CPF e matrícula
+          const employee = await db.query.employees.findFirst({
+            where: (employeesTable, { eq, and }) =>
+              and(eq(employeesTable.cpf, input.cpf), eq(employeesTable.matricula, input.matricula)),
+          });
+
+          if (!employee) {
+            return { success: false, error: "CPF ou matrícula inválidos" };
+          }
+
+          if (!employee.isActive) {
+            return { success: false, error: "Funcionário inativo" };
+          }
+
+          // Atualizar lastLogin
+          await db
+            .update(employees)
+            .set({ lastLogin: new Date() })
+            .where(eq(employees.id, employee.id));
+
+          return {
+            success: true,
+            employee: {
+              id: employee.id,
+              cpf: employee.cpf,
+              matricula: employee.matricula,
+              workerId: employee.workerId,
+              nome: employee.name,
+              setor: employee.department,
+              cargo: employee.position,
+              email: employee.email,
+              peso: employee.weight,
+              altura: employee.height,
+            },
+          };
+        } catch (error) {
+          console.error("Erro ao fazer login:", error);
+          return { success: false, error: "Erro ao fazer login" };
+        }
+      }),
+
+    // Buscar funcionário por ID
+    getById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          return { success: false, error: "Banco de dados não disponível" };
+        }
+
+        const employee = await db.query.employees.findFirst({
+          where: (employeesTable, { eq }) => eq(employeesTable.id, input.id),
+        });
+
+        if (!employee) {
+          return { success: false, error: "Funcionário não encontrado" };
+        }
+
+        return {
+          success: true,
+          employee: {
+            id: employee.id,
+            cpf: employee.cpf,
+            matricula: employee.matricula,
+            workerId: employee.workerId,
+            nome: employee.name,
+            setor: employee.department,
+            cargo: employee.position,
+            email: employee.email,
+            peso: employee.weight,
+            altura: employee.height,
+          },
+        };
+      } catch (error) {
+        console.error("Erro ao buscar funcionário:", error);
+        return { success: false, error: "Erro ao buscar funcionário" };
+      }
     }),
   }),
 
@@ -1006,6 +1175,8 @@ export const appRouter = router({
     createEmployee: publicProcedure
       .input(
         z.object({
+          cpf: z.string(),
+          matricula: z.string(),
           workerId: z.string(),
           name: z.string(),
           email: z.string().optional(),

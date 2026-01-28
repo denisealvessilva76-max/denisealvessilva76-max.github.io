@@ -1871,3 +1871,76 @@ Permitir que fotos anexadas pelos funcionários nos desafios sejam enviadas ao s
 - [x] Sincronizar automaticamente ao tirar/selecionar foto
 - [x] Conversão de imagem para base64 e upload para S3
 - [x] Feedback visual de sucesso/erro ao usuário
+
+
+---
+
+## 🚀 NOVA IMPLEMENTAÇÃO: Sistema de Login para Funcionários
+
+### Objetivo:
+Implementar autenticação completa de funcionários usando CPF e matrícula, substituindo IDs genéricos ("user-001") por dados reais de usuário autenticado em todas as funcionalidades do app.
+
+### Requisitos:
+- [x] Criar tabela de funcionários no banco de dados (CPF, matrícula, nome, setor, cargo)
+- [x] Executar migração do banco de dados (pnpm db:push)
+- [ ] Implementar API de registro de funcionário
+- [ ] Implementar API de login (CPF + matrícula)
+- [ ] Criar tela de login/registro com validação de CPF
+- [ ] Implementar contexto de autenticação (AuthContext)
+- [ ] Persistir sessão com AsyncStorage/SecureStore
+- [ ] Proteger rotas que exigem autenticação
+- [ ] Atualizar tela Home para usar userId real
+- [ ] Atualizar tela de Hidratação para usar userId real
+- [ ] Atualizar tela de Pressão Arterial para usar userId real
+- [ ] Atualizar tela de Desafios para usar userId real
+- [ ] Atualizar tela de Check-in para usar userId real
+- [ ] Atualizar tela de Perfil para exibir dados do funcionário
+- [ ] Adicionar botão de logout
+- [ ] Validar CPF no frontend (dígitos verificadores)
+- [ ] Criptografar senha/matrícula no backend
+- [ ] Adicionar opção "Esqueci minha matrícula"
+- [ ] Testar fluxo completo de login/logout
+
+
+---
+
+## 🐛 BUGS CRÍTICOS REPORTADOS PELO USUÁRIO
+
+### 1. Dashboard Admin Crashando
+- [x] App fecha completamente ao tentar abrir Dashboard Admin
+- [x] Investigar erro de JavaScript/TypeScript que causa crash
+- [x] Adicionar try-catch robusto e fallback para evitar crash
+- [x] Remover SecureStore que causava problemas
+- [x] Simplificar carregamento de dados
+- [ ] Testar abertura do Dashboard em dispositivo real
+
+### 2. Dados Não Sincronizando de Múltiplos Usuários
+- [ ] Relatórios mostram sempre os mesmos dados
+- [ ] Não aparecem dados de outros usuários testando o app
+- [ ] Implementar sincronização real de dados de múltiplos funcionários
+- [ ] Conectar backend para puxar dados de todos os usuários
+
+### 3. Login Não Fica Salvo
+- [ ] Usuário precisa fazer login toda vez que abre o app
+- [ ] Implementar persistência automática de sessão
+- [ ] Usar AsyncStorage/SecureStore para salvar credenciais
+- [ ] Login deve permanecer ativo entre sessões
+
+### 4. Cálculo de Água Incorreto
+- [ ] Verificar fórmula de cálculo da meta diária
+- [ ] Corrigir exibição de quantidade ingerida
+- [ ] Corrigir cálculo de quantidade restante para meta
+- [ ] Validar cálculo baseado em peso/altura/atividade
+
+### 5. Faltam Dados Completos nos Relatórios
+- [ ] Adicionar nome do empregado em todos os relatórios
+- [ ] Adicionar matrícula do empregado em todos os relatórios
+- [ ] Identificar claramente quem fez cada ação
+- [ ] Facilitar rastreamento individual para SESMT
+
+### Prioridade:
+1. Corrigir crash do Dashboard (URGENTE)
+2. Implementar persistência de login
+3. Sincronizar dados de múltiplos usuários
+4. Adicionar nome/matrícula nos relatórios
+5. Corrigir cálculo de água
