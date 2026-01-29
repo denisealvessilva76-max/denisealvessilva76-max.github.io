@@ -48,18 +48,16 @@ export const appRouter = router({
           }
 
           // Verificar se CPF já existe
-          const existingEmployee = await db.query.employees.findFirst({
-            where: (employeesTable, { eq }) => eq(employeesTable.cpf, input.cpf),
-          });
+          const existingEmployeeResult = await db.select().from(employees).where(eq(employees.cpf, input.cpf)).limit(1);
+          const existingEmployee = existingEmployeeResult[0];
 
           if (existingEmployee) {
             return { success: false, error: "CPF já cadastrado" };
           }
 
           // Verificar se matrícula já existe
-          const existingMatricula = await db.query.employees.findFirst({
-            where: (employeesTable, { eq }) => eq(employeesTable.matricula, input.matricula),
-          });
+          const existingMatriculaResult = await db.select().from(employees).where(eq(employees.matricula, input.matricula)).limit(1);
+          const existingMatricula = existingMatriculaResult[0];
 
           if (existingMatricula) {
             return { success: false, error: "Matrícula já cadastrada" };
@@ -114,10 +112,10 @@ export const appRouter = router({
           }
 
           // Buscar funcionário por CPF e matrícula
-          const employee = await db.query.employees.findFirst({
-            where: (employeesTable, { eq, and }) =>
-              and(eq(employeesTable.cpf, input.cpf), eq(employeesTable.matricula, input.matricula)),
-          });
+          const result = await db.select().from(employees).where(
+            and(eq(employees.cpf, input.cpf), eq(employees.matricula, input.matricula))
+          ).limit(1);
+          const employee = result[0];
 
           if (!employee) {
             return { success: false, error: "CPF ou matrícula inválidos" };
@@ -162,9 +160,8 @@ export const appRouter = router({
           return { success: false, error: "Banco de dados não disponível" };
         }
 
-        const employee = await db.query.employees.findFirst({
-          where: (employeesTable, { eq }) => eq(employeesTable.id, input.id),
-        });
+        const employeeResult = await db.select().from(employees).where(eq(employees.id, input.id)).limit(1);
+        const employee = employeeResult[0];
 
         if (!employee) {
           return { success: false, error: "Funcionário não encontrado" };

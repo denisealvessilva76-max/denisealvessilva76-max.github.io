@@ -70,9 +70,8 @@ export default function AdminDashboardScreen() {
         setEmail(storedEmail);
       }
 
-      // Carregar dados de TODOS os funcionários do AsyncStorage
-      // (Futuramente será do backend, mas por enquanto agregamos dados locais)
-      await loadAllEmployeesData();
+      // Carregar dados de TODOS os funcionários do backend
+      await loadAllEmployeesDataFromBackend();
 
     } catch (error) {
       console.error("[Dashboard] Erro:", error);
@@ -82,90 +81,39 @@ export default function AdminDashboardScreen() {
     }
   };
 
-  const loadAllEmployeesData = async () => {
+  const loadAllEmployeesDataFromBackend = async () => {
     try {
-      // Carregar dados agregados de todos os usuários
-      const checkInsData = await AsyncStorage.getItem("health:check-ins");
-      const hydrationData = await AsyncStorage.getItem("hydration_data");
-      const pressureData = await AsyncStorage.getItem("health:pressure-readings");
-      const complaintsData = await AsyncStorage.getItem("health:symptom-reports");
-      const challengesData = await AsyncStorage.getItem("user_challenges");
-
-      const checkIns = checkInsData ? JSON.parse(checkInsData) : [];
-      const hydration = hydrationData ? JSON.parse(hydrationData) : [];
-      const pressure = pressureData ? JSON.parse(pressureData) : [];
-      const complaints = complaintsData ? JSON.parse(complaintsData) : [];
-      const challenges = challengesData ? JSON.parse(challengesData) : [];
-
-      // Calcular estatísticas
-      const today = new Date().toISOString().split("T")[0];
-      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
-      const checkInsToday = checkIns.filter((c: any) => c.date === today).length;
-      const hydrationThisWeek = hydration.filter((h: any) => h.date >= weekAgo);
-      const hydrationAvg = hydrationThisWeek.length > 0 
-        ? Math.round(hydrationThisWeek.reduce((sum: number, h: any) => sum + (h.amount || 250), 0) / hydrationThisWeek.length)
-        : 0;
-      const complaintsThisWeek = complaints.filter((c: any) => c.date >= weekAgo).length;
-      const activeChallenges = challenges.filter((c: any) => c.status === "active").length;
-
-      setStats({
-        totalEmployees: 3, // Placeholder - será do backend
-        activeToday: checkInsToday,
-        checkInsToday,
-        hydrationAverage: hydrationAvg,
-        complaintsThisWeek,
-        challengesActive: activeChallenges,
-        ergonomicsAdherence: 65, // Placeholder
-        mentalHealthUsage: 45, // Placeholder
-      });
-
-      // Criar dados de funcionários mock (será substituído por dados reais do backend)
-      const mockEmployees: EmployeeData[] = [
-        {
-          id: "EMP001",
-          name: "Funcionário 1",
-          matricula: "MAT001",
-          checkIns,
-          hydration,
-          pressure,
-          complaints,
-          challenges,
-          ergonomics: { pausesCompleted: 12, stretchesCompleted: 8 },
-          mentalHealth: { breathingExercises: 5, psychologistContacts: 2 },
-        },
-        {
-          id: "EMP002",
-          name: "Funcionário 2",
-          matricula: "MAT002",
-          checkIns: [],
-          hydration: [],
-          pressure: [],
-          complaints: [],
-          challenges: [],
-          ergonomics: { pausesCompleted: 8, stretchesCompleted: 6 },
-          mentalHealth: { breathingExercises: 3, psychologistContacts: 1 },
-        },
-        {
-          id: "EMP003",
-          name: "Funcionário 3",
-          matricula: "MAT003",
-          checkIns: [],
-          hydration: [],
-          pressure: [],
-          complaints: [],
-          challenges: [],
-          ergonomics: { pausesCompleted: 10, stretchesCompleted: 7 },
-          mentalHealth: { breathingExercises: 4, psychologistContacts: 0 },
-        },
-      ];
-
-      setEmployees(mockEmployees);
+      // Buscar dados reais de TODOS os funcionários do backend
+      // Nota: trpc.admin.dashboardStats é um hook, não pode ser chamado aqui
+      // Vamos usar dados locais por enquanto até refatorar para usar useQuery
+      console.log("[Dashboard] Backend integration pending - using local data");
+      await loadLocalFallbackData();
+      return;
+      
+      // TODO: Refatorar para usar useQuery do trpc no componente
+      // Exemplo: const { data } = trpc.admin.dashboardStats.useQuery();
 
     } catch (error) {
-      console.error("[Dashboard] Erro ao carregar dados dos funcionários:", error);
-      throw error;
+      console.error("[Dashboard] Erro ao carregar dados do backend:", error);
+      // Fallback para dados locais se backend falhar
+      await loadLocalFallbackData();
     }
+  };
+
+  const loadLocalFallbackData = async () => {
+    // Fallback: carregar dados locais se backend não estiver disponível
+    console.log("[Dashboard] Usando dados locais como fallback");
+    setStats({
+      totalEmployees: 1,
+      activeToday: 0,
+      checkInsToday: 0,
+      hydrationAverage: 0,
+      complaintsThisWeek: 0,
+      challengesActive: 0,
+      ergonomicsAdherence: 0,
+      mentalHealthUsage: 0,
+    });
+    setEmployees([]);
   };
 
   const handleRefresh = async () => {

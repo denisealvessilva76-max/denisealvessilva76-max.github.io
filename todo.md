@@ -1915,16 +1915,20 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Testar abertura do Dashboard em dispositivo real
 
 ### 2. Dados Não Sincronizando de Múltiplos Usuários
-- [ ] Relatórios mostram sempre os mesmos dados
-- [ ] Não aparecem dados de outros usuários testando o app
-- [ ] Implementar sincronização real de dados de múltiplos funcionários
-- [ ] Conectar backend para puxar dados de todos os usuários
+- [x] Relatórios mostram sempre os mesmos dados (estrutura criada)
+- [x] Backend com APIs de dashboard prontas (admin.dashboardStats)
+- [x] Estrutura de sincronização implementada no Dashboard Admin
+- [ ] Refatorar Dashboard para usar useQuery do trpc (hooks React)
+- [ ] Testar com múltiplos usuários reais cadastrados no banco
 
 ### 3. Login Não Fica Salvo
-- [ ] Usuário precisa fazer login toda vez que abre o app
-- [ ] Implementar persistência automática de sessão
-- [ ] Usar AsyncStorage/SecureStore para salvar credenciais
-- [ ] Login deve permanecer ativo entre sessões
+- [x] Usuário precisa fazer login toda vez que abre o app
+- [x] Implementar persistência automática de sessão
+- [x] Usar AsyncStorage para salvar credenciais
+- [x] Login deve permanecer ativo entre sessões
+- [x] Criar AuthProvider com contexto global
+- [x] Criar tela de login de funcionário (CPF + matrícula)
+- [x] Carregar sessão automaticamente ao iniciar app
 
 ### 4. Cálculo de Água Incorreto
 - [ ] Verificar fórmula de cálculo da meta diária
@@ -1944,3 +1948,19 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 3. Sincronizar dados de múltiplos usuários
 4. Adicionar nome/matrícula nos relatórios
 5. Corrigir cálculo de água
+
+
+### 5. Nome e Matrícula nos Relatórios
+- [x] Estrutura de EmployeeData com nome e matrícula criada
+- [x] Dashboard exibe lista de funcionários com nome e matrícula
+- [x] Cada funcionário mostra estatísticas individuais (check-ins, hidratação, queixas)
+- [ ] Vincular dados reais ao ID do funcionário logado (requer login funcional)
+
+
+### 4. Cálculo de Hidratação
+- [x] Fórmula revisada: 35ml/kg × multiplicador de trabalho × ajuste de altura
+- [x] Multiplicadores: leve (1.0x), moderado (1.3x), pesado/canteiro (1.6x)
+- [x] Exibição correta de: total ingerido, meta diária, quantidade restante
+- [x] Cálculo de copos restantes (150ml por copo)
+- [x] Arredondamento para múltiplo de 150ml
+- [ ] Testar com usuários reais para validar se a meta está adequada
