@@ -1,9 +1,10 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState } from "react";
 import { useColors } from "@/hooks/use-colors";
 import { useAuth } from "@/lib/auth-context";
+import { trpc } from "@/lib/trpc";
 
 export default function EmployeeLoginScreen() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function EmployeeLoginScreen() {
     return cpf;
   };
 
+  const loginMutation = trpc.employeeAuth.login.useMutation();
+
   const handleLogin = async () => {
     if (!cpf || !matricula) {
       Alert.alert("Erro", "Por favor, preencha CPF e matrícula");
@@ -31,13 +34,34 @@ export default function EmployeeLoginScreen() {
     }
 
     setIsLoading(true);
-    const success = await login(cpf, matricula);
-    setIsLoading(false);
 
-    if (success) {
-      router.replace("/(tabs)");
-    } else {
-      Alert.alert("Erro", "CPF ou matrícula inválidos");
+    try {
+      const cleanCPF = cpf.replace(/\D/g, "");
+      
+      const result = await loginMutation.mutateAsync({
+        cpf: cleanCPF,
+        matricula: matricula.trim(),
+      });
+
+      if (result.success && result.employee) {
+        await login({
+          id: String(result.employee.id),
+          name: result.employee.nome,
+          cpf: result.employee.cpf,
+          matricula: result.employee.matricula,
+          setor: result.employee.setor || undefined,
+          cargo: result.employee.cargo || undefined,
+        });
+
+        router.replace("/(tabs)");
+      } else {
+        Alert.alert("Erro", result.error || "CPF ou matrícula inválidos");
+      }
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error);
+      Alert.alert("Erro", error.message || "Não foi possível fazer login. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

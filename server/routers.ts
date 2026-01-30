@@ -29,15 +29,14 @@ export const appRouter = router({
     register: publicProcedure
       .input(
         z.object({
+          name: z.string(),
           cpf: z.string().length(11), // CPF sem pontos/traços
           matricula: z.string(),
-          nome: z.string(),
-          setor: z.string().optional(),
-          cargo: z.string().optional(),
-          email: z.string().email().optional(),
-          telefone: z.string().optional(),
-          peso: z.number().optional(),
-          altura: z.number().optional(),
+          weight: z.number(),
+          height: z.number(),
+          setor: z.string(),
+          cargo: z.string(),
+          workType: z.enum(["leve", "moderado", "pesado"]),
         })
       )
       .mutation(async ({ input }) => {
@@ -66,6 +65,18 @@ export const appRouter = router({
           // Gerar workerId único
           const workerId = `EMP-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
+          // Calcular meta de hidratação
+          let hydrationGoal = input.weight * 35;
+          const workMultiplier = {
+            leve: 1.0,
+            moderado: 1.3,
+            pesado: 1.6,
+          };
+          hydrationGoal *= workMultiplier[input.workType];
+          if (input.height > 180) hydrationGoal *= 1.1;
+          else if (input.height < 160) hydrationGoal *= 0.95;
+          hydrationGoal = Math.round(hydrationGoal / 150) * 150;
+
           // Criar funcionário
           const [newEmployee] = await db
             .insert(employees)
@@ -73,21 +84,26 @@ export const appRouter = router({
               cpf: input.cpf,
               matricula: input.matricula,
               workerId,
-              name: input.nome,
+              name: input.name,
               department: input.setor,
               position: input.cargo,
-              email: input.email,
-              weight: input.peso,
-              height: input.altura,
+              weight: input.weight,
+              height: input.height,
+              workType: input.workType,
             });
 
           return {
             success: true,
+            message: "Cadastro realizado com sucesso!",
             employee: {
               id: newEmployee.insertId,
               cpf: input.cpf,
-              nome: input.nome,
+              matricula: input.matricula,
+              name: input.name,
+              setor: input.setor,
+              cargo: input.cargo,
               workerId,
+              hydrationGoal,
             },
           };
         } catch (error) {

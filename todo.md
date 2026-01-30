@@ -1964,3 +1964,17 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Cálculo de copos restantes (150ml por copo)
 - [x] Arredondamento para múltiplo de 150ml
 - [ ] Testar com usuários reais para validar se a meta está adequada
+
+
+---
+
+## 🚀 NOVA FUNCIONALIDADE: Cadastro Inicial de Funcionário
+
+### Requisito:
+- [ ] Criar tela de cadastro inicial (primeiro acesso)
+- [ ] Campos: nome completo, CPF, matrícula, peso, altura, setor, cargo, tipo de trabalho
+- [ ] Validação de CPF e matrícula
+- [ ] Sincronização automática com backend ao completar cadastro
+- [ ] Funcionário aparece imediatamente no Dashboard Admin
+- [ ] Login persistente após cadastro (não pedir novamente)
+- [ ] Cálculo automático de meta de hidratação baseado nos dados

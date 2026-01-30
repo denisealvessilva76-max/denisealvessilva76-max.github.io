@@ -15,7 +15,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (cpf: string, matricula: string) => Promise<boolean>;
+  login: (userData: User) => Promise<boolean>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
 }
@@ -44,30 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (cpf: string, matricula: string): Promise<boolean> => {
+  const login = async (userData: User): Promise<boolean> => {
     try {
-      // Validação simples (futuramente será API)
-      const cleanCPF = cpf.replace(/\D/g, "");
-      const cleanMatricula = matricula.trim();
-
-      if (cleanCPF.length !== 11) {
-        return false;
-      }
-
-      if (cleanMatricula.length < 3) {
-        return false;
-      }
-
-      // Criar usuário (futuramente virá do backend)
-      const userData: User = {
-        id: `user_${cleanCPF}`,
-        name: `Funcionário ${cleanMatricula}`,
-        cpf: cleanCPF,
-        matricula: cleanMatricula,
-        setor: "Geral",
-        cargo: "Funcionário",
-      };
-
       // Salvar sessão
       await AsyncStorage.setItem("user_session", JSON.stringify(userData));
       setUser(userData);

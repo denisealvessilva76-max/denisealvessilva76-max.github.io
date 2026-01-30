@@ -43,6 +43,9 @@ export default function AdminDashboardScreen() {
   const [activeTab, setActiveTab] = useState<"overview" | "hydration" | "pressure" | "complaints" | "challenges" | "ergonomics" | "mental" | "monthly">("overview");
   const [error, setError] = useState<string | null>(null);
 
+  // Buscar lista de funcionários cadastrados
+  const employeesQuery = trpc.adminExtended.listEmployees.useQuery();
+
   useEffect(() => {
     // Carregar dados com tratamento de erro robusto
     loadDashboardData().catch((err) => {
