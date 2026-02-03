@@ -1978,3 +1978,22 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Funcionário aparece imediatamente no Dashboard Admin
 - [ ] Login persistente após cadastro (não pedir novamente)
 - [ ] Cálculo automático de meta de hidratação baseado nos dados
+
+
+---
+
+## 🐛 BUGS CRÍTICOS URGENTES (30/01/2026)
+
+### PRIORIDADE MÁXIMA - IMPEDEM MONITORAMENTO:
+- [x] **Dashboard Admin fecha o app ao abrir** - Crash completo, impossível acessar dados (CORRIGIDO: Reescrito sem trpc.useQuery problemático)
+- [ ] **Dados de usuários NÃO aparecem no Dashboard** - Não sincroniza dados reais de múltiplos usuários
+- [x] **Login admin em loop infinito** - Aperta "Entrar" e volta para tela de senha (CORRIGIDO: Substituído SecureStore por AsyncStorage)
+- [x] **Dados pessoais não salvam** - Ao sair do app, dados são perdidos (VERIFICADO: AsyncStorage já persiste dados localmente)
+- [x] **Acesso admin não fica salvo** - Precisa fazer login toda vez (CORRIGIDO: AsyncStorage persiste sessão)
+
+### SECUNDÁRIO:
+- [ ] Som de guia para alongamentos
+- [ ] Backup automático de dados
+
+### OBJETIVO CRÍTICO:
+**O app PRECISA mostrar dados de TODOS os usuários no Dashboard Admin para ter utilidade. Sem isso, não há como apresentar a ferramenta de monitoramento.**

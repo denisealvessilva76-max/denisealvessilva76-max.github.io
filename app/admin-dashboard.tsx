@@ -1,24 +1,10 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, TextInput, Alert, Platform } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState, useEffect } from "react";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { trpc } from "@/lib/trpc";
-
-interface EmployeeData {
-  id: string;
-  name: string;
-  matricula: string;
-  checkIns: Array<{ date: string; status: string }>;
-  hydration: Array<{ date: string; amount: number; goal: number }>;
-  pressure: Array<{ date: string; systolic: number; diastolic: number }>;
-  complaints: Array<{ date: string; type: string; details: string; severity: string }>;
-  challenges: Array<{ id: string; name: string; progress: number; completed: boolean }>;
-  ergonomics: { pausesCompleted: number; stretchesCompleted: number };
-  mentalHealth: { breathingExercises: number; psychologistContacts: number };
-}
 
 interface DashboardStats {
   totalEmployees: number;
@@ -31,6 +17,18 @@ interface DashboardStats {
   mentalHealthUsage: number;
 }
 
+interface EmployeeRecord {
+  id: string;
+  name: string;
+  matricula: string;
+  lastCheckIn: string | null;
+  hydrationToday: number;
+  hydrationGoal: number;
+  lastPressure: { systolic: number; diastolic: number } | null;
+  complaintsCount: number;
+  challengesActive: number;
+}
+
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const colors = useColors();
@@ -38,27 +36,26 @@ export default function AdminDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const [email, setEmail] = useState("");
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [employees, setEmployees] = useState<EmployeeData[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "hydration" | "pressure" | "complaints" | "challenges" | "ergonomics" | "mental" | "monthly">("overview");
-  const [error, setError] = useState<string | null>(null);
-
-  // Buscar lista de funcionários cadastrados
-  const employeesQuery = trpc.adminExtended.listEmployees.useQuery();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalEmployees: 0,
+    activeToday: 0,
+    checkInsToday: 0,
+    hydrationAverage: 0,
+    complaintsThisWeek: 0,
+    challengesActive: 0,
+    ergonomicsAdherence: 0,
+    mentalHealthUsage: 0,
+  });
+  const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "employees" | "reports">("overview");
 
   useEffect(() => {
-    // Carregar dados com tratamento de erro robusto
-    loadDashboardData().catch((err) => {
-      console.error("[Dashboard] Erro ao carregar:", err);
-      setError("Erro ao carregar dados. Tente novamente.");
-      setIsLoading(false);
-    });
-  }, [period]);
+    checkAuthAndLoadData();
+  }, []);
 
-  const loadDashboardData = async () => {
+  const checkAuthAndLoadData = async () => {
     try {
       setIsLoading(true);
-      setError(null);
 
       // Verificar autenticação admin
       const isAuth = await AsyncStorage.getItem("admin_authenticated");
@@ -73,53 +70,127 @@ export default function AdminDashboardScreen() {
         setEmail(storedEmail);
       }
 
-      // Carregar dados de TODOS os funcionários do backend
-      await loadAllEmployeesDataFromBackend();
+      // Carregar dados
+      await loadDashboardData();
 
     } catch (error) {
-      console.error("[Dashboard] Erro:", error);
-      setError("Erro ao carregar dados");
+      console.error("[Dashboard] Erro ao verificar autenticação:", error);
+      Alert.alert("Erro", "Erro ao carregar dashboard. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadAllEmployeesDataFromBackend = async () => {
+  const loadDashboardData = async () => {
     try {
-      // Buscar dados reais de TODOS os funcionários do backend
-      // Nota: trpc.admin.dashboardStats é um hook, não pode ser chamado aqui
-      // Vamos usar dados locais por enquanto até refatorar para usar useQuery
-      console.log("[Dashboard] Backend integration pending - using local data");
-      await loadLocalFallbackData();
-      return;
-      
-      // TODO: Refatorar para usar useQuery do trpc no componente
-      // Exemplo: const { data } = trpc.admin.dashboardStats.useQuery();
+      // Buscar dados de TODOS os funcionários cadastrados
+      const employeesData = await loadAllEmployeesFromStorage();
+      setEmployees(employeesData);
+
+      // Calcular estatísticas
+      const calculatedStats = calculateStats(employeesData);
+      setStats(calculatedStats);
 
     } catch (error) {
-      console.error("[Dashboard] Erro ao carregar dados do backend:", error);
-      // Fallback para dados locais se backend falhar
-      await loadLocalFallbackData();
+      console.error("[Dashboard] Erro ao carregar dados:", error);
+      Alert.alert("Erro", "Erro ao carregar dados dos funcionários.");
     }
   };
 
-  const loadLocalFallbackData = async () => {
-    // Fallback: carregar dados locais se backend não estiver disponível
-    console.log("[Dashboard] Usando dados locais como fallback");
-    setStats({
-      totalEmployees: 1,
-      activeToday: 0,
-      checkInsToday: 0,
-      hydrationAverage: 0,
-      complaintsThisWeek: 0,
-      challengesActive: 0,
-      ergonomicsAdherence: 0,
-      mentalHealthUsage: 0,
-    });
-    setEmployees([]);
+  const loadAllEmployeesFromStorage = async (): Promise<EmployeeRecord[]> => {
+    try {
+      // Buscar lista de IDs de funcionários cadastrados
+      const employeeIdsStr = await AsyncStorage.getItem("employee_ids");
+      if (!employeeIdsStr) {
+        console.log("[Dashboard] Nenhum funcionário cadastrado ainda");
+        return [];
+      }
+
+      const employeeIds: string[] = JSON.parse(employeeIdsStr);
+      console.log(`[Dashboard] Encontrados ${employeeIds.length} funcionários cadastrados`);
+
+      const employeesData: EmployeeRecord[] = [];
+
+      for (const empId of employeeIds) {
+        try {
+          // Buscar dados do funcionário
+          const empDataStr = await AsyncStorage.getItem(`employee_${empId}`);
+          if (!empDataStr) continue;
+
+          const empData = JSON.parse(empDataStr);
+
+          // Buscar check-ins
+          const checkInsStr = await AsyncStorage.getItem(`check_ins_${empId}`);
+          const checkIns = checkInsStr ? JSON.parse(checkInsStr) : [];
+          const today = new Date().toISOString().split("T")[0];
+          const lastCheckIn = checkIns.find((c: any) => c.date === today);
+
+          // Buscar hidratação
+          const hydrationStr = await AsyncStorage.getItem(`hydration_${empId}`);
+          const hydration = hydrationStr ? JSON.parse(hydrationStr) : { intake: 0, goal: 2000 };
+
+          // Buscar pressão
+          const pressureStr = await AsyncStorage.getItem(`pressure_${empId}`);
+          const pressureRecords = pressureStr ? JSON.parse(pressureStr) : [];
+          const lastPressure = pressureRecords.length > 0 ? pressureRecords[pressureRecords.length - 1] : null;
+
+          // Buscar queixas
+          const complaintsStr = await AsyncStorage.getItem(`complaints_${empId}`);
+          const complaints = complaintsStr ? JSON.parse(complaintsStr) : [];
+
+          // Buscar desafios
+          const challengesStr = await AsyncStorage.getItem(`challenges_${empId}`);
+          const challenges = challengesStr ? JSON.parse(challengesStr) : [];
+          const activeChallenges = challenges.filter((c: any) => c.status === "active");
+
+          employeesData.push({
+            id: empId,
+            name: empData.name || "Sem nome",
+            matricula: empData.matricula || "Sem matrícula",
+            lastCheckIn: lastCheckIn ? lastCheckIn.status : null,
+            hydrationToday: hydration.intake || 0,
+            hydrationGoal: hydration.goal || 2000,
+            lastPressure: lastPressure ? { systolic: lastPressure.systolic, diastolic: lastPressure.diastolic } : null,
+            complaintsCount: complaints.length,
+            challengesActive: activeChallenges.length,
+          });
+
+        } catch (error) {
+          console.error(`[Dashboard] Erro ao carregar dados do funcionário ${empId}:`, error);
+        }
+      }
+
+      return employeesData;
+
+    } catch (error) {
+      console.error("[Dashboard] Erro ao buscar funcionários:", error);
+      return [];
+    }
   };
 
-  const handleRefresh = async () => {
+  const calculateStats = (employeesData: EmployeeRecord[]): DashboardStats => {
+    const totalEmployees = employeesData.length;
+    const activeToday = employeesData.filter(e => e.lastCheckIn !== null).length;
+    const checkInsToday = activeToday;
+    const hydrationAverage = totalEmployees > 0
+      ? Math.round(employeesData.reduce((sum, e) => sum + (e.hydrationToday / e.hydrationGoal * 100), 0) / totalEmployees)
+      : 0;
+    const complaintsThisWeek = employeesData.reduce((sum, e) => sum + e.complaintsCount, 0);
+    const challengesActive = employeesData.reduce((sum, e) => sum + e.challengesActive, 0);
+
+    return {
+      totalEmployees,
+      activeToday,
+      checkInsToday,
+      hydrationAverage,
+      complaintsThisWeek,
+      challengesActive,
+      ergonomicsAdherence: 0, // TODO: Implementar
+      mentalHealthUsage: 0, // TODO: Implementar
+    };
+  };
+
+  const onRefresh = async () => {
     setRefreshing(true);
     await loadDashboardData();
     setRefreshing(false);
@@ -136,144 +207,237 @@ export default function AdminDashboardScreen() {
   };
 
   const handleExportPDF = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert("Exportar PDF", "Funcionalidade em desenvolvimento");
   };
 
   const handleSendEmail = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert("Enviar Email", "Funcionalidade em desenvolvimento");
   };
 
   if (isLoading) {
     return (
-      <ScreenContainer className="flex-1 items-center justify-center">
+      <ScreenContainer className="items-center justify-center">
         <Text className="text-foreground text-lg">Carregando dashboard...</Text>
       </ScreenContainer>
     );
   }
 
-  if (error) {
-    return (
-      <ScreenContainer className="flex-1 items-center justify-center p-6">
-        <Text className="text-error text-lg mb-4">{error}</Text>
-        <TouchableOpacity
-          onPress={loadDashboardData}
-          className="bg-primary px-6 py-3 rounded-lg"
-        >
-          <Text className="text-background font-semibold">Tentar Novamente</Text>
-        </TouchableOpacity>
-      </ScreenContainer>
-    );
-  }
-
   return (
-    <ScreenContainer className="flex-1">
+    <ScreenContainer>
       <ScrollView
         className="flex-1"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
         {/* Header */}
-        <View className="p-6 bg-primary">
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-background text-2xl font-bold">Dashboard SESMT</Text>
-            <TouchableOpacity onPress={handleLogout}>
-              <Text className="text-background text-sm">Sair</Text>
-            </TouchableOpacity>
-          </View>
-          <Text className="text-background/80 text-sm">{email || "Administrador"}</Text>
-        </View>
-
-        {/* Filtro de Período */}
-        <View className="flex-row p-4 gap-2">
-          {(["week", "month", "quarter"] as const).map((p) => (
+        <View className="p-4 border-b" style={{ borderBottomColor: colors.border }}>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text className="text-2xl font-bold text-foreground">Dashboard Admin</Text>
+              <Text className="text-sm text-muted mt-1">{email}</Text>
+            </View>
             <TouchableOpacity
-              key={p}
-              onPress={() => setPeriod(p)}
-              className={`flex-1 py-2 px-4 rounded-lg ${period === p ? "bg-primary" : "bg-surface"}`}
+              onPress={handleLogout}
+              className="bg-error px-4 py-2 rounded-lg"
+              style={{ opacity: 0.9 }}
             >
-              <Text className={`text-center font-semibold ${period === p ? "text-background" : "text-foreground"}`}>
-                {p === "week" ? "Semana" : p === "month" ? "Mês" : "Trimestre"}
-              </Text>
+              <Text className="text-white font-semibold">Sair</Text>
             </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Estatísticas Gerais */}
-        {stats && (
-          <View className="p-4">
-            <Text className="text-foreground text-xl font-bold mb-4">Visão Geral</Text>
-            <View className="flex-row flex-wrap gap-3">
-              <View className="bg-surface p-4 rounded-lg flex-1 min-w-[45%]">
-                <Text className="text-muted text-sm">Total de Funcionários</Text>
-                <Text className="text-foreground text-2xl font-bold">{stats.totalEmployees}</Text>
-              </View>
-              <View className="bg-surface p-4 rounded-lg flex-1 min-w-[45%]">
-                <Text className="text-muted text-sm">Ativos Hoje</Text>
-                <Text className="text-foreground text-2xl font-bold">{stats.activeToday}</Text>
-              </View>
-              <View className="bg-surface p-4 rounded-lg flex-1 min-w-[45%]">
-                <Text className="text-muted text-sm">Check-ins Hoje</Text>
-                <Text className="text-foreground text-2xl font-bold">{stats.checkInsToday}</Text>
-              </View>
-              <View className="bg-surface p-4 rounded-lg flex-1 min-w-[45%]">
-                <Text className="text-muted text-sm">Hidratação Média</Text>
-                <Text className="text-foreground text-2xl font-bold">{stats.hydrationAverage}ml</Text>
-              </View>
-              <View className="bg-surface p-4 rounded-lg flex-1 min-w-[45%]">
-                <Text className="text-muted text-sm">Queixas (Semana)</Text>
-                <Text className="text-foreground text-2xl font-bold">{stats.complaintsThisWeek}</Text>
-              </View>
-              <View className="bg-surface p-4 rounded-lg flex-1 min-w-[45%]">
-                <Text className="text-muted text-sm">Desafios Ativos</Text>
-                <Text className="text-foreground text-2xl font-bold">{stats.challengesActive}</Text>
-              </View>
-            </View>
           </View>
-        )}
-
-        {/* Lista de Funcionários */}
-        <View className="p-4">
-          <Text className="text-foreground text-xl font-bold mb-4">Funcionários</Text>
-          {employees.map((emp) => (
-            <View key={emp.id} className="bg-surface p-4 rounded-lg mb-3">
-              <Text className="text-foreground font-bold text-lg">{emp.name}</Text>
-              <Text className="text-muted text-sm">Matrícula: {emp.matricula}</Text>
-              <View className="flex-row gap-4 mt-2">
-                <Text className="text-muted text-xs">Check-ins: {emp.checkIns.length}</Text>
-                <Text className="text-muted text-xs">Hidratação: {emp.hydration.length} registros</Text>
-                <Text className="text-muted text-xs">Queixas: {emp.complaints.length}</Text>
-              </View>
-            </View>
-          ))}
         </View>
 
-        {/* Ações Rápidas */}
-        <View className="p-4 gap-3 mb-6">
+        {/* Tabs */}
+        <View className="flex-row p-2 border-b" style={{ borderBottomColor: colors.border }}>
           <TouchableOpacity
-            onPress={handleExportPDF}
-            className="bg-primary py-4 px-6 rounded-lg"
+            onPress={() => {
+              setActiveTab("overview");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            className="flex-1 py-3 rounded-lg mx-1"
+            style={{ backgroundColor: activeTab === "overview" ? colors.primary : colors.surface }}
           >
-            <Text className="text-background text-center font-semibold">Exportar Relatório PDF</Text>
+            <Text
+              className="text-center font-semibold"
+              style={{ color: activeTab === "overview" ? "#fff" : colors.foreground }}
+            >
+              Visão Geral
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={handleSendEmail}
-            className="bg-surface py-4 px-6 rounded-lg border border-border"
+            onPress={() => {
+              setActiveTab("employees");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            className="flex-1 py-3 rounded-lg mx-1"
+            style={{ backgroundColor: activeTab === "employees" ? colors.primary : colors.surface }}
           >
-            <Text className="text-foreground text-center font-semibold">Enviar Relatório por Email</Text>
+            <Text
+              className="text-center font-semibold"
+              style={{ color: activeTab === "employees" ? "#fff" : colors.foreground }}
+            >
+              Funcionários
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => router.push("/admin-alerts")}
-            className="bg-warning py-4 px-6 rounded-lg"
+            onPress={() => {
+              setActiveTab("reports");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            className="flex-1 py-3 rounded-lg mx-1"
+            style={{ backgroundColor: activeTab === "reports" ? colors.primary : colors.surface }}
           >
-            <Text className="text-background text-center font-semibold">Ver Alertas Críticos</Text>
+            <Text
+              className="text-center font-semibold"
+              style={{ color: activeTab === "reports" ? "#fff" : colors.foreground }}
+            >
+              Relatórios
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push("/admin-challenge-photos")}
-            className="bg-surface py-4 px-6 rounded-lg border border-border"
-          >
-            <Text className="text-foreground text-center font-semibold">Fotos dos Desafios</Text>
-          </TouchableOpacity>
+        </View>
+
+        {/* Content */}
+        <View className="p-4">
+          {activeTab === "overview" && (
+            <View>
+              <Text className="text-xl font-bold text-foreground mb-4">Estatísticas Gerais</Text>
+
+              {/* Cards de estatísticas */}
+              <View className="flex-row flex-wrap">
+                <View className="w-1/2 p-2">
+                  <View className="bg-surface p-4 rounded-lg">
+                    <Text className="text-muted text-sm">Total de Funcionários</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.totalEmployees}</Text>
+                  </View>
+                </View>
+
+                <View className="w-1/2 p-2">
+                  <View className="bg-surface p-4 rounded-lg">
+                    <Text className="text-muted text-sm">Ativos Hoje</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.activeToday}</Text>
+                  </View>
+                </View>
+
+                <View className="w-1/2 p-2">
+                  <View className="bg-surface p-4 rounded-lg">
+                    <Text className="text-muted text-sm">Check-ins Hoje</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.checkInsToday}</Text>
+                  </View>
+                </View>
+
+                <View className="w-1/2 p-2">
+                  <View className="bg-surface p-4 rounded-lg">
+                    <Text className="text-muted text-sm">Hidratação Média</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.hydrationAverage}%</Text>
+                  </View>
+                </View>
+
+                <View className="w-1/2 p-2">
+                  <View className="bg-surface p-4 rounded-lg">
+                    <Text className="text-muted text-sm">Queixas (Semana)</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.complaintsThisWeek}</Text>
+                  </View>
+                </View>
+
+                <View className="w-1/2 p-2">
+                  <View className="bg-surface p-4 rounded-lg">
+                    <Text className="text-muted text-sm">Desafios Ativos</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.challengesActive}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {activeTab === "employees" && (
+            <View>
+              <Text className="text-xl font-bold text-foreground mb-4">
+                Lista de Funcionários ({employees.length})
+              </Text>
+
+              {employees.length === 0 ? (
+                <View className="bg-surface p-6 rounded-lg items-center">
+                  <Text className="text-muted text-center">
+                    Nenhum funcionário cadastrado ainda.{"\n"}
+                    Os funcionários aparecerão aqui após se cadastrarem no app.
+                  </Text>
+                </View>
+              ) : (
+                employees.map((emp) => (
+                  <View key={emp.id} className="bg-surface p-4 rounded-lg mb-3">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-1">
+                        <Text className="text-foreground font-bold text-lg">{emp.name}</Text>
+                        <Text className="text-muted text-sm">Matrícula: {emp.matricula}</Text>
+                      </View>
+                      <View
+                        className="px-3 py-1 rounded-full"
+                        style={{
+                          backgroundColor: emp.lastCheckIn ? colors.success : colors.error,
+                          opacity: 0.2,
+                        }}
+                      >
+                        <Text
+                          className="text-xs font-semibold"
+                          style={{ color: emp.lastCheckIn ? colors.success : colors.error }}
+                        >
+                          {emp.lastCheckIn ? "Ativo" : "Inativo"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="mt-2 space-y-1">
+                      <Text className="text-muted text-sm">
+                        Hidratação: {emp.hydrationToday}ml / {emp.hydrationGoal}ml (
+                        {Math.round((emp.hydrationToday / emp.hydrationGoal) * 100)}%)
+                      </Text>
+                      {emp.lastPressure && (
+                        <Text className="text-muted text-sm">
+                          Pressão: {emp.lastPressure.systolic}/{emp.lastPressure.diastolic} mmHg
+                        </Text>
+                      )}
+                      <Text className="text-muted text-sm">Queixas: {emp.complaintsCount}</Text>
+                      <Text className="text-muted text-sm">Desafios ativos: {emp.challengesActive}</Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+
+          {activeTab === "reports" && (
+            <View>
+              <Text className="text-xl font-bold text-foreground mb-4">Relatórios</Text>
+
+              <View className="space-y-3">
+                <TouchableOpacity
+                  onPress={handleExportPDF}
+                  className="bg-primary p-4 rounded-lg"
+                  style={{ opacity: 0.9 }}
+                >
+                  <Text className="text-white font-semibold text-center">Exportar PDF</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleSendEmail}
+                  className="bg-primary p-4 rounded-lg"
+                  style={{ opacity: 0.9 }}
+                >
+                  <Text className="text-white font-semibold text-center">Enviar por Email</Text>
+                </TouchableOpacity>
+
+                <View className="bg-surface p-4 rounded-lg">
+                  <Text className="text-muted text-sm text-center">
+                    Funcionalidades de relatório em desenvolvimento
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>

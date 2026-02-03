@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState } from "react";
 import { useColors } from "@/hooks/use-colors";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 
 export default function AdminLoginScreen() {
@@ -27,27 +27,28 @@ export default function AdminLoginScreen() {
       const ADMIN_PASSWORD = "1234";
 
       console.log("[LOGIN] Tentativa de login:", { email, password });
-      console.log("[LOGIN] Credenciais esperadas:", { ADMIN_EMAIL, ADMIN_PASSWORD });
 
       // Verificar credenciais localmente (case-insensitive para email)
-      if (email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
+      if (email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase() && password.trim() === ADMIN_PASSWORD) {
         console.log("[LOGIN] Credenciais corretas!");
-        // Gerar token local simples
-        const localToken = `local_${Date.now()}_${Math.random().toString(36)}`;
-
-        // Salvar token e email no SecureStore
-        await SecureStore.setItemAsync("admin_token", localToken);
-        await SecureStore.setItemAsync("admin_email", email);
-        await SecureStore.setItemAsync("admin_authenticated", "true");
+        
+        // Salvar autenticação no AsyncStorage (compatível com Dashboard)
+        await AsyncStorage.setItem("admin_authenticated", "true");
+        await AsyncStorage.setItem("admin_email", email.toLowerCase().trim());
+        await AsyncStorage.setItem("admin_login_time", new Date().toISOString());
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
+        console.log("[LOGIN] Navegando para dashboard...");
+        
         // Navegar para dashboard
         router.replace("/admin-dashboard");
       } else {
+        console.log("[LOGIN] Credenciais incorretas");
         throw new Error("Email ou senha incorretos");
       }
     } catch (error) {
+      console.error("[LOGIN] Erro:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert(
         "Erro de Autenticação",
@@ -75,9 +76,14 @@ export default function AdminLoginScreen() {
               <Text className="text-base text-muted text-center">
                 Visualize dados de saúde dos empregados
               </Text>
-              <Text className="text-sm text-muted text-center mt-2">
-                🔑 Login: admin | Senha: 1234
-              </Text>
+              <View className="bg-surface p-3 rounded-lg mt-2">
+                <Text className="text-sm text-foreground text-center font-semibold">
+                  🔑 Login: admin
+                </Text>
+                <Text className="text-sm text-foreground text-center font-semibold">
+                  🔑 Senha: 1234
+                </Text>
+              </View>
             </View>
 
             {/* Formulário */}
@@ -86,13 +92,13 @@ export default function AdminLoginScreen() {
               <View className="gap-2">
                 <Text className="text-sm font-semibold text-foreground">Email</Text>
                 <TextInput
-                  placeholder="seu.email@obra.com"
+                  placeholder="admin"
                   placeholderTextColor={colors.muted}
                   value={email}
                   onChangeText={setEmail}
                   editable={!isLoading}
-                  keyboardType="email-address"
                   autoCapitalize="none"
+                  autoCorrect={false}
                   style={{
                     backgroundColor: colors.surface,
                     borderColor: colors.border,
@@ -121,12 +127,13 @@ export default function AdminLoginScreen() {
                   }}
                 >
                   <TextInput
-                    placeholder="••••••••"
+                    placeholder="1234"
                     placeholderTextColor={colors.muted}
                     value={password}
                     onChangeText={setPassword}
                     editable={!isLoading}
                     secureTextEntry={!showPassword}
+                    autoCorrect={false}
                     style={{
                       flex: 1,
                       paddingVertical: 12,
@@ -152,12 +159,12 @@ export default function AdminLoginScreen() {
                 {
                   backgroundColor: isLoading ? colors.muted : colors.primary,
                   opacity: pressed && !isLoading ? 0.7 : 1,
-                  padding: 14,
+                  padding: 16,
                   borderRadius: 8,
                 },
               ]}
             >
-              <Text className="text-center text-background font-semibold text-base">
+              <Text className="text-center text-white font-bold text-base">
                 {isLoading ? "Conectando..." : "Entrar"}
               </Text>
             </Pressable>
@@ -174,7 +181,7 @@ export default function AdminLoginScreen() {
             >
               <Text className="text-xs text-muted leading-relaxed">
                 ℹ️ Este é um acesso restrito para profissionais de saúde ocupacional. Os dados
-                são agregados e anônimos para proteger a privacidade dos empregados.
+                são agregados para proteger a privacidade dos empregados.
               </Text>
             </View>
 
