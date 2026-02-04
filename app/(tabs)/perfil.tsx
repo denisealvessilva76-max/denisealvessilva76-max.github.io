@@ -23,6 +23,7 @@ export default function PerfilScreen() {
     cargo: "",
     turno: "matutino",
   });
+  const [autoSaveTimeout, setAutoSaveTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -31,6 +32,44 @@ export default function PerfilScreen() {
       setIsEditing(true);
     }
   }, [profile]);
+
+  // Salvamento automático ao alterar dados
+  useEffect(() => {
+    // Limpar timeout anterior
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+
+    // Só salvar automaticamente se estiver editando e tiver dados mínimos
+    if (isEditing && formData.name && formData.matricula && formData.cargo && formData.turno) {
+      // Salvar após 2 segundos de inatividade
+      const timeout = setTimeout(async () => {
+        try {
+          const newProfile: UserProfile = {
+            id: profile?.id || Date.now().toString(),
+            name: formData.name!,
+            matricula: formData.matricula!,
+            cargo: formData.cargo!,
+            turno: formData.turno as "matutino" | "vespertino" | "noturno",
+            createdAt: profile?.createdAt || Date.now(),
+            updatedAt: Date.now(),
+          };
+          await saveProfile(newProfile);
+          console.log("[PERFIL] Salvo automaticamente");
+        } catch (error) {
+          console.error("[PERFIL] Erro ao salvar automaticamente:", error);
+        }
+      }, 2000);
+      setAutoSaveTimeout(timeout);
+    }
+
+    // Cleanup
+    return () => {
+      if (autoSaveTimeout) {
+        clearTimeout(autoSaveTimeout);
+      }
+    };
+  }, [formData, isEditing]);
 
   // Recarregar perfil ao voltar para a tela
   useFocusEffect(

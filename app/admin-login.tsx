@@ -76,14 +76,6 @@ export default function AdminLoginScreen() {
               <Text className="text-base text-muted text-center">
                 Visualize dados de saúde dos empregados
               </Text>
-              <View className="bg-surface p-3 rounded-lg mt-2">
-                <Text className="text-sm text-foreground text-center font-semibold">
-                  🔑 Login: admin
-                </Text>
-                <Text className="text-sm text-foreground text-center font-semibold">
-                  🔑 Senha: 1234
-                </Text>
-              </View>
             </View>
 
             {/* Formulário */}

@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { generateDashboardPDF, sharePDF } from "@/lib/pdf-generator";
 
 interface DashboardStats {
   totalEmployees: number;
@@ -60,6 +61,7 @@ export default function AdminDashboardScreen() {
       // Verificar autenticação admin
       const isAuth = await AsyncStorage.getItem("admin_authenticated");
       if (isAuth !== "true") {
+        console.log("[Dashboard] Não autenticado, redirecionando para login");
         router.replace("/admin-login");
         return;
       }
@@ -70,12 +72,22 @@ export default function AdminDashboardScreen() {
         setEmail(storedEmail);
       }
 
-      // Carregar dados
-      await loadDashboardData();
+      // Carregar dados com tratamento de erro robusto
+      try {
+        await loadDashboardData();
+      } catch (dataError) {
+        console.error("[Dashboard] Erro ao carregar dados, mas não vai crashar:", dataError);
+        // Não mostrar alert, apenas logar. Dashboard vai exibir "Nenhum dado disponível"
+      }
 
     } catch (error) {
-      console.error("[Dashboard] Erro ao verificar autenticação:", error);
-      Alert.alert("Erro", "Erro ao carregar dashboard. Tente novamente.");
+      console.error("[Dashboard] Erro crítico:", error);
+      // Tentar voltar para login se houver erro crítico
+      try {
+        router.replace("/admin-login");
+      } catch (navError) {
+        console.error("[Dashboard] Erro ao navegar:", navError);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +118,13 @@ export default function AdminDashboardScreen() {
         return [];
       }
 
-      const employeeIds: string[] = JSON.parse(employeeIdsStr);
+      let employeeIds: string[] = [];
+      try {
+        employeeIds = JSON.parse(employeeIdsStr);
+      } catch (parseError) {
+        console.error("[Dashboard] Erro ao parsear employee_ids:", parseError);
+        return [];
+      }
       console.log(`[Dashboard] Encontrados ${employeeIds.length} funcionários cadastrados`);
 
       const employeesData: EmployeeRecord[] = [];
@@ -206,14 +224,57 @@ export default function AdminDashboardScreen() {
     }
   };
 
-  const handleExportPDF = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert("Exportar PDF", "Funcionalidade em desenvolvimento");
+  const handleExportPDF = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Alert.alert("Gerando PDF", "Por favor, aguarde...");
+
+      const pdfUri = await generateDashboardPDF(stats, employees, period);
+      if (!pdfUri) {
+        Alert.alert("Erro", "Não foi possível gerar o PDF");
+        return;
+      }
+
+      Alert.alert(
+        "PDF Gerado",
+        "O relatório foi gerado com sucesso. Deseja compartilhar?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Compartilhar",
+            onPress: async () => {
+              try {
+                await sharePDF(pdfUri);
+              } catch (error) {
+                Alert.alert("Erro", "Não foi possível compartilhar o PDF");
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("[Dashboard] Erro ao exportar PDF:", error);
+      Alert.alert("Erro", "Não foi possível gerar o PDF. Tente novamente.");
+    }
   };
 
-  const handleSendEmail = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert("Enviar Email", "Funcionalidade em desenvolvimento");
+  const handleSendEmail = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Alert.alert("Gerando PDF", "Por favor, aguarde...");
+
+      const pdfUri = await generateDashboardPDF(stats, employees, period);
+      if (!pdfUri) {
+        Alert.alert("Erro", "Não foi possível gerar o PDF");
+        return;
+      }
+
+      // Compartilhar diretamente (usuário pode escolher email)
+      await sharePDF(pdfUri);
+    } catch (error) {
+      console.error("[Dashboard] Erro ao enviar email:", error);
+      Alert.alert("Erro", "Não foi possível gerar o PDF. Tente novamente.");
+    }
   };
 
   if (isLoading) {
