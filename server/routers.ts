@@ -1,6 +1,7 @@
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import { emailRouter } from "./api/routers/email";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
@@ -1581,6 +1582,9 @@ export const appRouter = router({
         }
       }),
   }),
+
+  // Router de e-mail
+  email: emailRouter,
 });
 
 export type AppRouter = typeof appRouter;

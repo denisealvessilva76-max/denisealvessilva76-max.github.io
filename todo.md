@@ -2026,3 +2026,40 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] REMOVER IMEDIATAMENTE qualquer hint/texto com senha (CORRIGIDO)
 - [x] Implementar tela de login sem exposição de credenciais (CORRIGIDO)
 - [x] Validar que não há vazamento de informações sensíveis (VALIDADO)
+
+
+---
+
+## 📧 NOVA FUNCIONALIDADE: Backup Automático Diário por E-mail (04/02/2026)
+
+### Objetivo:
+Enviar automaticamente relatórios diários por e-mail para o SESMT com estatísticas de saúde dos trabalhadores
+
+### Tarefas:
+- [x] Criar API de envio de e-mail no backend (usando Nodemailer ou serviço SMTP) - CONCLUÍDO
+- [x] Implementar geração de relatório HTML para e-mail - CONCLUÍDO
+- [x] Criar agendador de tarefas (cron job) para execução diária - CONCLUÍDO
+- [x] Configurar horário de envio (ex: 8h da manhã) - CONCLUÍDO
+- [x] Adicionar tela de configuração no app para:
+  - [x] Ativar/desativar backup automático - CONCLUÍDO
+  - [x] Configurar e-mail de destino (SESMT) - CONCLUÍDO
+  - [x] Configurar horário de envio - CONCLUÍDO
+  - [x] Testar envio manual - CONCLUÍDO
+- [ ] Implementar histórico de backups enviados - PENDENTE (opcional)
+- [x] Adicionar notificação de sucesso/falha no envio - CONCLUÍDO (via Alert)
+- [x] Incluir no relatório:
+  - [x] Estatísticas gerais (funcionários ativos, check-ins, hidratação média) - CONCLUÍDO
+  - [x] Lista de queixas reportadas no dia - CONCLUÍDO
+  - [x] Alertas de pressão arterial elevada - CONCLUÍDO
+  - [x] Funcionários que precisam de atenção - CONCLUÍDO
+  - [ ] Gráficos de tendências (últimos 7 dias) - PENDENTE (opcional)
+- [ ] Testar envio de e-mail em produção - PRECISA TESTAR
+- [x] Documentar configuração de SMTP - CONCLUÍDO (instruções na tela)
+
+### Arquivos a Criar/Modificar:
+- server/api/routers/email.ts (API de envio de e-mail)
+- server/services/email-service.ts (serviço de e-mail)
+- server/jobs/daily-backup.ts (agendador de backup diário)
+- app/admin-backup-config.tsx (tela de configuração)
+- lib/email-templates.ts (templates de e-mail)
+- tests/backup-system.test.ts (testes)

@@ -491,9 +491,21 @@ export default function AdminDashboardScreen() {
                   <Text className="text-white font-semibold text-center">Enviar por Email</Text>
                 </TouchableOpacity>
 
-                <View className="bg-surface p-4 rounded-lg">
-                  <Text className="text-muted text-sm text-center">
-                    Funcionalidades de relatório em desenvolvimento
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push("/admin-backup-config");
+                  }}
+                  className="bg-surface border-2 border-primary p-4 rounded-lg"
+                  style={{ opacity: 0.9 }}
+                >
+                  <Text className="text-primary font-semibold text-center">⚙️ Configurar Backup Automático</Text>
+                </TouchableOpacity>
+
+                <View className="bg-blue-50 p-4 rounded-lg">
+                  <Text className="text-blue-800 text-sm font-semibold mb-1">📧 Backup Automático</Text>
+                  <Text className="text-blue-700 text-xs">
+                    Configure o envio automático de relatórios diários por e-mail para o SESMT
                   </Text>
                 </View>
               </View>
