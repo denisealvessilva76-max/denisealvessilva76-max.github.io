@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, TextInput } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState, useEffect } from "react";
@@ -6,6 +6,12 @@ import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { generateDashboardPDF, sharePDF } from "@/lib/pdf-generator";
+import {
+  generateTestData,
+  clearTestData,
+  hasTestData,
+  loadTestData,
+} from "@/lib/test-data-generator";
 
 interface DashboardStats {
   totalEmployees: number;
@@ -49,6 +55,8 @@ export default function AdminDashboardScreen() {
   });
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "employees" | "reports">("overview");
+  const [hasTestDataFlag, setHasTestDataFlag] = useState(false);
+  const [generatingTestData, setGeneratingTestData] = useState(false);
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -95,8 +103,20 @@ export default function AdminDashboardScreen() {
 
   const loadDashboardData = async () => {
     try {
-      // Buscar dados de TODOS os funcionários cadastrados
-      const employeesData = await loadAllEmployeesFromStorage();
+      // Verificar se existem dados de teste
+      const hasTest = await hasTestData();
+      setHasTestDataFlag(hasTest);
+
+      let employeesData: EmployeeRecord[];
+
+      if (hasTest) {
+        console.log("[Dashboard] Usando dados de teste");
+        employeesData = await loadTestEmployeesData();
+      } else {
+        console.log("[Dashboard] Usando dados reais");
+        employeesData = await loadAllEmployeesFromStorage();
+      }
+
       setEmployees(employeesData);
 
       // Calcular estatísticas
@@ -186,6 +206,63 @@ export default function AdminDashboardScreen() {
     }
   };
 
+  const loadTestEmployeesData = async (): Promise<EmployeeRecord[]> => {
+    try {
+      const testData = await loadTestData();
+      const { employees: testEmployees, checkIns, hydration, pressure, complaints } = testData;
+
+      const today = new Date().toISOString().split("T")[0];
+
+      const employeesData: EmployeeRecord[] = testEmployees.map((emp: any) => {
+        // Buscar check-in de hoje
+        const todayCheckIn = checkIns.find(
+          (c: any) => c.employeeId === emp.id && c.date === today
+        );
+
+        // Buscar hidratação de hoje
+        const todayHydration = hydration.find(
+          (h: any) => h.employeeId === emp.id && h.date === today
+        );
+
+        // Buscar última pressão
+        const employeePressure = pressure.filter((p: any) => p.employeeId === emp.id);
+        const lastPressure = employeePressure.length > 0 ? employeePressure[0] : null;
+
+        // Contar queixas da semana
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekComplaints = complaints.filter(
+          (c: any) => c.employeeId === emp.id && new Date(c.date) >= weekAgo
+        );
+
+        // Calcular meta de hidratação
+        const baseGoal = emp.weight * 35;
+        const workMultiplier =
+          emp.workType === "pesado" ? 1.3 : emp.workType === "moderado" ? 1.15 : 1.0;
+        const goalMl = Math.floor(baseGoal * workMultiplier);
+
+        return {
+          id: emp.id,
+          name: emp.name,
+          matricula: emp.matricula,
+          lastCheckIn: todayCheckIn ? todayCheckIn.status : null,
+          hydrationToday: todayHydration ? todayHydration.totalMl : 0,
+          hydrationGoal: goalMl,
+          lastPressure: lastPressure
+            ? { systolic: lastPressure.systolic, diastolic: lastPressure.diastolic }
+            : null,
+          complaintsCount: weekComplaints.length,
+          challengesActive: 0,
+        };
+      });
+
+      return employeesData;
+    } catch (error) {
+      console.error("[Dashboard] Erro ao carregar dados de teste:", error);
+      return [];
+    }
+  };
+
   const calculateStats = (employeesData: EmployeeRecord[]): DashboardStats => {
     const totalEmployees = employeesData.length;
     const activeToday = employeesData.filter(e => e.lastCheckIn !== null).length;
@@ -222,6 +299,82 @@ export default function AdminDashboardScreen() {
     } catch (error) {
       console.error("[Dashboard] Erro ao fazer logout:", error);
     }
+  };
+
+  const handleGenerateTestData = async () => {
+    try {
+      setGeneratingTestData(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      const result = await generateTestData(15);
+
+      if (result.success) {
+        Alert.alert(
+          "✅ Dados de Teste Gerados!",
+          `Foram criados:\n\n` +
+            `• ${result.stats?.employees} funcionários\n` +
+            `• ${result.stats?.checkIns} check-ins\n` +
+            `• ${result.stats?.hydration} hidratações\n` +
+            `• ${result.stats?.pressure} pressões\n` +
+            `• ${result.stats?.complaints} queixas\n\n` +
+            `O dashboard será atualizado automaticamente.`,
+          [
+            {
+              text: "OK",
+              onPress: () => loadDashboardData(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Erro", result.error || "Erro ao gerar dados de teste");
+      }
+    } catch (error) {
+      console.error("[Dashboard] Erro ao gerar dados de teste:", error);
+      Alert.alert("Erro", "Erro ao gerar dados de teste");
+    } finally {
+      setGeneratingTestData(false);
+    }
+  };
+
+  const handleClearTestData = async () => {
+    Alert.alert(
+      "Limpar Dados de Teste",
+      "Tem certeza que deseja remover todos os dados de teste? Esta ação não pode ser desfeita.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Limpar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+              const result = await clearTestData();
+
+              if (result.success) {
+                Alert.alert(
+                  "✅ Dados Limpos",
+                  "Todos os dados de teste foram removidos. O dashboard agora mostrará apenas dados reais.",
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => loadDashboardData(),
+                    },
+                  ]
+                );
+              } else {
+                Alert.alert("Erro", result.error || "Erro ao limpar dados de teste");
+              }
+            } catch (error) {
+              console.error("[Dashboard] Erro ao limpar dados de teste:", error);
+              Alert.alert("Erro", "Erro ao limpar dados de teste");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleExportPDF = async () => {
@@ -473,6 +626,54 @@ export default function AdminDashboardScreen() {
           {activeTab === "reports" && (
             <View>
               <Text className="text-xl font-bold text-foreground mb-4">Relatórios</Text>
+
+              {/* Indicador de Dados de Teste */}
+              {hasTestDataFlag && (
+                <View className="bg-yellow-50 p-4 rounded-lg mb-4 border-l-4 border-yellow-500">
+                  <Text className="text-yellow-800 font-bold">⚠️ Modo de Teste Ativo</Text>
+                  <Text className="text-yellow-700 text-sm mt-1">
+                    O dashboard está exibindo dados de teste. Limpe os dados de teste para ver dados reais.
+                  </Text>
+                </View>
+              )}
+
+              {/* Botões de Dados de Teste */}
+              <View className="mb-4">
+                <Text className="text-lg font-bold text-foreground mb-2">🧪 Dados de Teste</Text>
+                <View className="space-y-2">
+                  <TouchableOpacity
+                    onPress={handleGenerateTestData}
+                    disabled={generatingTestData}
+                    style={{ opacity: generatingTestData ? 0.6 : 1 }}
+                    className="bg-green-500 p-4 rounded-lg"
+                  >
+                    {generatingTestData ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-white font-semibold text-center">
+                        👥 Gerar 15 Funcionários Falsos
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {hasTestDataFlag && (
+                    <TouchableOpacity
+                      onPress={handleClearTestData}
+                      className="bg-red-500 p-4 rounded-lg"
+                      style={{ opacity: 0.9 }}
+                    >
+                      <Text className="text-white font-semibold text-center">
+                        🗑️ Limpar Dados de Teste
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <View className="bg-blue-50 p-3 rounded-lg mt-2">
+                  <Text className="text-blue-800 text-xs">
+                    💡 Use os dados de teste para validar o Dashboard Admin sem precisar cadastrar funcionários reais.
+                  </Text>
+                </View>
+              </View>
 
               <View className="space-y-3">
                 <TouchableOpacity
