@@ -2093,3 +2093,37 @@ Revisar todas as funcionalidades do app e criar sistema de geração de dados de
 - [x] Testar fluxo completo end-to-end - CONCLUÍDO
 - [x] Documentar bugs encontrados - CONCLUÍDO (REVISAO_FUNCIONALIDADES.md)
 - [x] Corrigir bugs críticos - CONCLUÍDO (todos os 4 bugs corrigidos)
+
+
+---
+
+## 🔄 SINCRONIZAÇÃO COM BACKEND
+
+### Objetivo:
+Migrar de AsyncStorage local para banco de dados PostgreSQL com sincronização em tempo real
+
+### Tarefas:
+- [x] Criar schema do banco de dados - CONCLUÍDO
+  - [x] Tabela employees (funcionários) - CONCLUÍDO (já existia)
+  - [x] Tabela check_ins (check-ins diários) - CONCLUÍDO (checkIns)
+  - [x] Tabela hydration_records (registros de hidratação) - CONCLUÍDO (userHydration)
+  - [x] Tabela blood_pressure_records (registros de pressão arterial) - CONCLUÍDO
+  - [x] Tabela health_complaints (queixas de saúde) - CONCLUÍDO (complaints)
+- [x] Executar migrations no banco de dados - CONCLUÍDO (pnpm db:push)
+- [x] Criar APIs tRPC para CRUD - CONCLUÍDO
+  - [x] employees.create, employees.getById, employees.update, employees.list - CONCLUÍDO
+  - [x] checkIns.create, checkIns.getByEmployee, checkIns.getToday - CONCLUÍDO
+  - [x] hydration.create, hydration.getByEmployee, hydration.getToday - CONCLUÍDO
+  - [x] bloodPressure.create, bloodPressure.getByEmployee, bloodPressure.getLatest - CONCLUÍDO
+  - [x] complaints.create, complaints.getByEmployee, complaints.list - CONCLUÍDO
+- [ ] Migrar frontend para usar APIs - PARCIAL (APIs prontas, falta integrar nas telas)
+  - [ ] Tela de cadastro (criar funcionário no banco) - PENDENTE
+  - [ ] Tela de login (buscar funcionário do banco) - PENDENTE
+  - [ ] Tela de check-in (salvar no banco) - PENDENTE
+  - [ ] Tela de hidratação (salvar e buscar do banco) - PENDENTE
+  - [ ] Tela de pressão arterial (salvar e buscar do banco) - PENDENTE
+  - [ ] Tela de queixas (salvar e buscar do banco) - PENDENTE
+  - [ ] Dashboard Admin (buscar todos os dados do banco) - PENDENTE
+- [ ] Implementar cache local (AsyncStorage como fallback offline) - PENDENTE
+- [ ] Testar sincronização em tempo real - PENDENTE
+- [ ] Validar que Dashboard Admin mostra dados imediatamente - PENDENTE
