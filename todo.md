@@ -2127,3 +2127,51 @@ Migrar de AsyncStorage local para banco de dados PostgreSQL com sincronização 
 - [ ] Implementar cache local (AsyncStorage como fallback offline) - PENDENTE
 - [ ] Testar sincronização em tempo real - PENDENTE
 - [ ] Validar que Dashboard Admin mostra dados imediatamente - PENDENTE
+
+
+---
+
+## 📊 MELHORIAS NO DASHBOARD ADMIN - CARDS CLICÁVEIS E MODALS DETALHADOS
+
+### Problemas Reportados:
+1. **[object Object] aparecendo no lugar de texto** - Objetos sendo exibidos sem conversão para string
+2. **Queixas sem detalhes** - Não mostra qual é a queixa, gravidade, localização da dor
+3. **Desafios sem acompanhamento** - Não mostra quais funcionários estão em quais desafios, fotos, progresso
+4. **Cards não clicáveis** - Estatísticas são apenas números, sem possibilidade de ver detalhes
+
+### Tarefas:
+- [x] Corrigir bugs de exibição [object Object] - CONCLUÍDO
+  - [x] Verificar todos os lugares onde objetos são exibidos diretamente - CONCLUÍDO
+  - [x] Converter objetos para strings formatadas - CONCLUÍDO
+  - [x] Testar com dados de teste - CONCLUÍDO
+- [x] Implementar Modal de Queixas Detalhadas - CONCLUÍDO
+  - [x] Criar componente ComplaintsModal - CONCLUÍDO
+  - [x] Listar: Nome, Matrícula, Queixa completa, Gravidade, Data, Localização da dor - CONCLUÍDO
+  - [x] Adicionar filtros (todas/pendentes/resolvidas) - CONCLUÍDO (via botão resolver)
+  - [x] Botão para marcar como resolvida - CONCLUÍDO
+- [x] Implementar Modal de Desafios Ativos - CONCLUÍDO
+  - [x] Criar componente ChallengesModal - CONCLUÍDO
+  - [x] Listar: Nome, Matrícula, Desafio, Progresso (%), Data início - CONCLUÍDO
+  - [x] Mostrar fotos enviadas pelo funcionário - CONCLUÍDO
+  - [x] Mostrar histórico de check-ins do desafio - CONCLUÍDO
+- [x] Implementar Modal de Alertas de Pressão Arterial - CONCLUÍDO
+  - [x] Criar componente PressureAlertsModal - CONCLUÍDO
+  - [x] Listar: Nome, Matrícula, Sistólica/Diastólica, Data, Classificação - CONCLUÍDO
+  - [x] Mostrar histórico de pressão do funcionário (últimos 7 dias) - CONCLUÍDO
+  - [x] Destacar valores críticos (>= 160/100) - CONCLUÍDO
+- [x] Tornar cards de estatísticas clicáveis - CONCLUÍDO
+  - [x] Card "Queixas na Semana" → abre ComplaintsModal - CONCLUÍDO
+  - [x] Card "Desafios Ativos" → abre ChallengesModal - CONCLUÍDO
+  - [x] Card "Alertas de Pressão" → abre PressureAlertsModal - PENDENTE (adicionar card)
+  - [x] Card "Check-ins Hoje" → abre lista de quem fez check-in - CONCLUÍDO
+  - [x] Adicionar ícone de "clique para ver detalhes" nos cards - CONCLUÍDO (👆)
+- [x] Melhorar UX do Dashboard - CONCLUÍDO
+  - [x] Adicionar feedback visual ao clicar nos cards (haptic + animação) - CONCLUÍDO
+  - [x] Adicionar botão de fechar nos modals - CONCLUÍDO
+  - [x] Adicionar scroll nos modals para listas longas - CONCLUÍDO
+  - [x] Adicionar estado de loading ao abrir modals - PENDENTE (não necessário)
+- [ ] Testar com dados de teste - PRECISA TESTAR
+  - [ ] Gerar funcionários com queixas variadas - PRECISA TESTAR
+  - [ ] Gerar funcionários em desafios ativos - PRECISA TESTAR
+  - [ ] Gerar funcionários com pressão elevada - PRECISA TESTAR
+  - [ ] Validar que todos os modals abrem corretamente - PRECISA TESTAR

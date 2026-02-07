@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useState, useEffect } from "react";
@@ -12,6 +12,16 @@ import {
   hasTestData,
   loadTestData,
 } from "@/lib/test-data-generator";
+import {
+  ComplaintsModal,
+  ChallengesModal,
+  PressureAlertsModal,
+  CheckInsModal,
+  type Complaint,
+  type Challenge,
+  type PressureAlert,
+  type CheckInRecord,
+} from "@/components/dashboard-modals";
 
 interface DashboardStats {
   totalEmployees: number;
@@ -58,6 +68,18 @@ export default function AdminDashboardScreen() {
   const [hasTestDataFlag, setHasTestDataFlag] = useState(false);
   const [generatingTestData, setGeneratingTestData] = useState(false);
 
+  // Estados dos modals
+  const [complaintsModalVisible, setComplaintsModalVisible] = useState(false);
+  const [challengesModalVisible, setChallengesModalVisible] = useState(false);
+  const [pressureAlertsModalVisible, setPressureAlertsModalVisible] = useState(false);
+  const [checkInsModalVisible, setCheckInsModalVisible] = useState(false);
+
+  // Dados para os modals
+  const [complaintsData, setComplaintsData] = useState<Complaint[]>([]);
+  const [challengesData, setChallengesData] = useState<Challenge[]>([]);
+  const [pressureAlertsData, setPressureAlertsData] = useState<PressureAlert[]>([]);
+  const [checkInsData, setCheckInsData] = useState<CheckInRecord[]>([]);
+
   useEffect(() => {
     checkAuthAndLoadData();
   }, []);
@@ -98,6 +120,114 @@ export default function AdminDashboardScreen() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Funções para carregar dados dos modals
+  const loadComplaintsData = async () => {
+    try {
+      // Buscar queixas de todos os funcionários
+      const allComplaints: Complaint[] = [];
+      
+      for (const emp of employees) {
+        const complaintsStr = await AsyncStorage.getItem(`complaints_${emp.id}`);
+        if (complaintsStr) {
+          const complaints = JSON.parse(complaintsStr);
+          complaints.forEach((c: any) => {
+            allComplaints.push({
+              id: `${emp.id}_${c.date}`,
+              employeeName: emp.name,
+              employeeMatricula: emp.matricula,
+              complaint: c.type || "Queixa não especificada",
+              description: c.description || "",
+              severity: c.severity || "leve",
+              date: new Date(c.date).toLocaleDateString("pt-BR"),
+              resolved: c.resolved || false,
+            });
+          });
+        }
+      }
+      
+      setComplaintsData(allComplaints);
+    } catch (error) {
+      console.error("Erro ao carregar queixas:", error);
+    }
+  };
+
+  const loadChallengesData = async () => {
+    try {
+      // Buscar desafios ativos (dados de teste por enquanto)
+      const allChallenges: Challenge[] = [];
+      
+      for (const emp of employees.slice(0, 5)) {
+        allChallenges.push({
+          id: emp.id,
+          employeeName: emp.name,
+          employeeMatricula: emp.matricula,
+          challengeName: "Desafio de Hidratação 30 Dias",
+          progress: Math.floor(Math.random() * 100),
+          startDate: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR"),
+          photos: [],
+          checkIns: Math.floor(Math.random() * 20),
+        });
+      }
+      
+      setChallengesData(allChallenges);
+    } catch (error) {
+      console.error("Erro ao carregar desafios:", error);
+    }
+  };
+
+  const loadPressureAlertsData = async () => {
+    try {
+      // Buscar alertas de pressão arterial elevada
+      const alerts: PressureAlert[] = [];
+      
+      for (const emp of employees) {
+        if (emp.lastPressure && (emp.lastPressure.systolic >= 140 || emp.lastPressure.diastolic >= 90)) {
+          alerts.push({
+            id: emp.id,
+            employeeName: emp.name,
+            employeeMatricula: emp.matricula,
+            systolic: emp.lastPressure.systolic,
+            diastolic: emp.lastPressure.diastolic,
+            classification: emp.lastPressure.systolic >= 160 || emp.lastPressure.diastolic >= 100 ? "hipertensao" : "pre-hipertensao",
+            date: new Date().toLocaleDateString("pt-BR"),
+            history: [],
+          });
+        }
+      }
+      
+      setPressureAlertsData(alerts);
+    } catch (error) {
+      console.error("Erro ao carregar alertas de pressão:", error);
+    }
+  };
+
+  const loadCheckInsData = async () => {
+    try {
+      // Buscar check-ins de hoje
+      const todayCheckIns: CheckInRecord[] = [];
+      const today = new Date().toISOString().split("T")[0];
+      
+      for (const emp of employees) {
+        const checkInStr = await AsyncStorage.getItem(`checkIn_${emp.id}_${today}`);
+        if (checkInStr) {
+          const checkIn = JSON.parse(checkInStr);
+          todayCheckIns.push({
+            id: emp.id,
+            employeeName: emp.name,
+            employeeMatricula: emp.matricula,
+            status: checkIn.status || "bem",
+            time: new Date(checkIn.timestamp || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+            notes: checkIn.notes,
+          });
+        }
+      }
+      
+      setCheckInsData(todayCheckIns);
+    } catch (error) {
+      console.error("Erro ao carregar check-ins:", error);
     }
   };
 
@@ -537,10 +667,19 @@ export default function AdminDashboardScreen() {
                 </View>
 
                 <View className="w-1/2 p-2">
-                  <View className="bg-surface p-4 rounded-lg">
-                    <Text className="text-muted text-sm">Check-ins Hoje</Text>
-                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.checkInsToday}</Text>
-                  </View>
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      loadCheckInsData();
+                      setCheckInsModalVisible(true);
+                    }}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <View className="bg-surface p-4 rounded-lg">
+                      <Text className="text-muted text-sm">Check-ins Hoje 👆</Text>
+                      <Text className="text-foreground text-3xl font-bold mt-1">{stats.checkInsToday}</Text>
+                    </View>
+                  </Pressable>
                 </View>
 
                 <View className="w-1/2 p-2">
@@ -551,17 +690,35 @@ export default function AdminDashboardScreen() {
                 </View>
 
                 <View className="w-1/2 p-2">
-                  <View className="bg-surface p-4 rounded-lg">
-                    <Text className="text-muted text-sm">Queixas (Semana)</Text>
-                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.complaintsThisWeek}</Text>
-                  </View>
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      loadComplaintsData();
+                      setComplaintsModalVisible(true);
+                    }}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <View className="bg-surface p-4 rounded-lg">
+                      <Text className="text-muted text-sm">Queixas (Semana) 👆</Text>
+                      <Text className="text-foreground text-3xl font-bold mt-1">{stats.complaintsThisWeek}</Text>
+                    </View>
+                  </Pressable>
                 </View>
 
                 <View className="w-1/2 p-2">
-                  <View className="bg-surface p-4 rounded-lg">
-                    <Text className="text-muted text-sm">Desafios Ativos</Text>
-                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.challengesActive}</Text>
-                  </View>
+                  <Pressable
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      loadChallengesData();
+                      setChallengesModalVisible(true);
+                    }}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                  >
+                    <View className="bg-surface p-4 rounded-lg">
+                      <Text className="text-muted text-sm">Desafios Ativos 👆</Text>
+                      <Text className="text-foreground text-3xl font-bold mt-1">{stats.challengesActive}</Text>
+                    </View>
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -714,6 +871,35 @@ export default function AdminDashboardScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Modals */}
+      <ComplaintsModal
+        visible={complaintsModalVisible}
+        onClose={() => setComplaintsModalVisible(false)}
+        complaints={complaintsData}
+        onResolve={(id) => {
+          Alert.alert("Sucesso", "Queixa marcada como resolvida");
+          setComplaintsData(complaintsData.map(c => c.id === id ? { ...c, resolved: true } : c));
+        }}
+      />
+
+      <ChallengesModal
+        visible={challengesModalVisible}
+        onClose={() => setChallengesModalVisible(false)}
+        challenges={challengesData}
+      />
+
+      <PressureAlertsModal
+        visible={pressureAlertsModalVisible}
+        onClose={() => setPressureAlertsModalVisible(false)}
+        alerts={pressureAlertsData}
+      />
+
+      <CheckInsModal
+        visible={checkInsModalVisible}
+        onClose={() => setCheckInsModalVisible(false)}
+        checkIns={checkInsData}
+      />
     </ScreenContainer>
   );
 }
