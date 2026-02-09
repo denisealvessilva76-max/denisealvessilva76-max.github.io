@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useHealthData } from "@/hooks/use-health-data";
 import { UserProfile } from "@/lib/types";
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { useAuth } from "@/lib/auth-context";
 import * as Haptics from "expo-haptics";
 
 const SESMT_PHONE = "21998225493";
@@ -16,6 +17,7 @@ export default function PerfilScreen() {
   const router = useRouter();
   const { profile, saveProfile } = useHealthData();
   const { resetOnboarding } = useOnboarding();
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: "",
@@ -55,7 +57,14 @@ export default function PerfilScreen() {
             updatedAt: Date.now(),
           };
           await saveProfile(newProfile);
-          console.log("[PERFIL] Salvo automaticamente");
+          // Sincronizar com auth-context
+          if (user) {
+            await updateUser({
+              name: newProfile.name,
+              cargo: newProfile.cargo,
+            });
+          }
+          console.log("[PERFIL] Salvo automaticamente e sincronizado");
         } catch (error) {
           console.error("[PERFIL] Erro ao salvar automaticamente:", error);
         }

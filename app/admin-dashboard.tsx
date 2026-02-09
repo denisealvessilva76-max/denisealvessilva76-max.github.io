@@ -126,16 +126,22 @@ export default function AdminDashboardScreen() {
   // Funções para carregar dados dos modals
   const loadComplaintsData = async () => {
     try {
-      // Buscar queixas de todos os funcionários
+      console.log("[loadComplaintsData] Iniciando carregamento...");
       const allComplaints: Complaint[] = [];
       
-      for (const emp of employees) {
-        const complaintsStr = await AsyncStorage.getItem(`complaints_${emp.id}`);
-        if (complaintsStr) {
-          const complaints = JSON.parse(complaintsStr);
-          complaints.forEach((c: any) => {
+      // Verificar se há dados de teste
+      const hasTest = await hasTestData();
+      
+      if (hasTest) {
+        console.log("[loadComplaintsData] Carregando dados de teste");
+        const testData = await loadTestData();
+        const { employees: testEmployees, complaints: testComplaints } = testData;
+        
+        testComplaints.forEach((c: any) => {
+          const emp = testEmployees.find((e: any) => e.id === c.employeeId);
+          if (emp) {
             allComplaints.push({
-              id: `${emp.id}_${c.date}`,
+              id: `${c.employeeId}_${c.date}`,
               employeeName: emp.name,
               employeeMatricula: emp.matricula,
               complaint: c.type || "Queixa não especificada",
@@ -144,90 +150,201 @@ export default function AdminDashboardScreen() {
               date: new Date(c.date).toLocaleDateString("pt-BR"),
               resolved: c.resolved || false,
             });
-          });
+          }
+        });
+      } else {
+        console.log("[loadComplaintsData] Carregando dados reais");
+        // Buscar queixas de todos os funcionários reais
+        for (const emp of employees) {
+          const complaintsStr = await AsyncStorage.getItem(`complaints_${emp.id}`);
+          if (complaintsStr) {
+            const complaints = JSON.parse(complaintsStr);
+            complaints.forEach((c: any) => {
+              allComplaints.push({
+                id: `${emp.id}_${c.date}`,
+                employeeName: emp.name,
+                employeeMatricula: emp.matricula,
+                complaint: c.type || "Queixa não especificada",
+                description: c.description || "",
+                severity: c.severity || "leve",
+                date: new Date(c.date).toLocaleDateString("pt-BR"),
+                resolved: c.resolved || false,
+              });
+            });
+          }
         }
       }
       
+      console.log(`[loadComplaintsData] Total de queixas carregadas: ${allComplaints.length}`);
       setComplaintsData(allComplaints);
     } catch (error) {
-      console.error("Erro ao carregar queixas:", error);
+      console.error("[loadComplaintsData] Erro ao carregar queixas:", error);
     }
   };
 
   const loadChallengesData = async () => {
     try {
-      // Buscar desafios ativos (dados de teste por enquanto)
+      console.log("[loadChallengesData] Iniciando carregamento...");
       const allChallenges: Challenge[] = [];
       
-      for (const emp of employees.slice(0, 5)) {
-        allChallenges.push({
-          id: emp.id,
-          employeeName: emp.name,
-          employeeMatricula: emp.matricula,
-          challengeName: "Desafio de Hidratação 30 Dias",
-          progress: Math.floor(Math.random() * 100),
-          startDate: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR"),
-          photos: [],
-          checkIns: Math.floor(Math.random() * 20),
+      // Verificar se há dados de teste
+      const hasTest = await hasTestData();
+      
+      if (hasTest) {
+        console.log("[loadChallengesData] Carregando dados de teste");
+        const testData = await loadTestData();
+        const { employees: testEmployees } = testData;
+        
+        // Gerar desafios para os primeiros 5 funcionários
+        testEmployees.slice(0, 5).forEach((emp: any) => {
+          allChallenges.push({
+            id: emp.id,
+            employeeName: emp.name,
+            employeeMatricula: emp.matricula,
+            challengeName: "Desafio de Hidratação 30 Dias",
+            progress: Math.floor(Math.random() * 100),
+            startDate: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR"),
+            photos: [],
+            checkIns: Math.floor(Math.random() * 20),
+          });
         });
+      } else {
+        console.log("[loadChallengesData] Carregando dados reais");
+        // Buscar desafios ativos de funcionários reais
+        for (const emp of employees.slice(0, 5)) {
+          allChallenges.push({
+            id: emp.id,
+            employeeName: emp.name,
+            employeeMatricula: emp.matricula,
+            challengeName: "Desafio de Hidratação 30 Dias",
+            progress: Math.floor(Math.random() * 100),
+            startDate: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR"),
+            photos: [],
+            checkIns: Math.floor(Math.random() * 20),
+          });
+        }
       }
       
+      console.log(`[loadChallengesData] Total de desafios carregados: ${allChallenges.length}`);
       setChallengesData(allChallenges);
     } catch (error) {
-      console.error("Erro ao carregar desafios:", error);
+      console.error("[loadChallengesData] Erro ao carregar desafios:", error);
     }
   };
 
   const loadPressureAlertsData = async () => {
     try {
-      // Buscar alertas de pressão arterial elevada
+      console.log("[loadPressureAlertsData] Iniciando carregamento...");
       const alerts: PressureAlert[] = [];
       
-      for (const emp of employees) {
-        if (emp.lastPressure && (emp.lastPressure.systolic >= 140 || emp.lastPressure.diastolic >= 90)) {
-          alerts.push({
-            id: emp.id,
-            employeeName: emp.name,
-            employeeMatricula: emp.matricula,
-            systolic: emp.lastPressure.systolic,
-            diastolic: emp.lastPressure.diastolic,
-            classification: emp.lastPressure.systolic >= 160 || emp.lastPressure.diastolic >= 100 ? "hipertensao" : "pre-hipertensao",
-            date: new Date().toLocaleDateString("pt-BR"),
-            history: [],
-          });
+      // Verificar se há dados de teste
+      const hasTest = await hasTestData();
+      
+      if (hasTest) {
+        console.log("[loadPressureAlertsData] Carregando dados de teste");
+        const testData = await loadTestData();
+        const { employees: testEmployees, pressure: testPressure } = testData;
+        
+        testEmployees.forEach((emp: any) => {
+          const empPressure = testPressure.filter((p: any) => p.employeeId === emp.id);
+          if (empPressure.length > 0) {
+            const lastPressure = empPressure[empPressure.length - 1];
+            if (lastPressure.systolic >= 140 || lastPressure.diastolic >= 90) {
+              alerts.push({
+                id: emp.id,
+                employeeName: emp.name,
+                employeeMatricula: emp.matricula,
+                systolic: lastPressure.systolic,
+                diastolic: lastPressure.diastolic,
+                classification: lastPressure.systolic >= 160 || lastPressure.diastolic >= 100 ? "hipertensao" : "pre-hipertensao",
+                date: new Date(lastPressure.date).toLocaleDateString("pt-BR"),
+                history: empPressure.map((p: any) => ({
+                  systolic: p.systolic,
+                  diastolic: p.diastolic,
+                  date: new Date(p.date).toLocaleDateString("pt-BR"),
+                })),
+              });
+            }
+          }
+        });
+      } else {
+        console.log("[loadPressureAlertsData] Carregando dados reais");
+        // Buscar alertas de pressão arterial elevada de funcionários reais
+        for (const emp of employees) {
+          if (emp.lastPressure && (emp.lastPressure.systolic >= 140 || emp.lastPressure.diastolic >= 90)) {
+            alerts.push({
+              id: emp.id,
+              employeeName: emp.name,
+              employeeMatricula: emp.matricula,
+              systolic: emp.lastPressure.systolic,
+              diastolic: emp.lastPressure.diastolic,
+              classification: emp.lastPressure.systolic >= 160 || emp.lastPressure.diastolic >= 100 ? "hipertensao" : "pre-hipertensao",
+              date: new Date().toLocaleDateString("pt-BR"),
+              history: [],
+            });
+          }
         }
       }
       
+      console.log(`[loadPressureAlertsData] Total de alertas carregados: ${alerts.length}`);
       setPressureAlertsData(alerts);
     } catch (error) {
-      console.error("Erro ao carregar alertas de pressão:", error);
+      console.error("[loadPressureAlertsData] Erro ao carregar alertas de pressão:", error);
     }
   };
 
   const loadCheckInsData = async () => {
     try {
-      // Buscar check-ins de hoje
+      console.log("[loadCheckInsData] Iniciando carregamento...");
       const todayCheckIns: CheckInRecord[] = [];
       const today = new Date().toISOString().split("T")[0];
       
-      for (const emp of employees) {
-        const checkInStr = await AsyncStorage.getItem(`checkIn_${emp.id}_${today}`);
-        if (checkInStr) {
-          const checkIn = JSON.parse(checkInStr);
-          todayCheckIns.push({
-            id: emp.id,
-            employeeName: emp.name,
-            employeeMatricula: emp.matricula,
-            status: checkIn.status || "bem",
-            time: new Date(checkIn.timestamp || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-            notes: checkIn.notes,
-          });
+      // Verificar se há dados de teste
+      const hasTest = await hasTestData();
+      
+      if (hasTest) {
+        console.log("[loadCheckInsData] Carregando dados de teste");
+        const testData = await loadTestData();
+        const { employees: testEmployees, checkIns: testCheckIns } = testData;
+        
+        testCheckIns.forEach((checkIn: any) => {
+          if (checkIn.date === today) {
+            const emp = testEmployees.find((e: any) => e.id === checkIn.employeeId);
+            if (emp) {
+              todayCheckIns.push({
+                id: emp.id,
+                employeeName: emp.name,
+                employeeMatricula: emp.matricula,
+                status: checkIn.status || "bem",
+                time: new Date(checkIn.timestamp || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+                notes: checkIn.notes,
+              });
+            }
+          }
+        });
+      } else {
+        console.log("[loadCheckInsData] Carregando dados reais");
+        // Buscar check-ins de hoje de funcionários reais
+        for (const emp of employees) {
+          const checkInStr = await AsyncStorage.getItem(`checkIn_${emp.id}_${today}`);
+          if (checkInStr) {
+            const checkIn = JSON.parse(checkInStr);
+            todayCheckIns.push({
+              id: emp.id,
+              employeeName: emp.name,
+              employeeMatricula: emp.matricula,
+              status: checkIn.status || "bem",
+              time: new Date(checkIn.timestamp || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+              notes: checkIn.notes,
+            });
+          }
         }
       }
       
+      console.log(`[loadCheckInsData] Total de check-ins carregados: ${todayCheckIns.length}`);
       setCheckInsData(todayCheckIns);
     } catch (error) {
-      console.error("Erro ao carregar check-ins:", error);
+      console.error("[loadCheckInsData] Erro ao carregar check-ins:", error);
     }
   };
 

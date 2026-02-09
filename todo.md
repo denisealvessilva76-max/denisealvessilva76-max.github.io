@@ -2175,3 +2175,56 @@ Migrar de AsyncStorage local para banco de dados PostgreSQL com sincronização 
   - [ ] Gerar funcionários em desafios ativos - PRECISA TESTAR
   - [ ] Gerar funcionários com pressão elevada - PRECISA TESTAR
   - [ ] Validar que todos os modals abrem corretamente - PRECISA TESTAR
+
+
+---
+
+## 🚨 BUGS CRÍTICOS REPORTADOS (Nova Rodada)
+
+### 1. Modals Não Abrem no Dashboard Admin
+- [x] Modal de Queixas não mostra dados ao clicar (mesmo com 28 queixas de teste) - CORRIGIDO
+- [x] Modal de Desafios mostra "0 funcionários participando" - CORRIGIDO
+- [x] Verificar se dados de teste estão sendo carregados corretamente - CORRIGIDO
+- [x] Testar com dados reais (não apenas fantasmas) - CORRIGIDO
+
+### 2. Perfil Não Salva Dados
+- [x] Dados do perfil são perdidos ao sair e retornar ao app - CORRIGIDO
+- [x] Implementar salvamento correto no AsyncStorage - CORRIGIDO
+- [x] Adicionar validação de salvamento - CORRIGIDO
+- [x] Testar persistência após fechar e reabrir app - CORRIGIDO (sincronizado com auth-context)
+
+##### 3. Credenciais Admin Pré-Preenchidas (Risco de Segurança)
+- [x] Remover "admin" e "1234" pré-preenchidos no login admin - CORRIGIDO
+- [x] Forçar digitação manual das credenciais - CORRIGIDO
+- [x] Adicionar aviso de segurança - JÁ EXISTEça
+### 4. Falta de Gráficos Visuais no Dashboard
+- [ ] Adicionar gráficos de barras para hidratação - PENDENTE (Victory Native instalado)
+- [ ] Adicionar gráficos de linha para pressão arterial - PENDENTE
+- [ ] Adicionar gráficos de pizza para distribuição de queixas - PENDENTE
+- [ ] Adicionar gráficos de evolução mensal - PENDENTE
+- [x] Instalar Victory Native ou similar - CONCLUÍDOde queixas detalhadas no PDF
+  - [ ] Mostrar se foi tratada ou não
+  - [ ] Incluir descrição completa
+  - [ ] Gravidade e data
+- [ ] Adicionar seção de desafios no PDF
+  - [ ] Dias que fizeram check-in
+  - [ ] Fotos anexadas (comprovação)
+  - [ ] Progresso de cada funcionário
+
+### 6. Backup Não Testado
+- [ ] Testar envio de e-mail real
+- [ ] Validar se dados estão sendo enviados corretamente
+- [ ] Verificar se admin tem acesso aos dados
+
+### 7. Persistência de Login
+- [x] Implementar "Lembrar de mim" para funcionários - JÁ IMPLEMENTADO (auth-context)
+- [x] Salvar sessão (matrícula + nome) - JÁ IMPLEMENTADO
+- [x] Não pedir login toda vez que abrir o app - JÁ IMPLEMENTADO
+- [ ] Adicionar botão "Sair" para limpar sessão - PENDENTE
+
+### 8. Dados Não Sincronizam com Backend
+- [ ] Migrar AsyncStorage para PostgreSQL
+- [ ] Garantir que Dashboard Admin acessa dados reais do banco
+- [ ] Testar sincronização imediata (funcionário cadastra → aparece no Dashboard)
+
+---
