@@ -22,6 +22,12 @@ import {
   type PressureAlert,
   type CheckInRecord,
 } from "@/components/dashboard-modals";
+import {
+  HydrationChart,
+  PressureChart,
+  ComplaintsChart,
+  CheckInsChart,
+} from "@/components/admin-charts";
 
 interface DashboardStats {
   totalEmployees: number;
@@ -64,7 +70,7 @@ export default function AdminDashboardScreen() {
     mentalHealthUsage: 0,
   });
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "employees" | "reports">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "employees" | "reports" | "charts">("overview");
   const [hasTestDataFlag, setHasTestDataFlag] = useState(false);
   const [generatingTestData, setGeneratingTestData] = useState(false);
 
@@ -759,6 +765,22 @@ export default function AdminDashboardScreen() {
               Relatórios
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              setActiveTab("charts");
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            className="flex-1 py-3 rounded-lg mx-1"
+            style={{ backgroundColor: activeTab === "charts" ? colors.primary : colors.surface }}
+          >
+            <Text
+              className="text-center font-semibold"
+              style={{ color: activeTab === "charts" ? "#fff" : colors.foreground }}
+            >
+              Gráficos
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Content */}
@@ -985,6 +1007,60 @@ export default function AdminDashboardScreen() {
                 </View>
               </View>
             </View>
+          )}
+
+          {activeTab === "charts" && (
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text className="text-xl font-bold text-foreground mb-4">Gráficos e Visualizações</Text>
+
+              <HydrationChart
+                data={[
+                  { day: "Seg", value: 75 },
+                  { day: "Ter", value: 82 },
+                  { day: "Qua", value: 68 },
+                  { day: "Qui", value: 90 },
+                  { day: "Sex", value: 85 },
+                  { day: "Sáb", value: 70 },
+                  { day: "Dom", value: 65 },
+                ]}
+              />
+
+              <PressureChart
+                data={[
+                  { day: "Seg", systolic: 120, diastolic: 80 },
+                  { day: "Ter", systolic: 125, diastolic: 82 },
+                  { day: "Qua", systolic: 118, diastolic: 78 },
+                  { day: "Qui", systolic: 130, diastolic: 85 },
+                  { day: "Sex", systolic: 122, diastolic: 80 },
+                  { day: "Sáb", systolic: 120, diastolic: 79 },
+                  { day: "Dom", systolic: 115, diastolic: 75 },
+                ]}
+              />
+
+              <ComplaintsChart
+                data={[
+                  { name: "Dor nas costas", count: 12, color: "#EF4444" },
+                  { name: "Dor no ombro", count: 8, color: "#F59E0B" },
+                  { name: "Dor no joelho", count: 5, color: "#10B981" },
+                  { name: "Fadiga", count: 3, color: "#3B82F6" },
+                ]}
+              />
+
+              <CheckInsChart
+                data={[
+                  { status: "Bem", count: 45 },
+                  { status: "Dor leve", count: 12 },
+                  { status: "Dor forte", count: 3 },
+                ]}
+              />
+
+              <View className="bg-blue-50 p-4 rounded-lg mt-4">
+                <Text className="text-blue-800 text-sm font-semibold mb-1">📊 Gráficos Dinâmicos</Text>
+                <Text className="text-blue-700 text-xs">
+                  Os gráficos acima mostram dados simulados. Após migração para backend, eles serão atualizados automaticamente com dados reais dos funcionários.
+                </Text>
+              </View>
+            </ScrollView>
           )}
         </View>
       </ScrollView>

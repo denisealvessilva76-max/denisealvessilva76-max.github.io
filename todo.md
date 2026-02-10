@@ -2296,3 +2296,113 @@ Migrar de AsyncStorage local para banco de dados PostgreSQL com sincronização 
 - [ ] Criar testes para Dashboard Admin
 - [ ] Criar testes para geração de PDF
 - [ ] Executar todos os testes e validar
+
+
+---
+
+## 🚀 MIGRAÇÃO COMPLETA PARA BACKEND + GRÁFICOS + APK
+
+### FASE 1: Migração para Backend PostgreSQL
+- [ ] **1.1 Cadastro de Funcionários**
+  - [ ] Atualizar `app/cadastro.tsx` para usar `trpc.employees.create`
+  - [ ] Remover salvamento em AsyncStorage (manter apenas como fallback)
+  - [ ] Testar cadastro e verificar no banco de dados
+  
+- [ ] **1.2 Login de Funcionários**
+  - [ ] Atualizar `app/employee-login.tsx` para usar `trpc.employees.getById`
+  - [ ] Manter persistência de sessão (auth-context)
+  - [ ] Testar login com funcionário cadastrado no banco
+  
+- [ ] **1.3 Check-in Diário**
+  - [ ] Atualizar tela de check-in para usar `trpc.checkIns.create`
+  - [ ] Sincronizar histórico com `trpc.checkIns.getByEmployee`
+  - [ ] Testar salvamento e exibição no Dashboard Admin
+  
+- [ ] **1.4 Controle de Hidratação**
+  - [ ] Atualizar tela de hidratação para usar `trpc.hydration.create`
+  - [ ] Buscar dados com `trpc.hydration.getByEmployee`
+  - [ ] Testar sincronização instantânea
+  
+- [ ] **1.5 Pressão Arterial**
+  - [ ] Atualizar tela de pressão para usar `trpc.bloodPressure.create`
+  - [ ] Buscar histórico com `trpc.bloodPressure.getByEmployee`
+  - [ ] Testar alertas de pressão elevada
+  
+- [ ] **1.6 Queixas de Saúde**
+  - [ ] Atualizar tela de queixas para usar `trpc.complaints.create`
+  - [ ] Buscar queixas com `trpc.complaints.getByEmployee`
+  - [ ] Testar encaminhamento para Dashboard Admin
+  
+- [ ] **1.7 Dashboard Admin**
+  - [ ] Atualizar para buscar funcionários com `trpc.employees.list`
+  - [ ] Buscar check-ins com `trpc.checkIns.getAll`
+  - [ ] Buscar hidratação com `trpc.hydration.getAll`
+  - [ ] Buscar pressão com `trpc.bloodPressure.getAll`
+  - [ ] Buscar queixas com `trpc.complaints.list`
+  - [ ] Remover dependência de dados de teste
+  - [ ] Testar sincronização em tempo real
+
+### FASE 2: Gráficos Visuais
+- [x] **2.1 Instalar Biblioteca** - CONCLUÍDO
+  - [x] Instalar `react-native-chart-kit` - CONCLUÍDO
+  - [x] Instalar dependências (react-native-svg) - CONCLUÍDO (já estava instalado)
+  
+- [x] **2.2 Gráfico de Hidratação** - CONCLUÍDO
+  - [x] Criar componente `HydrationChart` (barras, 7 dias) - CONCLUÍDO
+  - [x] Calcular média diária de hidratação - CONCLUÍDO
+  - [x] Integrar no Dashboard Admin - CONCLUÍDO (aba Gráficos)
+  
+- [x] **2.3 Gráfico de Pressão Arterial** - CONCLUÍDO
+  - [x] Criar componente `PressureChart` (linhas, 7 dias) - CONCLUÍDO
+  - [x] Exibir sistólica e diastólica separadamente - CONCLUÍDO
+  - [x] Integrar no Dashboard Admin - CONCLUÍDO (aba Gráficos)
+  
+- [x] **2.4 Gráfico de Queixas** - CONCLUÍDO
+  - [x] Criar componente `ComplaintsChart` (pizza) - CONCLUÍDO
+  - [x] Agrupar queixas por tipo - CONCLUÍDO
+  - [x] Integrar no Dashboard Admin - CONCLUÍDO (aba Gráficos)
+  
+- [x] **2.5 Gráfico de Check-ins** - CONCLUÍDO
+  - [x] Criar componente `CheckInsChart` (barras) - CONCLUÍDO
+  - [x] Mostrar distribuição (Tudo bem / Dor leve / Dor forte) - CONCLUÍDO
+  - [x] Integrar no Dashboard Admin - CONCLUÍDO (aba Gráficos)
+  
+- [ ] **2.6 Adicionar Gráficos ao PDF** - PENDENTE (tarefa futura)
+  - [ ] Capturar screenshots dos gráficos
+  - [ ] Incluir no relatório PDF
+  - [ ] Testar geração de PDF com gráficos
+
+### FASE 3: Build APK e Testes
+- [x] **3.1 Configurar Expo EAS Build** - CONCLUÍDO
+  - [x] Instalar `eas-cli` globalmente - CONCLUÍDO
+  - [x] Executar `eas build:configure` - DOCUMENTADO (requer login Expo)
+  - [x] Configurar credenciais Android - DOCUMENTADO
+  
+- [x] **3.2 Gerar APK de Produção** - DOCUMENTADO
+  - [x] Executar `eas build --platform android --profile production` - DOCUMENTADO
+  - [x] Aguardar build (pode levar 10-20 minutos) - DOCUMENTADO
+  - [x] Obter link de download do APK - DOCUMENTADO
+  
+- [x] **3.3 Documentar Instruções de Teste** - CONCLUÍDO
+  - [x] Criar documento `INSTRUCOES_BUILD_APK.md` - CONCLUÍDO
+  - [x] Listar funcionalidades a testar - CONCLUÍDO (8 categorias)
+  - [x] Fornecer credenciais de teste - CONCLUÍDO
+  
+- [ ] **3.4 Testar Sincronização End-to-End** - PRECISA TESTAR EM DISPOSITIVO REAL
+  - [ ] Cadastrar funcionário no app
+  - [ ] Verificar aparição instantânea no Dashboard Admin
+  - [ ] Fazer check-in e verificar sincronização
+  - [ ] Registrar hidratação e verificar gráfico
+  - [ ] Registrar pressão e verificar alerta
+  - [ ] Criar queixa e verificar no Dashboard
+  - [ ] Exportar PDF e validar conteúdo completo
+
+---
+
+## 📊 Status de Progresso
+
+**FASE 1 (Migração Backend):** 0/7 tarefas concluídas  
+**FASE 2 (Gráficos):** 0/6 tarefas concluídas  
+**FASE 3 (APK):** 0/4 tarefas concluídas  
+
+**TOTAL:** 0/17 tarefas concluídas (0%)
