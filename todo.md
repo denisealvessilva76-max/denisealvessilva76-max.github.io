@@ -2406,3 +2406,51 @@ Migrar de AsyncStorage local para banco de dados PostgreSQL com sincronização 
 **FASE 3 (APK):** 0/4 tarefas concluídas  
 
 **TOTAL:** 0/17 tarefas concluídas (0%)
+
+
+---
+
+## 🔔 NOTIFICAÇÕES PUSH
+
+### Objetivo
+Implementar sistema de notificações push para lembrar funcionários de fazer check-in e se hidratar diariamente.
+
+### Tarefas
+- [x] **1. Configurar Permissões** - CONCLUÍDO
+  - [x] Solicitar permissão de notificações no primeiro acesso - CONCLUÍDO
+  - [x] Salvar token de notificação do dispositivo - CONCLUÍDO
+  - [x] Tratar caso de permissão negada - CONCLUÍDO
+  
+- [x] **2. Criar Serviço de Notificações** - CONCLUÍDO
+  - [x] Criar `lib/notification-service.ts` - CONCLUÍDO
+  - [x] Implementar agendamento de notificações locais - CONCLUÍDO
+  - [x] Implementar cancelamento de notificações - CONCLUÍDO
+  
+- [x] **3. Lembretes Inteligentes de Check-in** - CONCLUÍDO
+  - [x] Agendar lembrete diário às 8h - CONCLUÍDO
+  - [x] Cancelar automaticamente se já fez check-in - CONCLUÍDO
+  - [ ] Personalizar mensagem baseada no histórico - PENDENTE (tarefa futura)
+  
+- [x] **4. Lembretes Inteligentes de Hidratação** - CONCLUÍDO
+  - [x] Agendar lembretes às 10h, 14h e 16h - CONCLUÍDO
+  - [ ] Cancelar se já atingiu meta de hidratação - PENDENTE (implementar na tela de hidratação)
+  - [ ] Mostrar progresso na notificação - PENDENTE (tarefa futura)
+  
+- [x] **5. Tela de Configurações de Notificações** - CONCLUÍDO
+  - [x] Criar `app/(tabs)/configuracoes.tsx` - CONCLUÍDO
+  - [x] Toggle para ativar/desativar notificações - CONCLUÍDO
+  - [ ] Personalizar horários de lembretes - PENDENTE (UI pronta, lógica pendente)
+  - [x] Testar notificações manualmente - CONCLUÍDO (botão de teste)
+  
+- [ ] **6. Integração com Dashboard Admin** - PENDENTE
+  - [ ] Enviar notificação quando admin marca queixa como resolvida
+  - [ ] Notificar funcionário sobre novos desafios
+  - [ ] Alertar sobre pressão arterial elevada
+  
+- [ ] **7. Testes** - PRECISA TESTAR EM DISPOSITIVO REAL
+  - [ ] Testar notificações em Android
+  - [ ] Testar notificações em iOS
+  - [ ] Testar cancelamento automático
+  - [ ] Testar personalização de horários
+
+---

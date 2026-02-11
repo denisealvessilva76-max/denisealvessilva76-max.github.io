@@ -10,6 +10,8 @@ import { usePersonalDashboard } from "@/hooks/use-personal-dashboard";
 import { CheckInStatus } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
+import { cancelCheckInReminder, scheduleAllNotifications } from "@/lib/notification-service";
+import { Platform } from "react-native";
 
 const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: string; color: string }> = [
   { status: "bem", emoji: "😊", label: "Tudo bem", color: "bg-success" },
@@ -28,12 +30,19 @@ export default function HomeScreen() {
 
   useEffect(() => {
     setTodayCheckIn(getTodayCheckIn());
+    
+    // Agendar notificações na primeira vez que o app abre
+    if (Platform.OS !== "web") {
+      scheduleAllNotifications().catch(console.error);
+    }
   }, [checkIns]);
 
   // Refresh manual apenas - useFocusEffect removido para evitar loops
 
   const handleCheckIn = async (status: CheckInStatus) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== "web") {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     
     // Se reportar dor, abrir formulário detalhado
     if (status === "dor-leve" || status === "dor-forte") {
@@ -48,6 +57,11 @@ export default function HomeScreen() {
     if (result) {
       setTodayCheckIn(result);
       refresh(); // Atualizar dashboard
+      
+      // Cancelar lembrete de check-in (já foi feito)
+      if (Platform.OS !== "web") {
+        await cancelCheckInReminder();
+      }
     }
   };
 
