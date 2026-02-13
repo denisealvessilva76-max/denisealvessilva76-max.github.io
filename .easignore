@@ -1,0 +1,24 @@
+# Arquivos que não devem ser enviados para o build EAS
+node_modules/
+.expo/
+.git/
+.vscode/
+.idea/
+dist/
+*.log
+*.tsbuildinfo
+.DS_Store
+*.swp
+*.swo
+*~
+Thumbs.db
+.cache/
+coverage/
+.manus-logs/
+.webdev/
+screenshots/
+tests/
+*.test.ts
+*.test.tsx
+*.md
+!README.md
