@@ -87,7 +87,19 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
-
+    [
+      "expo-audio",
+      {
+        microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",
+      },
+    ],
+    [
+      "expo-video",
+      {
+        supportsBackgroundPlayback: true,
+        supportsPictureInPicture: true,
+      },
+    ],
     [
       "expo-splash-screen",
       {
@@ -104,10 +116,8 @@ const config: ExpoConfig = {
       "expo-build-properties",
       {
         android: {
-          buildArchs: ["arm64-v8a"],
+          buildArchs: ["armeabi-v7a", "arm64-v8a"],
           minSdkVersion: 24,
-          enableProguardInReleaseBuilds: false,
-          enableShrinkResourcesInReleaseBuilds: false,
         },
       },
     ],
