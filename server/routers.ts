@@ -1,10 +1,6 @@
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { emailRouter } from "./api/routers/email";
-import { employeesRouter } from "./api/routers/employees";
-import { checkInsRouter } from "./api/routers/check-ins";
-import { healthRouter } from "./api/routers/health";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
@@ -1585,12 +1581,6 @@ export const appRouter = router({
         }
       }),
   }),
-
-  // Router de e-mail
-  email: emailRouter,
-  employees: employeesRouter,
-  checkIns: checkInsRouter,
-  health: healthRouter,
 });
 
 export type AppRouter = typeof appRouter;

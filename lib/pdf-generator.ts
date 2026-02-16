@@ -25,32 +25,10 @@ interface EmployeeRecord {
   challengesActive: number;
 }
 
-interface ComplaintDetail {
-  employeeName: string;
-  employeeMatricula: string;
-  type: string;
-  description: string;
-  severity: string;
-  date: string;
-  resolved: boolean;
-}
-
-interface ChallengeDetail {
-  employeeName: string;
-  employeeMatricula: string;
-  challengeName: string;
-  progress: number;
-  startDate: string;
-  checkIns: number;
-  photos: number;
-}
-
 export async function generateDashboardPDF(
   stats: DashboardStats,
   employees: EmployeeRecord[],
-  period: string = "month",
-  complaints: ComplaintDetail[] = [],
-  challenges: ChallengeDetail[] = []
+  period: string = "month"
 ): Promise<string | null> {
   try {
     const currentDate = new Date().toLocaleDateString("pt-BR");
@@ -223,94 +201,6 @@ export async function generateDashboardPDF(
           <td>${emp.hydrationToday}ml / ${emp.hydrationGoal}ml (${Math.round((emp.hydrationToday / emp.hydrationGoal) * 100)}%)</td>
           <td>${emp.lastPressure ? `${emp.lastPressure.systolic}/${emp.lastPressure.diastolic} mmHg` : "Sem registro"}</td>
           <td>${emp.complaintsCount}</td>
-        </tr>
-      `
-        )
-        .join("")}
-    </tbody>
-  </table>
-  `
-  }
-
-  <h2>📋 Queixas Detalhadas (Semana)</h2>
-  ${
-    complaints.length === 0
-      ? '<p style="text-align: center; color: #687076; padding: 20px;">Nenhuma queixa registrada nesta semana.</p>'
-      : `
-  <table>
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Matrícula</th>
-        <th>Tipo</th>
-        <th>Descrição</th>
-        <th>Gravidade</th>
-        <th>Data</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${complaints
-        .map(
-          (c) => `
-        <tr>
-          <td><strong>${c.employeeName}</strong></td>
-          <td>${c.employeeMatricula}</td>
-          <td>${c.type}</td>
-          <td>${c.description}</td>
-          <td>
-            <span class="badge ${c.severity === "grave" ? "badge-error" : "badge-success"}">
-              ${c.severity.toUpperCase()}
-            </span>
-          </td>
-          <td>${c.date}</td>
-          <td>
-            <span class="badge ${c.resolved ? "badge-success" : "badge-error"}">
-              ${c.resolved ? "TRATADA" : "PENDENTE"}
-            </span>
-          </td>
-        </tr>
-      `
-        )
-        .join("")}
-    </tbody>
-  </table>
-  `
-  }
-
-  <h2>🏆 Desafios Ativos</h2>
-  ${
-    challenges.length === 0
-      ? '<p style="text-align: center; color: #687076; padding: 20px;">Nenhum desafio ativo no momento.</p>'
-      : `
-  <table>
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Matrícula</th>
-        <th>Desafio</th>
-        <th>Progresso</th>
-        <th>Início</th>
-        <th>Check-ins</th>
-        <th>Fotos</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${challenges
-        .map(
-          (ch) => `
-        <tr>
-          <td><strong>${ch.employeeName}</strong></td>
-          <td>${ch.employeeMatricula}</td>
-          <td>${ch.challengeName}</td>
-          <td>
-            <span class="badge ${ch.progress >= 75 ? "badge-success" : "badge-error"}">
-              ${ch.progress}%
-            </span>
-          </td>
-          <td>${ch.startDate}</td>
-          <td>${ch.checkIns}</td>
-          <td>${ch.photos}</td>
         </tr>
       `
         )

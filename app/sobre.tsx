@@ -46,7 +46,7 @@ export default function AboutScreen() {
         <View className="p-6 bg-background">
           <View className="bg-surface rounded-xl p-6 border-2 border-primary items-center">
             <Image
-              source={{ uri: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663082088333/FQwwsAokFnwBXrpC.png" }}
+              source={require("@/assets/images/selo-propriedade.png")}
               style={{ width: 150, height: 150 }}
               resizeMode="contain"
             />

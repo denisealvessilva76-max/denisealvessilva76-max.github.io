@@ -53,14 +53,7 @@ export default function TabLayout() {
         name="perfil"
         options={{
           title: "Perfil",
-          tabBarIcon: ({ color}) => <IconSymbol size={28} name="person.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="configuracoes"
-        options={{
-          title: "Config",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
     </Tabs>

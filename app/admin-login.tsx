@@ -84,7 +84,7 @@ export default function AdminLoginScreen() {
               <View className="gap-2">
                 <Text className="text-sm font-semibold text-foreground">Email</Text>
                 <TextInput
-                  placeholder="Digite seu email"
+                  placeholder="admin"
                   placeholderTextColor={colors.muted}
                   value={email}
                   onChangeText={setEmail}
@@ -119,7 +119,7 @@ export default function AdminLoginScreen() {
                   }}
                 >
                   <TextInput
-                    placeholder="Digite sua senha"
+                    placeholder="1234"
                     placeholderTextColor={colors.muted}
                     value={password}
                     onChangeText={setPassword}

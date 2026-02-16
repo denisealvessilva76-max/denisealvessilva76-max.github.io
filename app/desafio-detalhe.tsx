@@ -8,7 +8,6 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trpc } from "@/lib/trpc";
 import * as FileSystem from "expo-file-system/legacy";
-import { useAuth } from "@/lib/auth-context";
 
 // Tipos
 interface ChallengeData {
@@ -259,7 +258,6 @@ const DIFFICULTY_LABELS = {
 export default function DesafioDetalheScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { user } = useAuth();
   const { id } = useLocalSearchParams();
   
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
@@ -488,7 +486,7 @@ export default function DesafioDetalheScreen() {
       // Sincronizar com backend
       try {
         const uploadResult = await uploadPhotoMutation.mutateAsync({
-          workerId: user?.id || user?.matricula || "guest",
+          workerId: "user-001", // TODO: usar ID real do usuário
           challengeId: challenge!.id,
           challengeName: challenge!.title,
           photoBase64: `data:image/jpeg;base64,${base64}`,
@@ -552,7 +550,7 @@ export default function DesafioDetalheScreen() {
       // Sincronizar com backend
       try {
         const uploadResult = await uploadPhotoMutation.mutateAsync({
-          workerId: user?.id || user?.matricula || "guest",
+          workerId: "user-001", // TODO: usar ID real do usuário
           challengeId: challenge!.id,
           challengeName: challenge!.title,
           photoBase64: `data:image/jpeg;base64,${base64}`,
