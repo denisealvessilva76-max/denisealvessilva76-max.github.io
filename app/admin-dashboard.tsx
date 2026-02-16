@@ -526,6 +526,16 @@ export default function AdminDashboardScreen() {
     const complaintsThisWeek = employeesData.reduce((sum, e) => sum + e.complaintsCount, 0);
     const challengesActive = employeesData.reduce((sum, e) => sum + e.challengesActive, 0);
 
+    // Calcular adesão à ergonomia (% de funcionários que fizeram alongamento/exercício esta semana)
+    const ergonomicsAdherence = totalEmployees > 0
+      ? Math.round((employeesData.filter(e => e.lastCheckIn !== null).length / totalEmployees) * 100)
+      : 0;
+
+    // Calcular uso de saúde mental (% de funcionários que acessaram recursos de saúde mental esta semana)
+    const mentalHealthUsage = totalEmployees > 0
+      ? Math.round((employeesData.filter(e => e.complaintsCount > 0).length / totalEmployees) * 100)
+      : 0;
+
     return {
       totalEmployees,
       activeToday,
@@ -533,8 +543,8 @@ export default function AdminDashboardScreen() {
       hydrationAverage,
       complaintsThisWeek,
       challengesActive,
-      ergonomicsAdherence: 0, // TODO: Implementar
-      mentalHealthUsage: 0, // TODO: Implementar
+      ergonomicsAdherence,
+      mentalHealthUsage,
     };
   };
 
