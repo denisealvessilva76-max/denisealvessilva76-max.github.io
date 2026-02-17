@@ -2026,3 +2026,55 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] REMOVER IMEDIATAMENTE qualquer hint/texto com senha (CORRIGIDO)
 - [x] Implementar tela de login sem exposição de credenciais (CORRIGIDO)
 - [x] Validar que não há vazamento de informações sensíveis (VALIDADO)
+
+
+---
+
+## 🌐 Conversão para PWA (Progressive Web App) - PRIORIDADE MÁXIMA
+
+### Configuração PWA
+- [x] Criar manifest.json com configurações de instalação
+- [x] Configurar ícones PWA (192x192, 512x512, maskable)
+- [x] Implementar service worker para cache e offline
+- [x] Configurar splash screen para PWA
+- [x] Adicionar meta tags para iOS (apple-touch-icon, apple-mobile-web-app-capable)
+
+### Adaptações Web
+- [ ] Adaptar câmera para web (input file com capture="environment")
+- [ ] Substituir expo-haptics por Vibration API
+- [ ] Adaptar expo-notifications por Web Push API
+- [ ] Configurar HTTPS para notificações web
+- [ ] Testar upload de fotos via web
+
+### Sincronização Backend (CRÍTICO)
+- [ ] Migrar todos os dados de AsyncStorage para PostgreSQL
+- [ ] Implementar API de sincronização automática
+- [ ] Criar tabelas no banco: users, check_ins, hydration, blood_pressure, complaints, challenges
+- [ ] Garantir que dashboard admin receba dados em tempo real
+- [ ] Implementar WebSocket ou polling para atualizações ao vivo
+- [ ] Testar fluxo completo: usuário registra → admin visualiza instantaneamente
+
+### Dashboard Admin Web
+- [ ] Garantir que todos os dados apareçam no dashboard
+- [ ] Implementar gráficos de check-ins em tempo real
+- [ ] Implementar gráficos de hidratação da equipe
+- [ ] Implementar gráficos de pressão arterial
+- [ ] Implementar lista de queixas com detalhes
+- [ ] Implementar lista de desafios ativos
+- [ ] Implementar exportação de relatórios PDF
+- [ ] Testar sincronização em tempo real
+
+### Instalação e Distribuição
+- [ ] Testar instalação PWA no Android (Chrome)
+- [ ] Testar instalação PWA no iOS (Safari)
+- [ ] Gerar URL pública para distribuição
+- [ ] Criar instruções de instalação para funcionários
+- [ ] Testar "Adicionar à Tela Inicial"
+
+### Testes Finais
+- [ ] Testar todas as funcionalidades na web
+- [ ] Testar funcionamento offline
+- [ ] Testar sincronização ao reconectar
+- [ ] Validar que dashboard admin recebe todos os dados
+- [ ] Testar em diferentes navegadores (Chrome, Safari, Firefox)
+- [ ] Testar em diferentes dispositivos (Android, iOS)

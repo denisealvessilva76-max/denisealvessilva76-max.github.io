@@ -84,6 +84,14 @@ const config: ExpoConfig = {
     bundler: "metro",
     output: "static",
     favicon: "./assets/images/favicon.png",
+    // Configurações PWA
+    meta: {
+      name: env.appName,
+      description: "Aplicativo de saúde ocupacional para trabalhadores da construção civil",
+      themeColor: "#0a7ea4",
+      backgroundColor: "#ffffff",
+      viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+    },
   },
   plugins: [
     "expo-router",
