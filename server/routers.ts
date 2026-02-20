@@ -724,6 +724,158 @@ export const appRouter = router({
       }
     }),
 
+    // Listar todos os funcionários cadastrados
+    listEmployees: publicProcedure.query(async () => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Banco de dados não disponível");
+        }
+
+        const employeesList = await db
+          .select({
+            id: employees.id,
+            workerId: employees.workerId,
+            name: employees.name,
+            matricula: employees.matricula,
+            department: employees.department,
+            position: employees.position,
+            isActive: employees.isActive,
+            lastLogin: employees.lastLogin,
+          })
+          .from(employees)
+          .where(eq(employees.isActive, 1))
+          .orderBy(sql`${employees.name} ASC`);
+
+        return {
+          success: true,
+          employees: employeesList,
+        };
+      } catch (error) {
+        console.error("Erro ao listar funcionários:", error);
+        throw new Error("Falha ao listar funcionários");
+      }
+    }),
+
+    // Buscar dados detalhados de um funcionário
+    getEmployeeDetails: publicProcedure
+      .input(z.object({ employeeId: z.number() }))
+      .query(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) {
+            throw new Error("Banco de dados não disponível");
+          }
+
+          // Buscar dados do funcionário
+          const [employee] = await db
+            .select()
+            .from(employees)
+            .where(eq(employees.id, input.employeeId))
+            .limit(1);
+
+          if (!employee) {
+            throw new Error("Funcionário não encontrado");
+          }
+
+          // Buscar check-ins (últimos 30 dias)
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+          const employeeCheckIns = await db
+            .select()
+            .from(checkIns)
+            .where(
+              and(
+                eq(checkIns.userId, input.employeeId),
+                sql`${checkIns.date} >= ${monthAgo}`
+              )
+            )
+            .orderBy(sql`${checkIns.date} DESC`);
+
+          // Buscar hidratação (últimos 7 dias)
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+
+          const hydrationData = await db
+            .select()
+            .from(userHydration)
+            .where(
+              and(
+                eq(userHydration.userId, input.employeeId),
+                sql`${userHydration.date} >= ${weekAgo}`
+              )
+            )
+            .orderBy(sql`${userHydration.date} DESC`);
+
+          // Buscar pressão arterial (últimos 30 dias)
+          const pressureData = await db
+            .select()
+            .from(bloodPressureRecords)
+            .where(
+              and(
+                eq(bloodPressureRecords.userId, input.employeeId),
+                sql`${bloodPressureRecords.date} >= ${monthAgo}`
+              )
+            )
+            .orderBy(sql`${bloodPressureRecords.date} DESC`);
+
+          // Buscar queixas (últimas 10)
+          const complaintsData = await db
+            .select()
+            .from(complaints)
+            .where(eq(complaints.userId, input.employeeId))
+            .orderBy(sql`${complaints.date} DESC`)
+            .limit(10);
+
+          // Buscar desafios ativos
+          const activeChallenges = await db
+            .select()
+            .from(challengeProgress)
+            .where(
+              and(
+                eq(challengeProgress.userId, input.employeeId),
+                eq(challengeProgress.completed, 0)
+              )
+            );
+
+          // Buscar gamificação
+          const [gamification] = await db
+            .select()
+            .from(gamificationData)
+            .where(eq(gamificationData.userId, input.employeeId))
+            .limit(1);
+
+          return {
+            success: true,
+            employee: {
+              id: employee.id,
+              workerId: employee.workerId,
+              name: employee.name,
+              matricula: employee.matricula,
+              cpf: employee.cpf,
+              department: employee.department,
+              position: employee.position,
+              weight: employee.weight,
+              height: employee.height,
+              workType: employee.workType,
+              email: employee.email,
+              isActive: employee.isActive,
+              lastLogin: employee.lastLogin,
+            },
+            checkIns: employeeCheckIns,
+            hydration: hydrationData,
+            pressure: pressureData,
+            complaints: complaintsData,
+            challenges: activeChallenges,
+            gamification: gamification || null,
+          };
+        } catch (error) {
+          console.error("Erro ao buscar detalhes do funcionário:", error);
+          throw new Error("Falha ao buscar detalhes do funcionário");
+        }
+      }),
+
     // Endpoint para enviar notificações push
     sendNotification: protectedProcedure
       .input(

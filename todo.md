@@ -2078,3 +2078,55 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Validar que dashboard admin recebe todos os dados
 - [ ] Testar em diferentes navegadores (Chrome, Safari, Firefox)
 - [ ] Testar em diferentes dispositivos (Android, iOS)
+
+
+---
+
+## 🌐 PWA Completo para Dispositivos Móveis - VERSÕES 24-26
+
+### Sistema de Login Persistente
+- [x] Implementar tela de login com matrícula e nome
+- [x] Salvar credenciais no localStorage/SecureStore
+- [x] Auto-login ao abrir o app
+- [x] Botão de logout opcional
+- [x] Validação de matrícula (formato correto)
+
+### Sincronização Backend PostgreSQL
+- [x] Migrar todos os AsyncStorage para API calls
+- [x] Implementar tRPC mutations para check-in
+- [x] Implementar tRPC mutations para hidratação
+- [x] Implementar tRPC mutations para pressão arterial
+- [x] Implementar tRPC mutations para queixas de saúde
+- [x] Implementar tRPC mutations para desafios
+- [x] Implementar tRPC mutations para conquistas
+- [x] Implementar sincronização offline (queue)
+- [x] Testar sincronização em tempo real
+
+### Dashboard Admin - Dados em Tempo Real
+- [ ] Conectar dashboard ao PostgreSQL
+- [ ] Exibir lista de todos os funcionários cadastrados
+- [ ] Exibir check-ins em tempo real
+- [ ] Exibir hidratação de cada funcionário
+- [ ] Exibir pressão arterial com alertas
+- [ ] Exibir queixas detalhadas (nome, matrícula, queixa)
+- [ ] Exibir desafios ativos por funcionário
+- [ ] Exibir fotos enviadas nos desafios
+- [ ] Gráficos de evolução mês a mês
+- [ ] Exportação de relatórios PDF
+
+### Otimizações Mobile
+- [ ] Garantir layout responsivo em todos os tamanhos
+- [ ] Otimizar touch targets (mínimo 44x44px)
+- [ ] Implementar gestos touch nativos
+- [ ] Otimizar teclado mobile (tipos corretos)
+- [ ] Testar em iPhone e Android
+- [ ] Garantir funcionamento offline completo
+- [ ] Otimizar performance de carregamento
+
+### Funcionalidades das Versões 24-26
+- [ ] Todas as métricas do dashboard funcionando
+- [ ] Sistema de notificações push configurado
+- [ ] Câmera funcionando para fotos de desafios
+- [ ] Upload de fotos para servidor
+- [ ] Alertas automáticos de saúde (agrupamento de queixas)
+- [ ] Relatórios semanais/mensais automáticos

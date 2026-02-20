@@ -80,6 +80,39 @@ export function useAuth(options?: UseAuthOptions) {
     }
   }, []);
 
+  const login = useCallback(async (matricula: string, nome: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Create user object
+      const userInfo: Auth.User = {
+        id: parseInt(matricula, 10),
+        openId: matricula,
+        name: nome,
+        email: `${matricula}@empresa.com`,
+        loginMethod: "local",
+        lastSignedIn: new Date(),
+      };
+
+      // Save user info
+      await Auth.setUserInfo(userInfo);
+      
+      // Set session token (using matricula as token for local auth)
+      await Auth.setSessionToken(matricula);
+      
+      setUser(userInfo);
+      console.log("[useAuth] User logged in:", userInfo);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Failed to login");
+      console.error("[useAuth] login error:", error);
+      setError(error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await Api.logout();
@@ -137,6 +170,7 @@ export function useAuth(options?: UseAuthOptions) {
     loading,
     error,
     isAuthenticated,
+    login,
     refresh: fetchUser,
     logout,
   };

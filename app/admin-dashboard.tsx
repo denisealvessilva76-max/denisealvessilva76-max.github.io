@@ -6,6 +6,7 @@ import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { generateDashboardPDF, sharePDF } from "@/lib/pdf-generator";
+import { useAdminData } from "@/hooks/use-admin-data";
 
 interface DashboardStats {
   totalEmployees: number;
@@ -33,22 +34,37 @@ interface EmployeeRecord {
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const colors = useColors();
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const [email, setEmail] = useState("");
-  const [stats, setStats] = useState<DashboardStats>({
-    totalEmployees: 0,
-    activeToday: 0,
-    checkInsToday: 0,
-    hydrationAverage: 0,
-    complaintsThisWeek: 0,
-    challengesActive: 0,
-    ergonomicsAdherence: 0,
-    mentalHealthUsage: 0,
-  });
-  const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "employees" | "reports">("overview");
+  
+  // Buscar dados do backend
+  const { stats: backendStats, employees: backendEmployees, isLoading, refreshAll } = useAdminData();
+  
+  // Converter dados do backend para formato do dashboard
+  const stats: DashboardStats = {
+    totalEmployees: backendEmployees.length,
+    activeToday: backendStats.checkIns.today,
+    checkInsToday: backendStats.checkIns.today,
+    hydrationAverage: backendStats.hydration.averageWeekly,
+    complaintsThisWeek: backendStats.complaints.pending,
+    challengesActive: backendStats.challenges.total - backendStats.challenges.completed,
+    ergonomicsAdherence: 0, // TODO: Implementar
+    mentalHealthUsage: 0, // TODO: Implementar
+  };
+  
+  const employees: EmployeeRecord[] = backendEmployees.map(emp => ({
+    id: emp.workerId,
+    name: emp.name,
+    matricula: emp.matricula,
+    lastCheckIn: emp.lastLogin ? new Date(emp.lastLogin).toISOString().split('T')[0] : null,
+    hydrationToday: 0, // Será carregado ao clicar no funcionário
+    hydrationGoal: 2000,
+    lastPressure: null,
+    complaintsCount: 0,
+    challengesActive: 0,
+  }));
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -56,7 +72,6 @@ export default function AdminDashboardScreen() {
 
   const checkAuthAndLoadData = async () => {
     try {
-      setIsLoading(true);
 
       // Verificar autenticação admin
       const isAuth = await AsyncStorage.getItem("admin_authenticated");
@@ -89,19 +104,14 @@ export default function AdminDashboardScreen() {
         console.error("[Dashboard] Erro ao navegar:", navError);
       }
     } finally {
-      setIsLoading(false);
+      // isLoading é gerenciado pelo useAdminData
     }
   };
 
   const loadDashboardData = async () => {
     try {
-      // Buscar dados de TODOS os funcionários cadastrados
-      const employeesData = await loadAllEmployeesFromStorage();
-      setEmployees(employeesData);
-
-      // Calcular estatísticas
-      const calculatedStats = calculateStats(employeesData);
-      setStats(calculatedStats);
+      // Dados já estão sendo carregados pelo useAdminData
+      // Não precisa fazer nada aqui
 
     } catch (error) {
       console.error("[Dashboard] Erro ao carregar dados:", error);
@@ -207,13 +217,12 @@ export default function AdminDashboardScreen() {
       mentalHealthUsage: 0, // TODO: Implementar
     };
   };
-
-  const onRefresh = async () => {
+  
+  const handleRefresh = async () => {
     setRefreshing(true);
-    await loadDashboardData();
+    await refreshAll();
     setRefreshing(false);
   };
-
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("admin_authenticated");
@@ -290,7 +299,7 @@ export default function AdminDashboardScreen() {
       <ScrollView
         className="flex-1"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
         }
       >
         {/* Header */}
