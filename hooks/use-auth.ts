@@ -2,6 +2,7 @@ import * as Api from "@/lib/_core/api";
 import * as Auth from "@/lib/_core/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 type UseAuthOptions = {
   autoFetch?: boolean;
@@ -85,9 +86,42 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       setError(null);
 
+      console.log("[useAuth] Registering user in backend...", { matricula, nome });
+
+      // CRITICAL: Register user in PostgreSQL backend first via direct API call
+      const response = await fetch(`${getApiBaseUrl()}/api/trpc/employeeAuth.register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: nome,
+          cpf: "",
+          matricula: matricula,
+          weight: 70,
+          height: 170,
+          setor: "Geral",
+          cargo: "Funcionário",
+          workType: "moderado",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao cadastrar usuário no backend");
+      }
+
+      const registerResult = await response.json();
+      console.log("[useAuth] Backend registration result:", registerResult);
+
+      const resultData = registerResult.result?.data;
+      if (!resultData || !resultData.success) {
+        throw new Error(resultData?.error || "Falha ao cadastrar usuário");
+      }
+
       // Create user object
       const userInfo: Auth.User = {
-        id: parseInt(matricula, 10),
+        id: resultData.employee?.id || parseInt(matricula, 10),
         openId: matricula,
         name: nome,
         email: `${matricula}@empresa.com`,
@@ -95,14 +129,14 @@ export function useAuth(options?: UseAuthOptions) {
         lastSignedIn: new Date(),
       };
 
-      // Save user info
+      // Save user info locally
       await Auth.setUserInfo(userInfo);
       
       // Set session token (using matricula as token for local auth)
       await Auth.setSessionToken(matricula);
       
       setUser(userInfo);
-      console.log("[useAuth] User logged in:", userInfo);
+      console.log("[useAuth] User logged in and registered:", userInfo);
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to login");
       console.error("[useAuth] login error:", error);

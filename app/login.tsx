@@ -67,7 +67,7 @@ export default function LoginScreen() {
           <View className="flex-1 justify-center px-6">
             {/* Logo/Título */}
             <View className="items-center mb-12">
-              <Text className="text-4xl font-bold text-primary mb-2">
+              <Text className="text-3xl font-bold text-primary mb-2 text-center px-4" numberOfLines={1} adjustsFontSizeToFit>
                 Canteiro Saudável
               </Text>
               <Text className="text-base text-muted text-center">

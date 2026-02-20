@@ -2130,3 +2130,19 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Upload de fotos para servidor
 - [ ] Alertas automáticos de saúde (agrupamento de queixas)
 - [ ] Relatórios semanais/mensais automáticos
+
+
+---
+
+## 🐛 Bugs Reportados - PWA Mobile
+
+- [x] Título "Canteiro Saudável" aparece cortado como "Canteiro Saudaz" no celular
+- [x] Botão "Entrar" no login não funciona - dados somem mas não faz login
+- [ ] Validar responsividade mobile em todas as telas
+
+## 🎯 Requisitos Finais PWA
+
+- [x] Cadastro instantâneo: ao cadastrar, perfil aparece IMEDIATAMENTE no admin
+- [ ] Notificações push web funcionais (lembretes diários)
+- [x] Funciona offline após primeiro acesso
+- [ ] Testar fluxo: cadastro no celular → verificar no admin
