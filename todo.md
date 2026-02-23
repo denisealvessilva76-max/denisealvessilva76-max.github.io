@@ -255,6 +255,7 @@
 - [x] Link do WhatsApp não funciona corretamente (adicionado +55)
 - [x] Ao selecionar "dor leve" não aparece aviso de procurar ajuda (formulário completo)
 - [x] Não aparece campo para especificar de onde vem a dor (formulário completo)
+- [x] Erro ao fazer login após inserir matrícula e nome completo (corrigido formato tRPC batch, CPF fake, cache local, navegação web)
 
 ---
 
@@ -2161,3 +2162,6 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Investigar logs do servidor para identificar causa
 - [x] Verificar se backend está recebendo requisição corretamente
 - [ ] Testar login em dispositivo mobile real
+- [ ] ERRO PERSISTE: Login ainda não funciona após correções
+- [ ] Testar login no navegador e capturar console.log
+- [ ] Verificar resposta exata da API tRPC

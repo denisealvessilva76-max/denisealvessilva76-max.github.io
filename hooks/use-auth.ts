@@ -88,8 +88,18 @@ export function useAuth(options?: UseAuthOptions) {
 
       console.log("[useAuth] Registering user in backend...", { matricula, nome });
 
+      // Gerar CPF fake baseado na matrícula (11 dígitos)
+      const cpfFake = matricula.padStart(11, "0");
+
+      // Get API base URL
+      const apiBaseUrl = getApiBaseUrl();
+      console.log("[useAuth] API Base URL:", apiBaseUrl);
+
+      const apiUrl = `${apiBaseUrl}/api/trpc/employeeAuth.register?batch=1`;
+      console.log("[useAuth] Full API URL:", apiUrl);
+
       // CRITICAL: Register user in PostgreSQL backend first via direct API call
-      const response = await fetch(`${getApiBaseUrl()}/api/trpc/employeeAuth.register?batch=1`, {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,27 +107,36 @@ export function useAuth(options?: UseAuthOptions) {
         credentials: "include",
         body: JSON.stringify({
           "0": {
-            name: nome,
-            cpf: "",
-            matricula: matricula,
-            weight: 70,
-            height: 170,
-            setor: "Geral",
-            cargo: "Funcionário",
-            workType: "moderado",
+            "json": {
+              name: nome,
+              cpf: cpfFake,
+              matricula: matricula,
+              weight: 70,
+              height: 170,
+              setor: "Geral",
+              cargo: "Funcionário",
+              workType: "moderado",
+            }
           }
         }),
       });
 
+      console.log("[useAuth] Response status:", response.status);
+      console.log("[useAuth] Response ok:", response.ok);
+
       if (!response.ok) {
-        throw new Error("Falha ao cadastrar usuário no backend");
+        const errorText = await response.text();
+        console.error("[useAuth] Error response:", errorText);
+        throw new Error(`Falha ao cadastrar usuário no backend: ${response.status} ${errorText}`);
       }
 
       const registerResult = await response.json();
       console.log("[useAuth] Backend registration result:", registerResult);
 
-      // tRPC batch response format: [{ result: { data: ... } }]
-      const resultData = registerResult[0]?.result?.data;
+      // tRPC batch response format: [{ result: { data: { json: { ... } } } }]
+      const resultData = registerResult[0]?.result?.data?.json;
+      console.log("[useAuth] Parsed result data:", resultData);
+      
       if (!resultData || !resultData.success) {
         throw new Error(resultData?.error || "Falha ao cadastrar usuário");
       }
@@ -170,9 +189,19 @@ export function useAuth(options?: UseAuthOptions) {
     console.log("[useAuth] useEffect triggered, autoFetch:", autoFetch, "platform:", Platform.OS);
     if (autoFetch) {
       if (Platform.OS === "web") {
-        // Web: fetch user from API directly (user will login manually if needed)
-        console.log("[useAuth] Web: fetching user from API...");
-        fetchUser();
+        // Web: check for cached user first (for local auth)
+        Auth.getUserInfo().then((cachedUser) => {
+          console.log("[useAuth] Web cached user check:", cachedUser);
+          if (cachedUser) {
+            console.log("[useAuth] Web: using cached user (local auth)");
+            setUser(cachedUser);
+            setLoading(false);
+          } else {
+            // No cached user, try API (for OAuth)
+            console.log("[useAuth] Web: no cached user, fetching from API...");
+            fetchUser();
+          }
+        });
       } else {
         // Native: check for cached user info first for faster initial load
         Auth.getUserInfo().then((cachedUser) => {

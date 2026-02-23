@@ -53,7 +53,12 @@ export default function LoginScreen() {
       }
       
       // Redirecionar para home
-      router.replace("/(tabs)");
+      if (Platform.OS === "web") {
+        // Fallback para web usando window.location
+        window.location.href = "/";
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (err) {
       setError("Erro ao fazer login. Tente novamente.");
       if (Platform.OS !== "web") {
