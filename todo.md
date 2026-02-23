@@ -255,6 +255,7 @@
 - [x] Link do WhatsApp não funciona corretamente (adicionado +55)
 - [x] Ao selecionar "dor leve" não aparece aviso de procurar ajuda (formulário completo)
 - [x] Não aparece campo para especificar de onde vem a dor (formulário completo)
+- [x] Login não funciona no navegador mobile Chrome (fetchUser não limpa mais usuário local quando API OAuth falha)
 
 ---
 
@@ -2148,3 +2149,12 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Notificações push web funcionais (lembretes diários)
 - [x] Funciona offline após primeiro acesso
 - [ ] Testar fluxo: cadastro no celular → verificar no admin
+
+---
+
+## Bug: Login não funciona no navegador Chrome mobile (Em Investigação)
+- [ ] Investigar logs do console no mobile
+- [ ] Verificar se o problema é com router.replace() no mobile
+- [ ] Testar navegação alternativa para mobile
+- [ ] Validar salvamento do usuário no localStorage mobile
+- [ ] Corrigir redirecionamento após login no mobile

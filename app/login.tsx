@@ -35,22 +35,28 @@ export default function LoginScreen() {
     setError("");
 
     try {
+      console.log("[LOGIN] Starting login process...");
       // Fazer login (salva no localStorage/SecureStore)
       await login(matricula, nome);
+      console.log("[LOGIN] Login completed successfully");
       
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
       
       // Redirecionar para home
+      console.log("[LOGIN] Redirecting to home...");
       router.replace("/(tabs)");
+      console.log("[LOGIN] Redirect called");
     } catch (err) {
+      console.error("[LOGIN] Login failed:", err);
       setError("Erro ao fazer login. Tente novamente.");
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } finally {
       setLoading(false);
+      console.log("[LOGIN] Login process finished, loading:", false);
     }
   };
 

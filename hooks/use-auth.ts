@@ -20,9 +20,20 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       setError(null);
 
-      // Web platform: use cookie-based auth, fetch user from API
+      // Web platform: check local cache first, then try API
       if (Platform.OS === "web") {
-        console.log("[useAuth] Web platform: fetching user from API...");
+        console.log("[useAuth] Web platform: checking local cache first...");
+        const cachedUser = await Auth.getUserInfo();
+        
+        // If we have a local user (from local login), use it and skip API
+        if (cachedUser && cachedUser.loginMethod === "local") {
+          console.log("[useAuth] Using cached local user, skipping API:", cachedUser);
+          setUser(cachedUser);
+          return;
+        }
+        
+        // Otherwise, try OAuth API
+        console.log("[useAuth] No local user, fetching from OAuth API...");
         const apiUser = await Api.getMe();
         console.log("[useAuth] API user response:", apiUser);
 
