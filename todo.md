@@ -2158,3 +2158,45 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Testar navegação alternativa para mobile
 - [ ] Validar salvamento do usuário no localStorage mobile
 - [ ] Corrigir redirecionamento após login no mobile
+
+---
+
+## 🔥 BUG CRÍTICO: Login não funciona no celular (Prioridade Máxima)
+- [ ] Investigar por que dados somem ao clicar em Entrar mas não redireciona
+- [ ] Adicionar logs detalhados para debugar no mobile
+- [ ] Implementar feedback visual (loading spinner) durante login
+- [ ] Adicionar mensagem de erro clara quando login falha
+- [ ] Testar em dispositivo real após correção
+
+---
+
+## 🔥🔥🔥 PROBLEMAS CRÍTICOS REPORTADOS - TESTE REAL (23/02/2026)
+
+### Login e Autenticação
+- [ ] App pula tela de login e vai direto para home (CRÍTICO)
+- [ ] Forçar login obrigatório no primeiro acesso
+- [ ] Dados do perfil não ficam salvos entre sessões
+- [ ] Implementar login persistente (não pedir login novamente)
+
+### Navegação Quebrada
+- [ ] Botão "Registrar Água" carrega e volta para check-in (não funciona)
+- [ ] Aba "Desafio" não abre, volta para tela inicial
+- [ ] Corrigir navegação de todas as abas
+
+### Persistência de Dados
+- [ ] Histórico de pressão arterial não aparece (dias anteriores)
+- [ ] Histórico de água não aparece (dias anteriores)
+- [ ] Dados não persistem entre sessões
+- [ ] Implementar AsyncStorage/banco para todos os dados
+
+### Sistema de Backup
+- [ ] Dados não são enviados para área administrativa
+- [ ] Criar sistema de backup automático para dashboard admin
+- [ ] Perfil do empregado deve aparecer automaticamente no admin
+- [ ] Todos os registros (pressão, água, check-in) devem ir para admin
+
+### Requisitos Funcionais
+- [ ] Primeiro acesso: login com matrícula e nome → dados salvos permanentemente
+- [ ] Acessos subsequentes: dados já carregados, sem pedir login
+- [ ] Históricos completos de todos os dias anteriores
+- [ ] Sincronização automática com área administrativa

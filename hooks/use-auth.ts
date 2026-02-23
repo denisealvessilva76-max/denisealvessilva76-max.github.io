@@ -130,15 +130,20 @@ export function useAuth(options?: UseAuthOptions) {
       }
 
       const registerResult = await response.json();
-      console.log("[useAuth] Backend registration result:", registerResult);
+      console.log("[useAuth] Backend registration result:", JSON.stringify(registerResult, null, 2));
 
       const resultData = registerResult[0]?.result?.data?.json;
+      console.log("[useAuth] Extracted resultData:", JSON.stringify(resultData, null, 2));
       
-      // Se o CPF já existe, ainda assim permitir login local
-      const isExistingUser = resultData?.error?.includes("CPF já cadastrado");
+      // Se o CPF já existe ou houve sucesso, permitir login local
+      const isSuccess = resultData?.success === true;
+      const isExistingUser = resultData?.message?.includes("CPF já cadastrado") || resultData?.error?.includes("CPF já cadastrado");
       
-      if (!resultData && !isExistingUser) {
-        throw new Error("Falha ao cadastrar usuário");
+      console.log("[useAuth] Login check:", { isSuccess, isExistingUser, hasResultData: !!resultData });
+      
+      if (!resultData && !isSuccess && !isExistingUser) {
+        console.error("[useAuth] Login failed: no valid response from backend");
+        throw new Error("Falha ao cadastrar usuário no servidor");
       }
 
       // Create user object

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
@@ -142,10 +142,20 @@ export default function LoginScreen() {
                 onPress={handleLogin}
                 disabled={loading}
                 activeOpacity={0.8}
+                style={{ opacity: loading ? 0.7 : 1 }}
               >
-                <Text className="text-background text-center font-semibold text-base">
-                  {loading ? "Entrando..." : "Entrar"}
-                </Text>
+                {loading ? (
+                  <View className="flex-row items-center justify-center gap-2">
+                    <ActivityIndicator color="#ffffff" size="small" />
+                    <Text className="text-background text-center font-semibold text-base">
+                      Entrando...
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className="text-background text-center font-semibold text-base">
+                    Entrar
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
 

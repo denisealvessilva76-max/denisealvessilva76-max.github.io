@@ -11,12 +11,18 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     const inAuthGroup = segments[0] === "(tabs)";
+    const isLoginPage = segments[0] === "login";
+    const isOnboardingPage = segments[0] === "onboarding";
 
+    // Se não há usuário e está tentando acessar área protegida, redirecionar para login
     if (!user && inAuthGroup) {
-      // Redirect to login if not authenticated
+      console.log("[ProtectedRoute] No user, redirecting to login");
       router.replace("/login");
-    } else if (user && !inAuthGroup && segments[0] !== "login") {
-      // Redirect to tabs if authenticated and trying to access non-protected routes
+    }
+    // Se há usuário mas está na página de login (e não é primeiro acesso), redirecionar para home
+    // Permitir acesso ao onboarding sempre
+    else if (user && isLoginPage && !isOnboardingPage) {
+      console.log("[ProtectedRoute] User exists and on login page, redirecting to home");
       router.replace("/(tabs)");
     }
   }, [user, loading, segments]);
