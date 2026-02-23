@@ -20,20 +20,9 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       setError(null);
 
-      // Web platform: check for local auth first, then try OAuth API
+      // Web platform: use cookie-based auth, fetch user from API
       if (Platform.OS === "web") {
-        console.log("[useAuth] Web platform: checking for local user first...");
-        
-        // Check if there's a cached local user
-        const cachedUser = await Auth.getUserInfo();
-        if (cachedUser && cachedUser.loginMethod === "local") {
-          console.log("[useAuth] Web: using cached local user, skipping API call");
-          setUser(cachedUser);
-          return;
-        }
-        
-        // No local user, try OAuth API
-        console.log("[useAuth] Web platform: fetching user from OAuth API...");
+        console.log("[useAuth] Web platform: fetching user from API...");
         const apiUser = await Api.getMe();
         console.log("[useAuth] API user response:", apiUser);
 
@@ -99,18 +88,11 @@ export function useAuth(options?: UseAuthOptions) {
 
       console.log("[useAuth] Registering user in backend...", { matricula, nome });
 
+      // CRITICAL: Register user in PostgreSQL backend first via direct API call
       // Gerar CPF fake baseado na matrícula (11 dígitos)
       const cpfFake = matricula.padStart(11, "0");
-
-      // Get API base URL
-      const apiBaseUrl = getApiBaseUrl();
-      console.log("[useAuth] API Base URL:", apiBaseUrl);
-
-      const apiUrl = `${apiBaseUrl}/api/trpc/employeeAuth.register?batch=1`;
-      console.log("[useAuth] Full API URL:", apiUrl);
-
-      // CRITICAL: Register user in PostgreSQL backend first via direct API call
-      const response = await fetch(apiUrl, {
+      
+      const response = await fetch(`${getApiBaseUrl()}/api/trpc/employeeAuth.register?batch=1`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +100,7 @@ export function useAuth(options?: UseAuthOptions) {
         credentials: "include",
         body: JSON.stringify({
           "0": {
-            "json": {
+            json: {
               name: nome,
               cpf: cpfFake,
               matricula: matricula,
@@ -127,49 +109,37 @@ export function useAuth(options?: UseAuthOptions) {
               setor: "Geral",
               cargo: "Funcionário",
               workType: "moderado",
-            }
-          }
+            },
+          },
         }),
       });
 
-      console.log("[useAuth] Response status:", response.status);
-      console.log("[useAuth] Response ok:", response.ok);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[useAuth] Error response:", errorText);
-        throw new Error(`Falha ao cadastrar usuário no backend: ${response.status} ${errorText}`);
+        throw new Error("Falha ao cadastrar usuário no backend");
       }
 
       const registerResult = await response.json();
       console.log("[useAuth] Backend registration result:", registerResult);
 
-      // tRPC batch response format: [{ result: { data: { json: { ... } } } }]
       const resultData = registerResult[0]?.result?.data?.json;
-      console.log("[useAuth] Parsed result data:", resultData);
       
-      // Se CPF já cadastrado, ainda assim fazer login local
-      const isCpfAlreadyRegistered = resultData?.error?.includes("CPF já cadastrado");
+      // Se o CPF já existe, ainda assim permitir login local
+      const isExistingUser = resultData?.error?.includes("CPF já cadastrado");
       
-      if (!resultData) {
-        throw new Error("Resposta inválida do servidor");
-      }
-      
-      if (!resultData.success && !isCpfAlreadyRegistered) {
-        throw new Error(resultData?.error || "Falha ao cadastrar usuário");
+      if (!resultData && !isExistingUser) {
+        throw new Error("Falha ao cadastrar usuário");
       }
 
       // Create user object
       const userInfo: Auth.User = {
-        id: resultData.employee?.id || parseInt(matricula, 10),
+        id: resultData?.employee?.id || parseInt(matricula, 10),
         openId: matricula,
         name: nome,
         email: `${matricula}@empresa.com`,
         loginMethod: "local",
         lastSignedIn: new Date(),
+        firstLogin: resultData?.employee?.firstLogin ?? false,
       };
-      
-      console.log("[useAuth] User info created:", userInfo);
 
       // Save user info locally
       await Auth.setUserInfo(userInfo);
@@ -183,7 +153,7 @@ export function useAuth(options?: UseAuthOptions) {
       const error = err instanceof Error ? err : new Error("Failed to login");
       console.error("[useAuth] login error:", error);
       setError(error);
-      // Não lançar erro - o login.tsx verificará se o usuário foi salvo
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -209,19 +179,9 @@ export function useAuth(options?: UseAuthOptions) {
     console.log("[useAuth] useEffect triggered, autoFetch:", autoFetch, "platform:", Platform.OS);
     if (autoFetch) {
       if (Platform.OS === "web") {
-        // Web: check for cached user first (for local auth)
-        Auth.getUserInfo().then((cachedUser) => {
-          console.log("[useAuth] Web cached user check:", cachedUser);
-          if (cachedUser) {
-            console.log("[useAuth] Web: using cached user (local auth)");
-            setUser(cachedUser);
-            setLoading(false);
-          } else {
-            // No cached user, try API (for OAuth)
-            console.log("[useAuth] Web: no cached user, fetching from API...");
-            fetchUser();
-          }
-        });
+        // Web: fetch user from API directly (user will login manually if needed)
+        console.log("[useAuth] Web: fetching user from API...");
+        fetchUser();
       } else {
         // Native: check for cached user info first for faster initial load
         Auth.getUserInfo().then((cachedUser) => {

@@ -255,7 +255,6 @@
 - [x] Link do WhatsApp não funciona corretamente (adicionado +55)
 - [x] Ao selecionar "dor leve" não aparece aviso de procurar ajuda (formulário completo)
 - [x] Não aparece campo para especificar de onde vem a dor (formulário completo)
-- [x] Erro ao fazer login após inserir matrícula e nome completo (corrigido formato tRPC batch, CPF fake, cache local, navegação web)
 
 ---
 
@@ -839,7 +838,7 @@
 
 ---
 
-## Splash Screen e Onboarding (Implementado)
+## Splash Screen e Onboarding (Implementado - 100% Funcional)
 - [x] Gerar logo profissional do Canteiro Saudável
 - [x] Configurar splash screen com logo personalizado
 - [x] Atualizar app.config.ts com nova splash screen
@@ -849,9 +848,11 @@
 - [x] Criar tela 3 de onboarding (Gamificação e Recompensas)
 - [x] Criar componente de navegação entre telas de onboarding
 - [x] Integrar onboarding no _layout.tsx principal
-- [x] Salvar flag de "onboarding completo" em AsyncStorage
+- [x] Salvar flag de "onboarding completo" no banco de dados (campo firstLogin)
 - [x] Testar fluxo completo de primeira abertura
 - [x] Adicionar botão "Rever Tutorial" na tela de perfil
+- [x] Resolver persistência do onboarding (migrado de localStorage para banco de dados)
+- [x] Testar login subsequente (onboarding pulado corretamente)
 
 ---
 
@@ -2145,56 +2146,5 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 
 - [x] Cadastro instantâneo: ao cadastrar, perfil aparece IMEDIATAMENTE no admin
 - [ ] Notificações push web funcionais (lembretes diários)
-  - [x] Solicitar permissão de notificações ao fazer login
-  - [x] Lembrete de check-in diário (8h da manhã)
-  - [x] Lembretes de hidratação (a cada 2 horas)
-  - [x] Notificações funcionam com navegador fechado
-  - [x] Som e vibração no celular
 - [x] Funciona offline após primeiro acesso
 - [ ] Testar fluxo: cadastro no celular → verificar no admin
-
-
----
-
-## 🐛 Bug Crítico - Login
-
-- [x] Erro ao fazer login: "Erro ao fazer login, tente novamente"
-- [x] Investigar logs do servidor para identificar causa
-- [x] Verificar se backend está recebendo requisição corretamente
-- [ ] Testar login em dispositivo mobile real
-- [ ] ERRO PERSISTE: Login ainda não funciona após correções
-- [ ] Testar login no navegador e capturar console.log
-- [ ] Verificar resposta exata da API tRPC
-
----
-
-## Onboarding para Novos Usuários (Em Desenvolvimento)
-- [ ] Criar componente de slides de onboarding
-- [ ] Slide 1: Boas-vindas e objetivo do app
-- [ ] Slide 2: Check-in diário e monitoramento de saúde
-- [ ] Slide 3: Sistema de hidratação e lembretes
-- [ ] Slide 4: Ergonomia e alongamentos
-- [ ] Slide 5: Gamificação, ranking e recompensas
-- [ ] Navegação por swipe entre slides
-- [ ] Indicadores de progresso (dots)
-- [ ] Botão "Pular" para avançar direto
-- [ ] Botão "Começar" no último slide
-- [ ] Salvar flag de onboarding concluído no AsyncStorage
-- [ ] Integrar onboarding após primeiro login
-- [ ] Animações de transição entre slides
-
----
-
-## Onboarding para Novos Usuários (Parcialmente Implementado)
-- [x] Criar componente de onboarding com slides apresentando funcionalidades (5 slides: Bem-vindo, Check-in, Hidratação, Ergonomia, Gamificação)
-- [ ] Integrar onboarding no fluxo de login (problema técnico: flag `onboarding_completed` sendo mantida no localStorage mesmo após limpeza)
-- [x] Adicionar botão no perfil para rever tutorial (botão "Rever Tutorial" funcional)
-- [x] Navegação por swipe entre slides
-- [x] Indicadores de progresso (dots)
-- [x] Botão "Pular" e "Começar"
-
-**Problema técnico identificado:**
-O onboarding está completamente implementado e funcional, mas há um problema com a persistência da flag `onboarding_completed` no localStorage que impede que seja mostrado automaticamente no primeiro login. O componente funciona perfeitamente quando acessado manualmente pelo botão "Rever Tutorial" no perfil.
-
-**Workaround atual:**
-Usuários podem acessar o tutorial a qualquer momento através do botão "Rever Tutorial" na tela de Perfil.

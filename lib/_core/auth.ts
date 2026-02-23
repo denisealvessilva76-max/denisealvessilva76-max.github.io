@@ -9,6 +9,7 @@ export type User = {
   email: string | null;
   loginMethod: string | null;
   lastSignedIn: Date;
+  firstLogin?: boolean; // Indica se é o primeiro login do usuário
 };
 
 export async function getSessionToken(): Promise<string | null> {
