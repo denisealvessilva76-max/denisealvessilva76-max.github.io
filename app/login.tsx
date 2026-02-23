@@ -93,6 +93,7 @@ export default function LoginScreen() {
                   placeholder="Digite sua matrícula"
                   placeholderTextColor="#9BA1A6"
                   value={matricula}
+                  defaultValue={matricula}
                   onChangeText={(text) => {
                     setMatricula(text);
                     setError("");
@@ -115,6 +116,7 @@ export default function LoginScreen() {
                   placeholder="Digite seu nome completo"
                   placeholderTextColor="#9BA1A6"
                   value={nome}
+                  defaultValue={nome}
                   onChangeText={(text) => {
                     setNome(text);
                     setError("");
