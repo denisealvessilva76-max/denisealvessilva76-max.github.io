@@ -3,10 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform
 import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
+import { useWebNotifications } from "@/hooks/use-web-notifications";
 import * as Haptics from "expo-haptics";
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const { requestPermission } = useWebNotifications();
   const [matricula, setMatricula] = useState("");
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,14 @@ export default function LoginScreen() {
       
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      
+      // Solicitar permissão de notificações (apenas web)
+      if (Platform.OS === "web") {
+        // Aguardar 1 segundo para o usuário ver a tela de sucesso
+        setTimeout(async () => {
+          await requestPermission();
+        }, 1000);
       }
       
       // Redirecionar para home

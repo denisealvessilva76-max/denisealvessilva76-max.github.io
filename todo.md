@@ -2144,5 +2144,10 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 
 - [x] Cadastro instantâneo: ao cadastrar, perfil aparece IMEDIATAMENTE no admin
 - [ ] Notificações push web funcionais (lembretes diários)
+  - [x] Solicitar permissão de notificações ao fazer login
+  - [x] Lembrete de check-in diário (8h da manhã)
+  - [x] Lembretes de hidratação (a cada 2 horas)
+  - [x] Notificações funcionam com navegador fechado
+  - [x] Som e vibração no celular
 - [x] Funciona offline após primeiro acesso
 - [ ] Testar fluxo: cadastro no celular → verificar no admin
