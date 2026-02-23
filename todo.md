@@ -2151,3 +2151,13 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
   - [x] Som e vibração no celular
 - [x] Funciona offline após primeiro acesso
 - [ ] Testar fluxo: cadastro no celular → verificar no admin
+
+
+---
+
+## 🐛 Bug Crítico - Login
+
+- [x] Erro ao fazer login: "Erro ao fazer login, tente novamente"
+- [x] Investigar logs do servidor para identificar causa
+- [x] Verificar se backend está recebendo requisição corretamente
+- [ ] Testar login em dispositivo mobile real

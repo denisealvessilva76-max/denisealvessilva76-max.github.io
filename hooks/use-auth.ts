@@ -89,21 +89,23 @@ export function useAuth(options?: UseAuthOptions) {
       console.log("[useAuth] Registering user in backend...", { matricula, nome });
 
       // CRITICAL: Register user in PostgreSQL backend first via direct API call
-      const response = await fetch(`${getApiBaseUrl()}/api/trpc/employeeAuth.register`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/trpc/employeeAuth.register?batch=1`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          name: nome,
-          cpf: "",
-          matricula: matricula,
-          weight: 70,
-          height: 170,
-          setor: "Geral",
-          cargo: "Funcionário",
-          workType: "moderado",
+          "0": {
+            name: nome,
+            cpf: "",
+            matricula: matricula,
+            weight: 70,
+            height: 170,
+            setor: "Geral",
+            cargo: "Funcionário",
+            workType: "moderado",
+          }
         }),
       });
 
@@ -114,7 +116,8 @@ export function useAuth(options?: UseAuthOptions) {
       const registerResult = await response.json();
       console.log("[useAuth] Backend registration result:", registerResult);
 
-      const resultData = registerResult.result?.data;
+      // tRPC batch response format: [{ result: { data: ... } }]
+      const resultData = registerResult[0]?.result?.data;
       if (!resultData || !resultData.success) {
         throw new Error(resultData?.error || "Falha ao cadastrar usuário");
       }
