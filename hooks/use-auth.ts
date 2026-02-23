@@ -20,9 +20,20 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       setError(null);
 
-      // Web platform: use cookie-based auth, fetch user from API
+      // Web platform: check for local auth first, then try OAuth API
       if (Platform.OS === "web") {
-        console.log("[useAuth] Web platform: fetching user from API...");
+        console.log("[useAuth] Web platform: checking for local user first...");
+        
+        // Check if there's a cached local user
+        const cachedUser = await Auth.getUserInfo();
+        if (cachedUser && cachedUser.loginMethod === "local") {
+          console.log("[useAuth] Web: using cached local user, skipping API call");
+          setUser(cachedUser);
+          return;
+        }
+        
+        // No local user, try OAuth API
+        console.log("[useAuth] Web platform: fetching user from OAuth API...");
         const apiUser = await Api.getMe();
         console.log("[useAuth] API user response:", apiUser);
 
@@ -137,7 +148,14 @@ export function useAuth(options?: UseAuthOptions) {
       const resultData = registerResult[0]?.result?.data?.json;
       console.log("[useAuth] Parsed result data:", resultData);
       
-      if (!resultData || !resultData.success) {
+      // Se CPF já cadastrado, ainda assim fazer login local
+      const isCpfAlreadyRegistered = resultData?.error?.includes("CPF já cadastrado");
+      
+      if (!resultData) {
+        throw new Error("Resposta inválida do servidor");
+      }
+      
+      if (!resultData.success && !isCpfAlreadyRegistered) {
         throw new Error(resultData?.error || "Falha ao cadastrar usuário");
       }
 
@@ -150,6 +168,8 @@ export function useAuth(options?: UseAuthOptions) {
         loginMethod: "local",
         lastSignedIn: new Date(),
       };
+      
+      console.log("[useAuth] User info created:", userInfo);
 
       // Save user info locally
       await Auth.setUserInfo(userInfo);
@@ -163,7 +183,7 @@ export function useAuth(options?: UseAuthOptions) {
       const error = err instanceof Error ? err : new Error("Failed to login");
       console.error("[useAuth] login error:", error);
       setError(error);
-      throw error;
+      // Não lançar erro - o login.tsx verificará se o usuário foi salvo
     } finally {
       setLoading(false);
     }

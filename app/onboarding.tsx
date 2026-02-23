@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Dimensions, Image } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, Image, Platform } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -55,6 +55,11 @@ export default function OnboardingScreen() {
 
   const handleFinish = async () => {
     await completeOnboarding();
+    
+    // Aguardar um pouco para garantir que a flag foi salva
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Usar router.replace em todas as plataformas
     router.replace("/(tabs)");
   };
 

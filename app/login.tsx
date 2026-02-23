@@ -4,11 +4,14 @@ import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebNotifications } from "@/hooks/use-web-notifications";
+import { useOnboarding } from "@/hooks/use-onboarding";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 
 export default function LoginScreen() {
   const { login } = useAuth();
   const { requestPermission } = useWebNotifications();
+  const { isOnboardingCompleted, isLoading: onboardingLoading } = useOnboarding();
   const [matricula, setMatricula] = useState("");
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +43,17 @@ export default function LoginScreen() {
       // Fazer login (salva no localStorage/SecureStore)
       await login(matricula, nome);
       
+      // Aguardar um pouco para garantir que o localStorage foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Verificar se o usuário foi salvo com sucesso
+      const savedUser = await AsyncStorage.getItem("manus-runtime-user-info");
+      if (!savedUser) {
+        throw new Error("Usuário não foi salvo corretamente");
+      }
+      
+      console.log("[LOGIN] Usuário salvo com sucesso:", savedUser);
+      
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
@@ -52,19 +66,37 @@ export default function LoginScreen() {
         }, 1000);
       }
       
-      // Redirecionar para home
-      if (Platform.OS === "web") {
-        // Fallback para web usando window.location
-        window.location.href = "/";
+      // Aguardar carregamento do status de onboarding
+      if (onboardingLoading) {
+        // Aguardar 500ms para o hook carregar
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Verificar se é o primeiro login (onboarding não completado)
+      // Checar diretamente no AsyncStorage para garantir valor correto
+      console.log("[LOGIN] Verificando onboarding ANTES de ler AsyncStorage...");
+      const onboardingStatus = await AsyncStorage.getItem("onboarding_completed");
+      console.log("[LOGIN] Valor lido do AsyncStorage:", onboardingStatus);
+      const shouldShowOnboarding = onboardingStatus !== "true";
+      
+      console.log("[LOGIN] Onboarding status:", onboardingStatus, "shouldShow:", shouldShowOnboarding);
+      
+      // Aguardar mais um pouco para garantir que o estado foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Redirecionar para onboarding ou home (usar router em todas as plataformas)
+      if (shouldShowOnboarding) {
+        router.replace("/onboarding");
       } else {
         router.replace("/(tabs)");
       }
     } catch (err) {
+      console.error("[LOGIN] Erro:", err);
       setError("Erro ao fazer login. Tente novamente.");
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-    } finally {
+    } finally{
       setLoading(false);
     }
   };

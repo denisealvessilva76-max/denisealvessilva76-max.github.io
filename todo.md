@@ -2165,3 +2165,36 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] ERRO PERSISTE: Login ainda não funciona após correções
 - [ ] Testar login no navegador e capturar console.log
 - [ ] Verificar resposta exata da API tRPC
+
+---
+
+## Onboarding para Novos Usuários (Em Desenvolvimento)
+- [ ] Criar componente de slides de onboarding
+- [ ] Slide 1: Boas-vindas e objetivo do app
+- [ ] Slide 2: Check-in diário e monitoramento de saúde
+- [ ] Slide 3: Sistema de hidratação e lembretes
+- [ ] Slide 4: Ergonomia e alongamentos
+- [ ] Slide 5: Gamificação, ranking e recompensas
+- [ ] Navegação por swipe entre slides
+- [ ] Indicadores de progresso (dots)
+- [ ] Botão "Pular" para avançar direto
+- [ ] Botão "Começar" no último slide
+- [ ] Salvar flag de onboarding concluído no AsyncStorage
+- [ ] Integrar onboarding após primeiro login
+- [ ] Animações de transição entre slides
+
+---
+
+## Onboarding para Novos Usuários (Parcialmente Implementado)
+- [x] Criar componente de onboarding com slides apresentando funcionalidades (5 slides: Bem-vindo, Check-in, Hidratação, Ergonomia, Gamificação)
+- [ ] Integrar onboarding no fluxo de login (problema técnico: flag `onboarding_completed` sendo mantida no localStorage mesmo após limpeza)
+- [x] Adicionar botão no perfil para rever tutorial (botão "Rever Tutorial" funcional)
+- [x] Navegação por swipe entre slides
+- [x] Indicadores de progresso (dots)
+- [x] Botão "Pular" e "Começar"
+
+**Problema técnico identificado:**
+O onboarding está completamente implementado e funcional, mas há um problema com a persistência da flag `onboarding_completed` no localStorage que impede que seja mostrado automaticamente no primeiro login. O componente funciona perfeitamente quando acessado manualmente pelo botão "Rever Tutorial" no perfil.
+
+**Workaround atual:**
+Usuários podem acessar o tutorial a qualquer momento através do botão "Rever Tutorial" na tela de Perfil.
