@@ -2200,3 +2200,34 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Acessos subsequentes: dados já carregados, sem pedir login
 - [ ] Históricos completos de todos os dias anteriores
 - [ ] Sincronização automática com área administrativa
+
+---
+
+## Nova Implementação - Sistema de Cadastro e Persistência - 23/02/2026
+
+### Fase 1: Remover AuthGuard e Preparar Sistema
+- [x] Remover AuthGuard do _layout.tsx
+- [x] Remover app/index.tsx (redirecionamento forçado)
+- [x] Permitir acesso livre ao app sem login inicial
+- [ ] Preparar modal de cadastro/login
+
+### Fase 2: Persistência de Dados no PostgreSQL
+- [x] Criar schema de usuário no banco (matrícula, nome, cargo) - já existia tabela employees
+- [x] Implementar API para salvar dados do perfil
+- [x] Implementar API para carregar dados do perfil
+- [x] Criar hook useEmployeeProfile para gerenciar perfil
+- [ ] Conectar tela de perfil com API do servidor
+- [ ] Testar salvamento e carregamento de dados
+
+### Fase 3: Onboarding para Novos Usuários
+- [ ] Criar tela de onboarding com tutorial passo a passo
+- [ ] Explicar funcionalidades: check-in, hidratação, desafios
+- [ ] Adicionar navegação entre slides do tutorial
+- [ ] Salvar flag "onboarding_completed" no localStorage
+- [ ] Exibir onboarding apenas na primeira entrada após cadastro
+
+### Fase 4: Solicitar Cadastro ao Salvar Dados
+- [ ] Detectar quando usuário tenta salvar dados sem cadastro
+- [ ] Exibir modal solicitando cadastro (matrícula + nome)
+- [ ] Após cadastro, salvar dados automaticamente
+- [ ] Redirecionar para onboarding após primeiro cadastro

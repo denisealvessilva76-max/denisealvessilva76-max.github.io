@@ -9,7 +9,7 @@ import { Platform } from "react-native";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
-import { ProtectedRoute } from "@/components/protected-route";
+
 import { useSync } from "@/hooks/use-sync";
 import {
   SafeAreaFrameContext,
@@ -100,22 +100,20 @@ export default function RootLayout() {
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
           <QueryClientProvider client={queryClient}>
           <AppContent />
-          <ProtectedRoute>
           {/* Default to hiding native headers so raw route segments don't appear (e.g. "(tabs)", "products/[id]"). */}
           {/* If a screen needs the native header, explicitly enable it and set a human title via Stack.Screen options. */}
           {/* in order for ios apps tab switching to work properly, use presentation: "fullScreenModal" for login page, whenever you decide to use presentation: "modal*/}
-          <Stack screenOptions={{ headerShown: false }} initialRouteName="login">
+          <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="login" options={{ presentation: "fullScreenModal" }} />
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="oauth/callback" />
-            <Stack.Screen name="exercise-detail" />
-            <Stack.Screen name="respiracao-guiada" />
+            <Stack.Screen name="complaint-form" />
+            <Stack.Screen name="admin" />
             <Stack.Screen name="notification-settings" />
             <Stack.Screen name="achievements" />
           </Stack>
           <StatusBar style="auto" />
-          </ProtectedRoute>
           </QueryClientProvider>
         </trpc.Provider>
       </AuthProvider>
