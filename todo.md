@@ -2231,3 +2231,28 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Exibir modal solicitando cadastro (matrícula + nome)
 - [ ] Após cadastro, salvar dados automaticamente
 - [ ] Redirecionar para onboarding após primeiro cadastro
+
+---
+
+## Modal de Cadastro Simples - 23/02/2026
+
+- [ ] Criar componente RegisterModal com campos matrícula e nome
+- [ ] Adicionar validação de campos obrigatórios
+- [ ] Integrar com useEmployeeProfile para salvar no PostgreSQL
+- [ ] Exibir modal automaticamente no primeiro acesso
+- [ ] Adicionar feedback visual de sucesso/erro
+- [ ] Testar fluxo completo de cadastro e persistência
+
+
+---
+
+## Modal de Cadastro Simples - 24/02/2026
+
+- [x] Criar componente RegisterModal
+- [x] Criar RegisterProvider para gerenciar exibição do modal
+- [x] Integrar RegisterProvider no _layout.tsx
+- [x] Exibir modal automaticamente no primeiro acesso (1.5s delay)
+- [x] Salvar dados no PostgreSQL via API (employeeProfile.saveProfile)
+- [ ] Corrigir problema de autenticação (erro 401) ao salvar perfil
+- [ ] Testar fluxo completo de cadastro end-to-end
+- [ ] Implementar onboarding após primeiro cadastro
