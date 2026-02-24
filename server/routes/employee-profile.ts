@@ -14,9 +14,9 @@ import { eq } from "drizzle-orm";
  */
 
 const employeeProfileSchema = z.object({
+  cpf: z.string().length(11, "CPF deve ter 11 dígitos"),
   matricula: z.string().min(1, "Matrícula é obrigatória"),
   name: z.string().min(1, "Nome é obrigatório"),
-  cpf: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   department: z.string().optional(),
   position: z.string().optional(), // cargo
@@ -52,7 +52,7 @@ export const employeeProfileRouter = router({
             .update(employees)
             .set({
               name: input.name,
-              cpf: input.cpf || existing[0].cpf,
+              cpf: input.cpf,
               email: input.email || existing[0].email,
               department: input.department || existing[0].department,
               position: input.position || existing[0].position,
@@ -81,7 +81,7 @@ export const employeeProfileRouter = router({
           await db.insert(employees).values({
             matricula: input.matricula,
             name: input.name,
-            cpf: input.cpf || "",
+            cpf: input.cpf,
             email: input.email || null,
             department: input.department || null,
             position: input.position || null,

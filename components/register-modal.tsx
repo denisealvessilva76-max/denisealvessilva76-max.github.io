@@ -6,29 +6,55 @@ import { Platform } from "react-native";
 
 interface RegisterModalProps {
   visible: boolean;
-  onRegister: (matricula: string, name: string) => Promise<boolean>;
+  onRegister: (cpf: string, matricula: string, name: string) => Promise<boolean>;
   onClose?: () => void;
 }
 
 /**
  * Modal de cadastro simples para primeiro acesso
  * 
- * Solicita matrícula e nome completo do empregado
+ * Solicita CPF, matrícula e nome completo do empregado
  * Valida campos obrigatórios e fornece feedback visual
  */
 export function RegisterModal({ visible, onRegister, onClose }: RegisterModalProps) {
   const colors = useColors();
+  const [cpf, setCpf] = useState("");
   const [matricula, setMatricula] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Formatar CPF enquanto digita (000.000.000-00)
+  const formatCPF = (text: string) => {
+    const numbers = text.replace(/\D/g, "");
+    if (numbers.length <= 11) {
+      setCpf(numbers);
+    }
+  };
+
+  // Validar CPF (verificação básica de formato)
+  const isValidCPF = (cpf: string): boolean => {
+    return cpf.length === 11 && /^\d+$/.test(cpf);
+  };
+
   const handleRegister = async () => {
-    // Validação
+    // Validação CPF
+    if (!cpf.trim()) {
+      Alert.alert("Atenção", "Por favor, informe seu CPF");
+      return;
+    }
+
+    if (!isValidCPF(cpf)) {
+      Alert.alert("Atenção", "CPF deve conter 11 dígitos");
+      return;
+    }
+
+    // Validação Matrícula
     if (!matricula.trim()) {
       Alert.alert("Atenção", "Por favor, informe sua matrícula");
       return;
     }
 
+    // Validação Nome
     if (!name.trim()) {
       Alert.alert("Atenção", "Por favor, informe seu nome completo");
       return;
@@ -47,8 +73,8 @@ export function RegisterModal({ visible, onRegister, onClose }: RegisterModalPro
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
 
-      // Chamar callback de registro
-      const success = await onRegister(matricula.trim(), name.trim());
+      // Chamar callback de registro (CPF sem formatação)
+      const success = await onRegister(cpf.trim(), matricula.trim(), name.trim());
 
       if (success) {
         // Feedback de sucesso
@@ -57,6 +83,7 @@ export function RegisterModal({ visible, onRegister, onClose }: RegisterModalPro
         }
         
         // Limpar campos
+        setCpf("");
         setMatricula("");
         setName("");
       } else {
@@ -128,6 +155,40 @@ export function RegisterModal({ visible, onRegister, onClose }: RegisterModalPro
           >
             Para começar, precisamos de algumas informações básicas
           </Text>
+
+          {/* Campo CPF */}
+          <View style={{ marginBottom: 16 }}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: colors.foreground,
+                marginBottom: 8,
+              }}
+            >
+              CPF
+            </Text>
+            <TextInput
+              value={cpf}
+              defaultValue={cpf}
+              onChangeText={formatCPF}
+              placeholder="Digite seu CPF (somente números)"
+              placeholderTextColor={colors.muted}
+              style={{
+                backgroundColor: colors.surface,
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 8,
+                padding: 12,
+                fontSize: 16,
+                color: colors.foreground,
+              }}
+              editable={!loading}
+              keyboardType="numeric"
+              maxLength={11}
+              returnKeyType="next"
+            />
+          </View>
 
           {/* Campo Matrícula */}
           <View style={{ marginBottom: 16 }}>

@@ -6,9 +6,9 @@ const PROFILE_STORAGE_KEY = "employee:profile";
 
 export interface EmployeeProfile {
   id?: number;
+  cpf: string;
   matricula: string;
   name: string;
-  cpf?: string;
   email?: string;
   department?: string;
   position?: string; // cargo

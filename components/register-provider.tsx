@@ -92,7 +92,7 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
     }
   };
 
-  const handleRegister = async (matricula: string, name: string): Promise<boolean> => {
+  const handleRegister = async (cpf: string, matricula: string, name: string): Promise<boolean> => {
     if (isRegistering) {
       console.log("[RegisterProvider] Already registering, skipping...");
       return false;
@@ -101,9 +101,10 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
     setIsRegistering(true);
     
     try {
-      console.log("[RegisterProvider] Registering:", { matricula, name });
+      console.log("[RegisterProvider] Registering:", { cpf, matricula, name });
       
       const result = await saveProfileMutation.mutateAsync({
+        cpf,
         matricula,
         name,
       });

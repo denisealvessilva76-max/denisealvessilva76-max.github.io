@@ -13,6 +13,7 @@ const SESMT_PHONE = "21998225493";
 const SESMT_NAME = "Saúde Ocupacional";
 
 interface FormData {
+  cpf: string;
   name: string;
   matricula: string;
   position: string;
@@ -29,6 +30,7 @@ export default function PerfilScreen() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error" | "info">("success");
   const [formData, setFormData] = useState<FormData>({
+    cpf: "",
     name: "",
     matricula: "",
     position: "",
@@ -56,6 +58,7 @@ export default function PerfilScreen() {
   useEffect(() => {
     if (profile) {
       setFormData({
+        cpf: profile.cpf || "",
         name: profile.name || "",
         matricula: profile.matricula || "",
         position: profile.position || "",
@@ -74,6 +77,7 @@ export default function PerfilScreen() {
     setIsSaving(true);
     try {
       await saveProfileAPI({
+        cpf: formData.cpf,
         name: formData.name,
         matricula: formData.matricula,
         position: formData.position,
@@ -258,6 +262,7 @@ export default function PerfilScreen() {
                         setIsEditing(false);
                         if (profile) {
                           setFormData({
+                            cpf: profile.cpf || "",
                             name: profile.name || "",
                             matricula: profile.matricula || "",
                             position: profile.position || "",

@@ -2312,3 +2312,33 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Código implementado corretamente
 - [ ] Toast não aparece visualmente no React Native Web (limitação)
 - [ ] Testar em dispositivo real via Expo Go para validar Toast
+
+
+---
+
+## Revisão Completa - Integração com Dashboard Admin - 24/02/2026
+
+### Funcionalidades Solicitadas pelo Usuário:
+- [ ] Modal de cadastro no primeiro acesso (matrícula + nome)
+- [ ] Onboarding com tutorial das funcionalidades
+- [ ] Dados do perfil salvos no PostgreSQL
+- [ ] Dados aparecem IMEDIATAMENTE no dashboard admin após cadastro
+- [ ] Check-ins salvos no PostgreSQL e visíveis no admin
+- [ ] Hidratação salva no PostgreSQL e visível no admin
+- [ ] Pressão arterial salva no PostgreSQL e visível no admin
+- [ ] Desafios salvos no PostgreSQL e visíveis no admin
+
+### Verificações Necessárias:
+- [x] Verificar schema do banco (tabelas necessárias)
+- [x] **PROBLEMA CRÍTICO RESOLVIDO**: Tabela employees requer CPF
+- [x] Adicionar campo CPF ao modal de cadastro
+- [x] Atualizar RegisterProvider para aceitar CPF
+- [x] Atualizar API de perfil para salvar CPF (obrigatório)
+- [x] Atualizar hook useEmployeeProfile para incluir CPF
+- [x] Atualizar tela de perfil para exibir e editar CPF
+- [x] Verificar schema do banco - tabela employees existe e está correta
+- [x] Verificar API listEmployees - IMPLEMENTADA e funcionando!
+- [x] Verificar hook useAdminData - consultando listEmployees corretamente
+- [x] Criar documento de revisão completa (revisao_completa_funcionalidades.md)
+- [ ] Testar fluxo completo no celular via Expo Go
+- [ ] Verificar visualização no dashboard admin após cadastro real
