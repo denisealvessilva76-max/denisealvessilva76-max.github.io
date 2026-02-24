@@ -186,13 +186,14 @@ export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
 export const employees = mysqlTable("employees", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId"), // Referência opcional ao users.id se logado
-  cpf: varchar("cpf", { length: 11 }).notNull().unique(), // CPF sem pontos/traços
+  cpf: varchar("cpf", { length: 11 }).unique(), // CPF sem pontos/traços (OPCIONAL)
   matricula: varchar("matricula", { length: 20 }).notNull().unique(),
   workerId: varchar("workerId", { length: 64 }).notNull().unique(), // ID anônimo (gerado automaticamente)
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
   department: varchar("department", { length: 100 }),
   position: varchar("position", { length: 100 }),
+  turno: mysqlEnum("turno", ["diurno", "noturno"]), // Turno de trabalho
   weight: int("weight"), // kg
   height: int("height"), // cm
   workType: varchar("workType", { length: 20 }), // leve, moderado, pesado

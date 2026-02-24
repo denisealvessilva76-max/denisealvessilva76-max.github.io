@@ -2372,3 +2372,57 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Testar registro de hidratação e verificar no banco
 - [ ] Verificar se dados aparecem no dashboard admin
 - [ ] Testar gráficos e relatórios no dashboard
+
+
+---
+
+## Novo Fluxo de Cadastro e Login - 24/02/2026
+
+### Requisitos do Usuário:
+1. QR Code → Tela de Cadastro (Nome, Matrícula, Turno, Altura, Peso, Tipo de Trabalho, Função)
+2. Após cadastro → Tela de Login (Matrícula + Nome)
+3. Após login → Onboarding (3 slides de funcionalidades)
+4. Login persistente (não precisa logar toda vez)
+5. Dashboard Admin mostra empregados cadastrados em tempo real
+
+### Fase 1: Criar Tela de Cadastro Completa
+- [ ] Remover modal de cadastro atual (RegisterModal)
+- [ ] Criar tela `/cadastro` com todos os campos:
+  - [ ] Nome completo
+  - [ ] Matrícula
+  - [ ] Turno (Diurno 7:30-17:30 / Noturno 17:30-3:30)
+  - [ ] Altura (cm)
+  - [ ] Peso (kg)
+  - [ ] Tipo de Trabalho (leve/moderado/pesado)
+  - [ ] Função/Cargo
+- [ ] Remover campo CPF (não é necessário no primeiro acesso)
+- [ ] Validar todos os campos antes de salvar
+- [ ] Salvar dados no PostgreSQL via API
+
+### Fase 2: Criar Tela de Login Separada
+- [ ] Criar tela `/login` com campos:
+  - [ ] Matrícula
+  - [ ] Nome completo
+- [ ] Validar se empregado existe no banco
+- [ ] Salvar matrícula no AsyncStorage após login
+- [ ] Redirecionar para onboarding após primeiro login
+- [ ] Redirecionar para home em logins subsequentes
+
+### Fase 3: Implementar Persistência de Login
+- [ ] Verificar AsyncStorage ao abrir app
+- [ ] Se matrícula salva → carregar dados e ir para home
+- [ ] Se não → redirecionar para tela de login
+- [ ] Implementar botão "Sair" que limpa AsyncStorage
+
+### Fase 4: Atualizar Schema do Banco
+- [ ] Adicionar campo `turno` (enum: diurno, noturno)
+- [ ] Adicionar campo `funcao` (string)
+- [ ] Tornar CPF opcional (nullable)
+- [ ] Executar migração do banco
+
+### Fase 5: Testar Fluxo Completo
+- [ ] Testar cadastro completo
+- [ ] Testar login com matrícula + nome
+- [ ] Testar onboarding após primeiro login
+- [ ] Testar persistência de login (fechar e abrir app)
+- [ ] Verificar se empregado aparece no dashboard admin

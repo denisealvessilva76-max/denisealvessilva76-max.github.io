@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -44,9 +45,18 @@ export default function LoginScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
       
-      // Redirecionar para home
-      console.log("[LOGIN] Redirecting to home...");
-      router.replace("/(tabs)");
+      // Verificar se é o primeiro login (onboarding não completado)
+      const onboardingCompleted = await AsyncStorage.getItem("onboarding:completed");
+      
+      if (!onboardingCompleted) {
+        // Primeiro login → mostrar onboarding
+        console.log("[LOGIN] First login, showing onboarding...");
+        router.replace("/onboarding");
+      } else {
+        // Login subsequente → ir direto para home
+        console.log("[LOGIN] Redirecting to home...");
+        router.replace("/(tabs)");
+      }
       console.log("[LOGIN] Redirect called");
     } catch (err) {
       console.error("[LOGIN] Login failed:", err);

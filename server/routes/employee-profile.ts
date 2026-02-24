@@ -14,12 +14,13 @@ import { eq } from "drizzle-orm";
  */
 
 const employeeProfileSchema = z.object({
-  cpf: z.string().length(11, "CPF deve ter 11 dígitos"),
+  cpf: z.string().length(11, "CPF deve ter 11 dígitos").optional().or(z.literal("")), // CPF opcional
   matricula: z.string().min(1, "Matrícula é obrigatória"),
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email().optional().or(z.literal("")),
   department: z.string().optional(),
-  position: z.string().optional(), // cargo
+  position: z.string().optional(), // cargo/função
+  turno: z.enum(["diurno", "noturno"]).optional(), // turno de trabalho
   weight: z.number().optional(),
   height: z.number().optional(),
   workType: z.enum(["leve", "moderado", "pesado"]).optional(),
@@ -52,10 +53,11 @@ export const employeeProfileRouter = router({
             .update(employees)
             .set({
               name: input.name,
-              cpf: input.cpf,
+              cpf: input.cpf || existing[0].cpf,
               email: input.email || existing[0].email,
               department: input.department || existing[0].department,
               position: input.position || existing[0].position,
+              turno: input.turno || existing[0].turno,
               weight: input.weight || existing[0].weight,
               height: input.height || existing[0].height,
               workType: input.workType || existing[0].workType,
@@ -81,10 +83,11 @@ export const employeeProfileRouter = router({
           await db.insert(employees).values({
             matricula: input.matricula,
             name: input.name,
-            cpf: input.cpf,
+            cpf: input.cpf || null,
             email: input.email || null,
             department: input.department || null,
             position: input.position || null,
+            turno: input.turno || null,
             weight: input.weight || null,
             height: input.height || null,
             workType: input.workType || null,
