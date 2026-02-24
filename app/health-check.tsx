@@ -2,9 +2,10 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
-import { useHealthData } from "@/hooks/use-health-data";
+import { useCheckIn } from "@/hooks/use-checkin";
 import { CheckInStatus } from "@/lib/types";
 import * as Haptics from "expo-haptics";
+import { useState } from "react";
 
 const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: string; description: string; color: string }> = [
   { 
@@ -32,8 +33,8 @@ const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: str
 
 export default function HealthCheckScreen() {
   const router = useRouter();
-  const { addCheckIn, getTodayCheckIn } = useHealthData();
-  const todayCheckIn = getTodayCheckIn();
+  const { saveCheckIn, todayCheckIn, loading } = useCheckIn();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCheckIn = async (status: CheckInStatus) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -48,21 +49,54 @@ export default function HealthCheckScreen() {
     }
     
     // Check-in normal (sem dor)
-    const result = await addCheckIn(status);
-    if (result) {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setIsSubmitting(true);
+    try {
+      const result = await saveCheckIn({
+        mood: status,
+        symptoms: undefined,
+        notes: undefined
+      });
+      
+      if (result.success) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert(
+          "Check-in Realizado!",
+          "Seu check-in diário foi registrado com sucesso e enviado para o sistema.",
+          [
+            {
+              text: "OK",
+              onPress: () => router.back()
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Erro",
+          result.error || "Não foi possível salvar o check-in. Tente novamente.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao salvar check-in:", error);
       Alert.alert(
-        "Check-in Realizado!",
-        "Seu check-in diário foi registrado com sucesso.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.back()
-          }
-        ]
+        "Erro",
+        "Não foi possível salvar o check-in. Tente novamente.",
+        [{ text: "OK" }]
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <ScreenContainer className="p-6">
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-lg text-muted">Carregando...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   if (todayCheckIn) {
     return (
@@ -110,6 +144,7 @@ export default function HealthCheckScreen() {
             <TouchableOpacity
               key={option.status}
               onPress={() => handleCheckIn(option.status)}
+              disabled={isSubmitting}
               className="active:opacity-70"
             >
               <Card className="flex-row items-center gap-4 p-6">
@@ -140,9 +175,10 @@ export default function HealthCheckScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.back();
           }}
+          disabled={isSubmitting}
         >
           <Text className="text-center font-semibold text-foreground">
-            Voltar
+            {isSubmitting ? "Salvando..." : "Voltar"}
           </Text>
         </TouchableOpacity>
       </View>

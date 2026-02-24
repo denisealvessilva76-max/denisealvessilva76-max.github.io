@@ -2426,3 +2426,36 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Testar onboarding após primeiro login
 - [ ] Testar persistência de login (fechar e abrir app)
 - [ ] Verificar se empregado aparece no dashboard admin
+
+
+---
+
+## Integração Check-in e Hidratação com PostgreSQL - 24/02/2026
+
+### Fase 1: Integrar Check-in
+- [x] Ler tela de check-in atual
+- [x] Conectar com hook useCheckIn
+- [x] Salvar check-ins no PostgreSQL
+- [ ] Testar salvamento e carregamento
+
+### Fase 2: Integrar Hidratação
+- [ ] Ler tela de hidratação atual
+- [ ] Conectar com hook useHydrationSync
+- [ ] Salvar registros de hidratação no PostgreSQL
+- [ ] Testar salvamento e carregamento
+
+---
+
+## Sistema de Alertas Automáticos SESMT - 24/02/2026
+
+### Requisitos
+- [ ] Detectar quando 3+ funcionários reportam mesma queixa em 1 semana
+- [ ] Criar notificação automática para SESMT
+- [ ] Exibir alertas no dashboard admin
+- [ ] Incluir detalhes: queixa, quantidade de funcionários, lista de nomes/matrículas
+
+### Implementação
+- [ ] Criar API para análise de queixas agrupadas
+- [ ] Criar sistema de notificações SESMT
+- [ ] Adicionar seção de alertas no dashboard admin
+- [ ] Testar com dados simulados
