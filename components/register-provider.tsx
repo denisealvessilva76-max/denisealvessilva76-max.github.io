@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { RegisterModal } from "./register-modal";
+import { OnboardingScreen } from "./onboarding-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { trpc } from "@/lib/trpc";
 
 const PROFILE_STORAGE_KEY = "employee:profile";
 const REGISTRATION_COMPLETED_KEY = "registration:completed";
+const ONBOARDING_COMPLETED_KEY = "onboarding:completed";
 
 interface RegisterContextType {
   showRegisterModal: () => void;
@@ -34,6 +36,7 @@ interface RegisterProviderProps {
  */
 export function RegisterProvider({ children }: RegisterProviderProps) {
   const [modalVisible, setModalVisible] = useState(false);
+  const [onboardingVisible, setOnboardingVisible] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   
   const saveProfileMutation = trpc.employeeProfile.saveProfile.useMutation();
@@ -47,9 +50,19 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
     try {
       // Verificar se já completou o cadastro
       const registrationCompleted = await AsyncStorage.getItem(REGISTRATION_COMPLETED_KEY);
+      const onboardingCompleted = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
+      
+      // Se cadastro completo mas onboarding não, exibir onboarding
+      if (registrationCompleted === "true" && onboardingCompleted !== "true") {
+        console.log("[RegisterProvider] Registration completed but onboarding not shown yet");
+        setTimeout(() => {
+          setOnboardingVisible(true);
+        }, 1000);
+        return;
+      }
       
       if (registrationCompleted === "true") {
-        console.log("[RegisterProvider] Registration already completed, skipping modal");
+        console.log("[RegisterProvider] Registration and onboarding already completed");
         return;
       }
       
@@ -66,6 +79,13 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
         console.log("[RegisterProvider] Profile found:", JSON.parse(stored));
         // Marcar cadastro como completo
         await AsyncStorage.setItem(REGISTRATION_COMPLETED_KEY, "true");
+        
+        // Verificar se precisa exibir onboarding
+        if (onboardingCompleted !== "true") {
+          setTimeout(() => {
+            setOnboardingVisible(true);
+          }, 1000);
+        }
       }
     } catch (error) {
       console.error("[RegisterProvider] Error checking profile:", error);
@@ -99,19 +119,14 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
         
         console.log("[RegisterProvider] Profile saved:", savedProfile);
         
-        Alert.alert(
-          "Cadastro realizado! ✅",
-          `Bem-vindo(a), ${name}! Seu perfil foi salvo com sucesso.`,
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setModalVisible(false);
-                setIsRegistering(false);
-              },
-            },
-          ]
-        );
+        // Fechar modal de cadastro e abrir onboarding
+        setModalVisible(false);
+        setIsRegistering(false);
+        
+        // Aguardar um pouco e exibir onboarding
+        setTimeout(() => {
+          setOnboardingVisible(true);
+        }, 500);
         return true;
       }
 
@@ -146,6 +161,11 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
     setIsRegistering(false);
   };
 
+  const handleOnboardingComplete = () => {
+    console.log("[RegisterProvider] Onboarding completed");
+    setOnboardingVisible(false);
+  };
+
   return (
     <RegisterContext.Provider value={{ showRegisterModal, hideRegisterModal }}>
       {children}
@@ -153,6 +173,10 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
         visible={modalVisible}
         onRegister={handleRegister}
         onClose={hideRegisterModal}
+      />
+      <OnboardingScreen
+        visible={onboardingVisible}
+        onComplete={handleOnboardingComplete}
       />
     </RegisterContext.Provider>
   );

@@ -2268,3 +2268,18 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Solução: Não reabrir modal automaticamente após primeiro cadastro
 - [ ] Problema adicional: Inputs do React Native Web não aceitam preenchimento via browser
 - [ ] Erro 401 ao salvar perfil (precisa investigar)
+
+
+---
+
+## Onboarding Visual - 24/02/2026
+
+- [x] Criar componente OnboardingScreen com navegação de slides
+- [x] Slide 1: Boas-vindas e introdução ao app
+- [x] Slide 2: Check-in diário e monitoramento de saúde
+- [x] Slide 3: Hidratação e lembretes
+- [x] Slide 4: Desafios e gamificação
+- [x] Adicionar botões "Próximo", "Pular" e "Começar"
+- [x] Salvar flag "onboarding_completed" no AsyncStorage
+- [x] Integrar com RegisterProvider (exibir após cadastro)
+- [x] Testar fluxo completo - FUNCIONANDO PERFEITAMENTE!
