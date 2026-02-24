@@ -2342,3 +2342,33 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Criar documento de revisão completa (revisao_completa_funcionalidades.md)
 - [ ] Testar fluxo completo no celular via Expo Go
 - [ ] Verificar visualização no dashboard admin após cadastro real
+
+
+---
+
+## Sincronização de Check-in e Hidratação com PostgreSQL - 24/02/2026
+
+### Fase 1: Verificar Schema do Banco
+- [x] Verificar tabela de check-ins no schema - checkIns (userId, date, mood, symptoms, notes)
+- [x] Verificar tabela de hidratação no schema - userHydration (userId, date, cupsConsumed, totalMl, goalMl)
+- [x] Verificar relacionamento com tabela employees - employees.userId opcional (NULL para sem login)
+
+### Fase 2: Criar/Atualizar APIs
+- [x] Criar API de check-in (saveCheckIn, getCheckIns, getTodayCheckIn)
+- [x] Criar API de hidratação (saveHydration, getHydration, getTodayHydration)
+- [x] Garantir que APIs salvam employeeId correto (busca por matrícula)
+- [x] Adicionar routers ao appRouter (checkin, hydra### Fase 3: Criar Hooks
+- [x] Criar hook useCheckIn para gerenciar check-ins
+- [x] Criar hook useHydrationSync para sincronizar hidratação com PostgreSQL
+- [x] Hooks integram com AsyncStorage local (matrícula) e PostgreSQLom PostgreSQL
+
+### Fase 4: Integrar Telas
+- [ ] Atualizar tela de check-in para usar novo hook
+- [ ] Atualizar tela de hidratação para usar novo hook
+- [ ] Garantir que dados sejam salvos no PostgreSQL
+
+### Fase 5: Testar Sincronização
+- [ ] Testar registro de check-in e verificar no banco
+- [ ] Testar registro de hidratação e verificar no banco
+- [ ] Verificar se dados aparecem no dashboard admin
+- [ ] Testar gráficos e relatórios no dashboard

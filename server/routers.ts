@@ -9,11 +9,15 @@ import { getDb } from "./db";
 import { users, checkIns, userHydration, bloodPressureRecords, challengeProgress, complaints, gamificationData, challengePhotos, employees } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { employeeProfileRouter } from "./routes/employee-profile";
+import { checkinRouter } from "./routes/checkin";
+import { hydrationTrpcRouter } from "./routes/hydration-trpc";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   employeeProfile: employeeProfileRouter,
+  checkin: checkinRouter,
+  hydration: hydrationTrpcRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
