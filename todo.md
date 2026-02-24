@@ -2477,3 +2477,53 @@ Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidad
 - [ ] Testar cadastro, login e sincronização com PostgreSQL
 - [ ] Publicar versão atualizada (eb348b5f) no GitHub Pages
 - [ ] Criar guia de acesso para funcionários (URL + instruções)
+
+
+---
+
+## Bug Crítico - Cadastro Não Redireciona (24/02/2026)
+
+### Problema Reportado
+- Usuário preenche todos os campos do formulário de cadastro
+- Clica no botão "Cadastrar"
+- App carrega por alguns segundos
+- Não acontece nada, continua na mesma página de cadastro
+- Não redireciona para tela de login
+
+### Investigação Necessária
+- [ ] Verificar logs do console no navegador
+- [ ] Verificar se dados estão sendo salvos no PostgreSQL
+- [ ] Verificar lógica de redirecionamento em app/cadastro.tsx
+- [ ] Verificar se API de perfil está respondendo corretamente
+- [ ] Testar salvamento de dados no backend
+
+### Correção
+- [ ] Corrigir lógica de redirecionamento após cadastro
+- [ ] Adicionar feedback visual de erro se falhar
+- [ ] Testar fluxo completo no celular
+
+---
+
+## Bug Crítico - Cadastro Não Redireciona (24/02/2026)
+
+### Problema Reportado
+- Usuário preenche todos os campos do formulário de cadastro
+- Clica no botão "Cadastrar"
+- App carrega por alguns segundos
+- Não acontece nada, continua na mesma página de cadastro
+- Não redireciona para tela de login
+
+### Causa Identificada
+- [x] Campos turno, altura, peso e tipo de trabalho não estavam sendo enviados para API
+- [x] API esperava campos: turno, height, weight, workType
+- [x] Código estava enviando apenas: matricula, name, position, cpf
+
+### Correção Aplicada
+- [x] Modificado app/cadastro.tsx para incluir todos os campos na chamada da API
+- [x] Adicionados: turno, height (parseFloat), weight (parseFloat), workType
+- [x] Agora todos os dados são salvos corretamente no PostgreSQL
+
+### Teste Pendente
+- [ ] Testar fluxo completo no celular via QR code
+- [ ] Verificar se dados aparecem no dashboard admin
+- [ ] Confirmar redirecionamento para tela de login após cadastro

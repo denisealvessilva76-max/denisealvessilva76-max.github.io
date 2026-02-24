@@ -45,12 +45,16 @@ export default function CadastroScreen() {
     setLoading(true);
 
     try {
-      // Salvar no PostgreSQL
+      // Salvar no PostgreSQL com TODOS os campos
       const result = await cadastrarMutation.mutateAsync({
         matricula,
         name: nome,
         position: funcao,
         cpf: "", // CPF não é obrigatório
+        turno: turno as "diurno" | "noturno",
+        height: parseFloat(altura),
+        weight: parseFloat(peso),
+        workType: tipoTrabalho as "leve" | "moderado" | "pesado",
       });
 
       if (result.success) {
