@@ -2299,3 +2299,16 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Dados carregados do PostgreSQL ao abrir tela
 - [x] Dados salvos no PostgreSQL ao clicar em Salvar
 - [x] Modo de edição funcionando corretamente
+
+
+---
+
+## Feedback Visual ao Salvar Perfil - 24/02/2026
+
+- [x] Criar componente Toast para exibir mensagens de feedback
+- [x] Integrar Toast na tela de perfil após salvamento bem-sucedido
+- [x] Exibir mensagem "✅ Perfil salvo com sucesso!" com animação
+- [x] Auto-fechar toast após 3 segundos
+- [x] Código implementado corretamente
+- [ ] Toast não aparece visualmente no React Native Web (limitação)
+- [ ] Testar em dispositivo real via Expo Go para validar Toast

@@ -6,6 +6,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { useEmployeeProfile } from "@/hooks/use-employee-profile";
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { Toast } from "@/components/ui/toast";
 import * as Haptics from "expo-haptics";
 
 const SESMT_PHONE = "21998225493";
@@ -24,6 +25,9 @@ export default function PerfilScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [avatar, setAvatar] = useState<string>("👷");
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error" | "info">("success");
   const [formData, setFormData] = useState<FormData>({
     name: "",
     matricula: "",
@@ -76,10 +80,14 @@ export default function PerfilScreen() {
       });
       setIsEditing(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Sucesso", "Perfil salvo com sucesso!");
+      setToastMessage("Perfil salvo com sucesso!");
+      setToastType("success");
+      setShowToast(true);
     } catch (error) {
       console.error("[PERFIL] Erro ao salvar:", error);
-      Alert.alert("Erro", "Não foi possível salvar o perfil. Tente novamente.");
+      setToastMessage("Erro ao salvar perfil. Tente novamente.");
+      setToastType("error");
+      setShowToast(true);
     } finally {
       setIsSaving(false);
     }
@@ -121,6 +129,12 @@ export default function PerfilScreen() {
 
   return (
     <ScreenContainer className="p-4">
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        visible={showToast}
+        onHide={() => setShowToast(false)}
+      />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <View className="gap-6">
           {/* Cabeçalho */}
