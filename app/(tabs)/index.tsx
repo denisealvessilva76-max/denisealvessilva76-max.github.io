@@ -10,6 +10,8 @@ import { usePersonalDashboard } from "@/hooks/use-personal-dashboard";
 import { CheckInStatus } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
 
 const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: string; color: string }> = [
   { status: "bem", emoji: "😊", label: "Tudo bem", color: "bg-success" },
@@ -374,6 +376,33 @@ export default function HomeScreen() {
               Faça uma pausa a cada 2 horas para alongar os ombros e costas. Isso reduz o risco de doenças musculoesqueléticas.
             </Text>
           </Card>
+
+          {/* Botão de Reset (apenas para testes) */}
+          <TouchableOpacity
+            className="bg-error/20 rounded-xl p-4 active:opacity-80 border border-error mt-4"
+            onPress={() => {
+              Alert.alert(
+                "Limpar Todos os Dados",
+                "Isso vai apagar todos os dados locais e permitir novo cadastro. Deseja continuar?",
+                [
+                  { text: "Cancelar", style: "cancel" },
+                  {
+                    text: "Limpar e Recomeçar",
+                    style: "destructive",
+                    onPress: async () => {
+                      await AsyncStorage.clear();
+                      // Redirecionar para cadastro
+                      router.replace("/cadastro");
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Text className="text-center font-semibold text-error">
+              🗑️ Limpar Dados e Recomeçar
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </ScreenContainer>

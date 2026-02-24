@@ -2551,3 +2551,18 @@ Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidad
 - [x] Se houver cadastro mas não login local, redirecionar para /login
 - [x] Se houver login e usuário existe no banco, permitir acesso à home
 - [x] Limpar AsyncStorage automaticamente se usuário local não existe no banco
+
+
+---
+
+## Melhoria - Botão de Reset para Testes (24/02/2026 - 11:45)
+
+### Necessidade
+- Permitir limpar todos os dados locais e do banco para testar cadastro do zero
+- Útil para desenvolvimento e testes
+
+### Implementação
+- [x] Adicionar botão "Limpar Dados e Recomeçar" na tela inicial/home
+- [x] Função deve limpar AsyncStorage completamente
+- [x] Redirecionar para tela de cadastro após limpar
+- [x] Adicionar confirmação antes de limpar (evitar cliques acidentais)
