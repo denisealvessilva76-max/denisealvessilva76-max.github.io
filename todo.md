@@ -2459,3 +2459,21 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Criar sistema de notificações SESMT
 - [ ] Adicionar seção de alertas no dashboard admin
 - [ ] Testar com dados simulados
+
+
+---
+
+## PWA e Publicação GitHub Pages - 24/02/2026
+
+### Objetivo
+Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidades e sincronização com dashboard admin
+
+### Tarefas
+- [ ] Verificar versão atual no GitHub Pages: https://denisealvessilva76-max.github.io/canteiro-saudavel345/
+- [ ] Identificar problemas de funcionalidade na versão publicada
+- [ ] Configurar manifesto PWA para instalação no celular
+- [ ] Configurar service worker para funcionamento offline
+- [ ] Garantir que API de backend está acessível via HTTPS
+- [ ] Testar cadastro, login e sincronização com PostgreSQL
+- [ ] Publicar versão atualizada (eb348b5f) no GitHub Pages
+- [ ] Criar guia de acesso para funcionários (URL + instruções)
