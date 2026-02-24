@@ -2527,3 +2527,27 @@ Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidad
 - [ ] Testar fluxo completo no celular via QR code
 - [ ] Verificar se dados aparecem no dashboard admin
 - [ ] Confirmar redirecionamento para tela de login após cadastro
+
+
+---
+
+## Bug Crítico - App Pula Tela de Cadastro (24/02/2026 - 11:35)
+
+### Problema Reportado
+- Ao abrir app via QR code/link HTTPS
+- App não exibe tela de cadastro
+- Redireciona direto para página principal (home)
+- Usuário novo não consegue se cadastrar
+
+### Investigação Necessária
+- [x] Verificar lógica de redirecionamento em app/_layout.tsx
+- [x] Verificar se AsyncStorage está mantendo dados antigos
+- [x] Verificar initialRouteName do Stack
+- [x] Verificar se há redirecionamento automático para home
+
+### Correção
+- [x] Modificar app/index.tsx para verificar se usuário existe no PostgreSQL
+- [x] Se não houver cadastro no banco, redirecionar para /cadastro
+- [x] Se houver cadastro mas não login local, redirecionar para /login
+- [x] Se houver login e usuário existe no banco, permitir acesso à home
+- [x] Limpar AsyncStorage automaticamente se usuário local não existe no banco
