@@ -5,6 +5,7 @@ import { Alert } from "react-native";
 import { trpc } from "@/lib/trpc";
 
 const PROFILE_STORAGE_KEY = "employee:profile";
+const REGISTRATION_COMPLETED_KEY = "registration:completed";
 
 interface RegisterContextType {
   showRegisterModal: () => void;
@@ -33,7 +34,7 @@ interface RegisterProviderProps {
  */
 export function RegisterProvider({ children }: RegisterProviderProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   
   const saveProfileMutation = trpc.employeeProfile.saveProfile.useMutation();
 
@@ -43,9 +44,16 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
   }, []);
 
   const checkProfile = async () => {
-    if (hasCheckedProfile) return;
-    
     try {
+      // Verificar se já completou o cadastro
+      const registrationCompleted = await AsyncStorage.getItem(REGISTRATION_COMPLETED_KEY);
+      
+      if (registrationCompleted === "true") {
+        console.log("[RegisterProvider] Registration already completed, skipping modal");
+        return;
+      }
+      
+      // Verificar se há perfil salvo
       const stored = await AsyncStorage.getItem(PROFILE_STORAGE_KEY);
       
       if (!stored) {
@@ -56,16 +64,22 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
         }, 1500);
       } else {
         console.log("[RegisterProvider] Profile found:", JSON.parse(stored));
+        // Marcar cadastro como completo
+        await AsyncStorage.setItem(REGISTRATION_COMPLETED_KEY, "true");
       }
-      
-      setHasCheckedProfile(true);
     } catch (error) {
       console.error("[RegisterProvider] Error checking profile:", error);
-      setHasCheckedProfile(true);
     }
   };
 
   const handleRegister = async (matricula: string, name: string): Promise<boolean> => {
+    if (isRegistering) {
+      console.log("[RegisterProvider] Already registering, skipping...");
+      return false;
+    }
+    
+    setIsRegistering(true);
+    
     try {
       console.log("[RegisterProvider] Registering:", { matricula, name });
       
@@ -80,6 +94,9 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
         // Salvar no AsyncStorage
         await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(savedProfile));
         
+        // Marcar cadastro como completo
+        await AsyncStorage.setItem(REGISTRATION_COMPLETED_KEY, "true");
+        
         console.log("[RegisterProvider] Profile saved:", savedProfile);
         
         Alert.alert(
@@ -88,16 +105,32 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
           [
             {
               text: "OK",
-              onPress: () => setModalVisible(false),
+              onPress: () => {
+                setModalVisible(false);
+                setIsRegistering(false);
+              },
             },
           ]
         );
         return true;
       }
 
+      setIsRegistering(false);
       return false;
     } catch (error) {
       console.error("[RegisterProvider] Error registering:", error);
+      setIsRegistering(false);
+      
+      Alert.alert(
+        "Erro ao cadastrar",
+        "Não foi possível salvar seu perfil. Tente novamente.",
+        [
+          {
+            text: "OK",
+          },
+        ]
+      );
+      
       return false;
     }
   };
@@ -110,6 +143,7 @@ export function RegisterProvider({ children }: RegisterProviderProps) {
   const hideRegisterModal = () => {
     console.log("[RegisterProvider] Hiding modal");
     setModalVisible(false);
+    setIsRegistering(false);
   };
 
   return (

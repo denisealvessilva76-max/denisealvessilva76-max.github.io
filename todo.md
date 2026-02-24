@@ -2256,3 +2256,15 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [ ] Corrigir problema de autenticação (erro 401) ao salvar perfil
 - [ ] Testar fluxo completo de cadastro end-to-end
 - [ ] Implementar onboarding após primeiro cadastro
+
+
+---
+
+## Bug Crítico - Loop Infinito do Modal (24/02/2026)
+
+- [x] Modal de cadastro reaparece após salvar (loop infinito)
+- [x] Problema: RegisterProvider não reconhece que perfil foi salvo
+- [x] Solução: Atualizar flag hasCheckedProfile após salvar com sucesso
+- [x] Solução: Não reabrir modal automaticamente após primeiro cadastro
+- [ ] Problema adicional: Inputs do React Native Web não aceitam preenchimento via browser
+- [ ] Erro 401 ao salvar perfil (precisa investigar)
