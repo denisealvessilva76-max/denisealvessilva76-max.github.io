@@ -1,126 +1,87 @@
-import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable, Alert, Linking } from "react-native";
-import { useState, useEffect, useCallback } from "react";
-import { useRouter, useFocusEffect } from "expo-router";
+import { ScrollView, Text, View, TouchableOpacity, TextInput, Alert, Linking, ActivityIndicator } from "react-native";
+import { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
-import { useHealthData } from "@/hooks/use-health-data";
-import { UserProfile } from "@/lib/types";
+import { useEmployeeProfile } from "@/hooks/use-employee-profile";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import * as Haptics from "expo-haptics";
 
 const SESMT_PHONE = "21998225493";
 const SESMT_NAME = "Saúde Ocupacional";
 
+interface FormData {
+  name: string;
+  matricula: string;
+  position: string;
+}
+
 export default function PerfilScreen() {
   const router = useRouter();
-  const { profile, saveProfile } = useHealthData();
+  const { profile, loading, saveProfile: saveProfileAPI } = useEmployeeProfile();
   const { resetOnboarding } = useOnboarding();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<UserProfile>>({
+  const [isSaving, setIsSaving] = useState(false);
+  const [avatar, setAvatar] = useState<string>("👷");
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     matricula: "",
-    cargo: "",
-    turno: "matutino",
+    position: "",
   });
-  const [autoSaveTimeout, setAutoSaveTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
+  // Carregar avatar do AsyncStorage
   useEffect(() => {
-    if (profile) {
-      setFormData(profile);
-    } else {
-      setIsEditing(true);
-    }
-  }, [profile]);
-
-  // Salvamento automático ao alterar dados
-  useEffect(() => {
-    // Limpar timeout anterior
-    if (autoSaveTimeout) {
-      clearTimeout(autoSaveTimeout);
-    }
-
-    // Só salvar automaticamente se estiver editando e tiver dados mínimos
-    if (isEditing && formData.name && formData.matricula && formData.cargo && formData.turno) {
-      // Salvar após 2 segundos de inatividade
-      const timeout = setTimeout(async () => {
-        try {
-          const newProfile: UserProfile = {
-            id: profile?.id || Date.now().toString(),
-            name: formData.name!,
-            matricula: formData.matricula!,
-            cargo: formData.cargo!,
-            turno: formData.turno as "matutino" | "vespertino" | "noturno",
-            createdAt: profile?.createdAt || Date.now(),
-            updatedAt: Date.now(),
-          };
-          await saveProfile(newProfile);
-          console.log("[PERFIL] Salvo automaticamente");
-        } catch (error) {
-          console.error("[PERFIL] Erro ao salvar automaticamente:", error);
+    const loadAvatar = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("health:profile");
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.avatar) {
+            setAvatar(data.avatar);
+          }
         }
-      }, 2000);
-      setAutoSaveTimeout(timeout);
-    }
-
-    // Cleanup
-    return () => {
-      if (autoSaveTimeout) {
-        clearTimeout(autoSaveTimeout);
+      } catch (error) {
+        console.error("[PERFIL] Erro ao carregar avatar:", error);
       }
     };
-  }, [formData, isEditing]);
+    loadAvatar();
+  }, []);
 
-  // Recarregar perfil ao voltar para a tela
-  useFocusEffect(
-    useCallback(() => {
-      const reloadProfile = async () => {
-        try {
-          const stored = await AsyncStorage.getItem("health:profile");
-          if (stored) {
-            const reloadedProfile = JSON.parse(stored);
-            setFormData(reloadedProfile);
-            console.log("[PERFIL] Avatar recarregado:", reloadedProfile.avatar);
-          }
-        } catch (error) {
-          console.error("Erro ao recarregar perfil:", error);
-        }
-      };
-      reloadProfile();
-    }, [])
-  );
+  // Carregar dados do perfil quando disponível
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        name: profile.name || "",
+        matricula: profile.matricula || "",
+        position: profile.position || "",
+      });
+    } else if (!loading) {
+      setIsEditing(true);
+    }
+  }, [profile, loading]);
 
   const handleSaveProfile = async () => {
-    if (!formData.name || !formData.matricula || !formData.cargo || !formData.turno) {
+    if (!formData.name || !formData.matricula || !formData.position) {
       Alert.alert("Erro", "Preencha todos os campos");
       return;
     }
 
-    const newProfile: UserProfile = {
-      id: profile?.id || Date.now().toString(),
-      name: formData.name,
-      matricula: formData.matricula,
-      cargo: formData.cargo,
-      turno: formData.turno as "matutino" | "vespertino" | "noturno",
-      createdAt: profile?.createdAt || Date.now(),
-      updatedAt: Date.now(),
-    };
-    await saveProfile(newProfile);
-    setIsEditing(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("Sucesso", "Perfil salvo com sucesso!");
-  };
-
-  const getTurnoLabel = (turno: string) => {
-    switch (turno) {
-      case "matutino":
-        return "Matutino (6h - 14h)";
-      case "vespertino":
-        return "Vespertino (14h - 22h)";
-      case "noturno":
-        return "Noturno (22h - 6h)";
-      default:
-        return "Desconhecido";
+    setIsSaving(true);
+    try {
+      await saveProfileAPI({
+        name: formData.name,
+        matricula: formData.matricula,
+        position: formData.position,
+      });
+      setIsEditing(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert("Sucesso", "Perfil salvo com sucesso!");
+    } catch (error) {
+      console.error("[PERFIL] Erro ao salvar:", error);
+      Alert.alert("Erro", "Não foi possível salvar o perfil. Tente novamente.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -148,6 +109,15 @@ export default function PerfilScreen() {
       Alert.alert("Erro", "Não foi possível fazer a chamada");
     }
   };
+
+  if (loading) {
+    return (
+      <ScreenContainer className="p-4 items-center justify-center">
+        <ActivityIndicator size="large" color="#0a7ea4" />
+        <Text className="text-muted mt-4">Carregando perfil...</Text>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer className="p-4">
@@ -178,7 +148,7 @@ export default function PerfilScreen() {
                   borderColor: "#0a7ea4",
                 }}
               >
-                <Text style={{ fontSize: 60 }}>{profile?.avatar || "\ud83d\udc77"}</Text>
+                <Text style={{ fontSize: 60 }}>{avatar}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -219,11 +189,7 @@ export default function PerfilScreen() {
                 </View>
                 <View>
                   <Text className="text-xs text-muted mb-1">Cargo</Text>
-                  <Text className="text-base text-foreground">{profile.cargo}</Text>
-                </View>
-                <View>
-                  <Text className="text-xs text-muted mb-1">Turno</Text>
-                  <Text className="text-base text-foreground">{getTurnoLabel(profile.turno)}</Text>
+                  <Text className="text-base text-foreground">{profile.position}</Text>
                 </View>
               </View>
             ) : (
@@ -254,58 +220,41 @@ export default function PerfilScreen() {
                     className="bg-background border border-border rounded-lg p-3 text-foreground"
                     placeholder="Ex: Pedreiro, Armador"
                     placeholderTextColor="#687076"
-                    value={formData.cargo}
-                    onChangeText={(text) => setFormData({ ...formData, cargo: text })}
+                    value={formData.position}
+                    onChangeText={(text) => setFormData({ ...formData, position: text })}
                   />
-                </View>
-                <View>
-                  <Text className="text-xs text-muted mb-1">Turno</Text>
-                  <View className="flex-row gap-2">
-                    {(["matutino", "vespertino", "noturno"] as const).map((turno) => (
-                      <Pressable
-                        key={turno}
-                        onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          setFormData({ ...formData, turno });
-                        }}
-                        style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                      >
-                        <View
-                          className={`flex-1 py-2 px-3 rounded-lg border ${
-                            formData.turno === turno
-                              ? "bg-primary border-primary"
-                              : "bg-surface border-border"
-                          }`}
-                        >
-                          <Text
-                            className={`text-xs font-semibold text-center ${
-                              formData.turno === turno ? "text-white" : "text-foreground"
-                            }`}
-                          >
-                            {turno === "matutino" ? "Matutino" : turno === "vespertino" ? "Vespertino" : "Noturno"}
-                          </Text>
-                        </View>
-                      </Pressable>
-                    ))}
-                  </View>
                 </View>
 
                 <View className="flex-row gap-2">
                   <TouchableOpacity
                     className="flex-1 bg-primary rounded-lg py-3 active:opacity-80"
                     onPress={handleSaveProfile}
+                    disabled={isSaving}
                   >
-                    <Text className="text-center font-semibold text-white">Salvar</Text>
+                    {isSaving ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text className="text-center font-semibold text-white">Salvar</Text>
+                    )}
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    className="flex-1 bg-surface border border-border rounded-lg py-3 active:opacity-80"
-                    onPress={() => {
-                      setIsEditing(false);
-                      if (profile) setFormData(profile);
-                    }}
-                  >
-                    <Text className="text-center font-semibold text-foreground">Cancelar</Text>
-                  </TouchableOpacity>
+                  {profile && (
+                    <TouchableOpacity
+                      className="flex-1 bg-surface border border-border rounded-lg py-3 active:opacity-80"
+                      onPress={() => {
+                        setIsEditing(false);
+                        if (profile) {
+                          setFormData({
+                            name: profile.name || "",
+                            matricula: profile.matricula || "",
+                            position: profile.position || "",
+                          });
+                        }
+                      }}
+                      disabled={isSaving}
+                    >
+                      <Text className="text-center font-semibold text-foreground">Cancelar</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             )}
@@ -367,8 +316,6 @@ export default function PerfilScreen() {
               </Text>
             </TouchableOpacity>
           </Card>
-
-
 
           {/* Notificações Semanais */}
           <Card className="gap-3">

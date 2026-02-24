@@ -2283,3 +2283,19 @@ Implementar autenticação completa de funcionários usando CPF e matrícula, su
 - [x] Salvar flag "onboarding_completed" no AsyncStorage
 - [x] Integrar com RegisterProvider (exibir após cadastro)
 - [x] Testar fluxo completo - FUNCIONANDO PERFEITAMENTE!
+
+
+---
+
+## Conectar Perfil com PostgreSQL - 24/02/2026
+
+- [x] Ler tela de perfil atual (app/(tabs)/perfil.tsx)
+- [x] Substituir AsyncStorage por useEmployeeProfile hook
+- [x] Carregar dados do PostgreSQL ao abrir tela
+- [x] Salvar dados no PostgreSQL ao clicar em Salvar
+- [x] Exibir feedback de sucesso/erro ao salvar
+- [x] Exibir loading spinner durante carregamento e salvamento
+- [x] Testar salvamento e carregamento de dados - FUNCIONANDO!
+- [x] Dados carregados do PostgreSQL ao abrir tela
+- [x] Dados salvos no PostgreSQL ao clicar em Salvar
+- [x] Modo de edição funcionando corretamente
