@@ -2734,3 +2734,74 @@ Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidad
 5. ✅ Dashboard Admin Mostra 0 Funcionários (bloqueador para admin)
 6. ✅ Erro ao Enviar Foto no Desafio (gamificação)
 7. ✅ Credenciais Admin Visíveis (segurança)
+
+
+---
+
+## 🎯 NOVA DEMANDA CRÍTICA - Sistema Híbrido de Salvamento (25/02/2026)
+
+### Problema Identificado
+- Aplicativo Kauber funciona perfeitamente com localStorage
+- Canteiro Saudável tenta salvar no PostgreSQL via tRPC mas falha no navegador
+- Dados não persistem: perfil, água, pressão, sintomas, desafios
+
+### Solução: Sistema Híbrido
+- [ ] **localStorage** - Salvar TODOS os dados localmente (sempre funciona)
+- [ ] **Sincronização PostgreSQL** - Enviar dados para backend em segundo plano
+- [ ] **Admin vê dados sincronizados** - Dashboard puxa dados do PostgreSQL
+
+### Implementação
+1. [ ] Criar hook `useLocalStorage` para gerenciar dados locais
+2. [ ] Modificar todos os hooks (perfil, água, pressão, sintomas) para usar localStorage primeiro
+3. [ ] Implementar sincronização automática em background (tentativa a cada 30s)
+4. [ ] Corrigir dashboard admin para buscar dados do PostgreSQL
+5. [ ] Adicionar indicador visual de "sincronizado" vs "local apenas"
+
+### Painel de Avisos Editável
+- [ ] Criar aba "Avisos" no dashboard admin
+- [ ] Permitir adicionar/editar/excluir avisos
+- [ ] Buscar informações de saúde de sites seguros (API pública)
+- [ ] Exibir avisos na Home do funcionário
+
+### Referência
+- Código Kauber: `/home/ubuntu/upload/index(1).html`
+- Funções chave: `dadosUsuario()`, `salvarDado()`, `salvarUsuario()`
+
+
+---
+
+## 🔥 INTEGRAÇÃO FIREBASE - Solução Definitiva (25/02/2026)
+
+### Objetivo
+Integrar Firebase Realtime Database para que o administrador possa visualizar TODOS os dados dos funcionários em tempo real.
+
+### Implementação
+- [x] Instalar dependências do Firebase (`firebase`)
+- [x] Configurar Firebase no projeto (usar variável de ambiente para credenciais)
+- [x] Testar conexão com Firebase - SUCESSO!
+- [ ] Criar hook `useFirebaseSync` para sincronização automática
+- [ ] Modificar hooks (perfil, água, pressão, sintomas) para sincronizar com Firebase
+- [ ] Atualizar dashboard admin para ler dados do Firebase em tempo real
+- [ ] Adicionar indicador visual de "sincronizado" no app
+
+### Estrutura de Dados no Firebase
+```
+canteiro-saudavel/
+  employees/
+    {matricula}/
+      profile: { name, position, weight, height, workType, ... }
+      water: [ { timestamp, amount }, ... ]
+      bloodPressure: [ { timestamp, systolic, diastolic }, ... ]
+      symptoms: [ { timestamp, symptom, details }, ... ]
+      checkins: [ { timestamp, date }, ... ]
+      challenges: [ { id, progress, photos }, ... ]
+  admin/
+    alerts: [ { type, message, timestamp }, ... ]
+```
+
+### Benefícios
+✅ Admin vê dados em tempo real
+✅ Sincronização automática em background
+✅ Dados salvos localmente (sempre funcionam)
+✅ Offline-first (funciona sem internet)
+✅ Escalável (suporta milhares de funcionários)

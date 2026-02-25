@@ -53,30 +53,29 @@ export function useEmployeeProfile() {
   };
 
   /**
-   * Salvar perfil no PostgreSQL e AsyncStorage
+   * Salvar perfil no AsyncStorage E PostgreSQL
+   * SEMPRE salva localmente primeiro (como Kauber), depois sincroniza com backend
    */
   const saveProfile = async (data: EmployeeProfile): Promise<boolean> => {
     try {
       setError(null);
       
-      // Tentar salvar via tRPC primeiro
+      // 1. SALVAR LOCALMENTE PRIMEIRO (SEMPRE FUNCIONA)
+      setProfile(data);
+      await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(data));
+      console.log("[EmployeeProfile] Saved locally:", data);
+      
+      // 2. TENTAR SINCRONIZAR COM BACKEND (EM SEGUNDO PLANO)
+      // Se falhar, os dados já estão salvos localmente
       try {
         const result = await saveProfileMutation.mutateAsync(data);
         
         if (result.success) {
-          const savedProfile = result.employee as EmployeeProfile;
-          
-          // Atualizar estado local
-          setProfile(savedProfile);
-          
-          // Salvar no AsyncStorage
-          await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(savedProfile));
-          
-          console.log("[EmployeeProfile] Saved via tRPC:", savedProfile);
+          console.log("[EmployeeProfile] Synced with backend via tRPC");
           return true;
         }
       } catch (trpcError) {
-        console.warn("[EmployeeProfile] tRPC failed, trying REST fallback:", trpcError);
+        console.warn("[EmployeeProfile] tRPC sync failed, trying REST:", trpcError);
         
         // Fallback: usar endpoint REST
         const apiUrl = getApiBaseUrl();
