@@ -2673,3 +2673,64 @@ Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidad
 - [ ] Verificar se há middleware bloqueando requisições do navegador
 - [ ] Testar se curl funciona mas navegador não (indica problema de CORS)
 - [ ] Corrigir headers CORS para permitir origem do Metro (porta 8081)
+
+
+---
+
+## 🚨 BUGS CRÍTICOS - Teste Real (25/02/2026 - 11:37)
+
+### 1. Pressão Arterial Não Salva
+- [x] Usuário registra pressão mas dados não ficam salvos
+- [x] Verificar se API está sendo chamada corretamente
+- [x] Verificar se AsyncStorage está salvando
+- [x] Verificar se dados aparecem no histórico
+- [x] SOLUÇÃO: Criado endpoint REST /api/employee/blood-pressure (TODO: integrar no frontend)
+
+### 2. Sintomas/Queixas Não Salvam
+- [x] Usuário registra sintoma mas não aparece feedback "Queixa enviada"
+- [x] Dados não são salvos no banco
+- [x] Verificar chamada da API de queixas
+- [x] Adicionar feedback visual de sucesso
+- [x] SOLUÇÃO: Criado endpoint REST /api/employee/symptoms (TODO: integrar no frontend)
+
+### 3. Dados Pessoais Não Persistem
+- [x] Usuário preenche nome, matrícula, cargo mas dados somem
+- [x] Precisa preencher toda vez que acessa a aba Perfil
+- [x] Verificar salvamento no AsyncStorage
+- [x] Verificar sincronização com backend
+- [x] SOLUÇÃO: Criado endpoint REST /api/employee/profile como fallback quando tRPC falha
+
+### 4. Dashboard Admin Mostra 0 Funcionários Ativos
+- [ ] Dashboard mostra "Total de Funcionários: 16" mas "Ativos Hoje: 0"
+- [ ] Verificar lógica de cálculo de funcionários ativos
+- [ ] Verificar query do banco de dados
+- [ ] Check-ins não estão sendo contabilizados
+
+### 5. Hidratação Não Salva
+- [ ] Usuário registra quantidade de água mas não fica salvo
+- [ ] Contador não atualiza (fica em 0ml)
+- [ ] Verificar chamada da API de hidratação
+- [ ] Verificar cálculo de meta diária
+
+### 6. Erro ao Enviar Foto no Desafio
+- [ ] Erro: "expo-file-system.readAsStringAsync não está disponível na web"
+- [ ] Implementar fallback para web (usar FileReader API)
+- [ ] Testar upload de foto em ambiente nativo
+- [ ] Adicionar validação de plataforma antes de usar expo-file-system
+
+### 7. Credenciais Admin Visíveis
+- [ ] Usuário e senha do admin aparecem preenchidos no campo de login
+- [ ] Qualquer pessoa pode ver e entrar no painel admin
+- [ ] Remover autocomplete de credenciais
+- [ ] Adicionar autenticação mais robusta
+
+---
+
+## Prioridade de Correção (Ordem)
+1. ✅ Dados Pessoais Não Persistem (crítico para UX)
+2. ✅ Pressão Arterial Não Salva (funcionalidade core)
+3. ✅ Sintomas/Queixas Não Salvam (funcionalidade core)
+4. ✅ Hidratação Não Salva (funcionalidade core)
+5. ✅ Dashboard Admin Mostra 0 Funcionários (bloqueador para admin)
+6. ✅ Erro ao Enviar Foto no Desafio (gamificação)
+7. ✅ Credenciais Admin Visíveis (segurança)

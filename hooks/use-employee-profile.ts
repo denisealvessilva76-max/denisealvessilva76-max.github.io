@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 const PROFILE_STORAGE_KEY = "employee:profile";
 
@@ -58,24 +59,57 @@ export function useEmployeeProfile() {
     try {
       setError(null);
       
-      // Salvar no servidor via API
-      const result = await saveProfileMutation.mutateAsync(data);
-      
-      if (result.success) {
-        const savedProfile = result.employee as EmployeeProfile;
+      // Tentar salvar via tRPC primeiro
+      try {
+        const result = await saveProfileMutation.mutateAsync(data);
         
-        // Atualizar estado local
-        setProfile(savedProfile);
+        if (result.success) {
+          const savedProfile = result.employee as EmployeeProfile;
+          
+          // Atualizar estado local
+          setProfile(savedProfile);
+          
+          // Salvar no AsyncStorage
+          await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(savedProfile));
+          
+          console.log("[EmployeeProfile] Saved via tRPC:", savedProfile);
+          return true;
+        }
+      } catch (trpcError) {
+        console.warn("[EmployeeProfile] tRPC failed, trying REST fallback:", trpcError);
         
-        // Salvar no AsyncStorage
-        await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(savedProfile));
+        // Fallback: usar endpoint REST
+        const apiUrl = getApiBaseUrl();
+        const response = await fetch(`${apiUrl}/api/employee/profile`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
         
-        console.log("[EmployeeProfile] Saved successfully:", savedProfile);
-        return true;
-      } else {
-        setError("Falha ao salvar perfil");
-        return false;
+        if (!response.ok) {
+          throw new Error(`REST API failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const savedProfile = result.employee as EmployeeProfile;
+          
+          // Atualizar estado local
+          setProfile(savedProfile);
+          
+          // Salvar no AsyncStorage
+          await AsyncStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(savedProfile));
+          
+          console.log("[EmployeeProfile] Saved via REST:", savedProfile);
+          return true;
+        }
       }
+      
+      setError("Falha ao salvar perfil");
+      return false;
     } catch (err) {
       console.error("[EmployeeProfile] Error saving profile:", err);
       setError("Erro ao salvar perfil");
