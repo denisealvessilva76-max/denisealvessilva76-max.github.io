@@ -2566,3 +2566,110 @@ Transformar app em PWA acessível via navegador HTTPS com todas as funcionalidad
 - [x] Função deve limpar AsyncStorage completamente
 - [x] Redirecionar para tela de cadastro após limpar
 - [x] Adicionar confirmação antes de limpar (evitar cliques acidentais)
+
+
+---
+
+## Bug Crítico - Cadastro Não Finaliza (24/02/2026 - 11:50)
+
+### Problema Reportado
+- Usuário preenche TODOS os campos do cadastro
+- Clica no botão "Cadastrar"
+- Bolinha de loading aparece (ActivityIndicator)
+- Loading continua girando indefinidamente
+- Nada acontece (não redireciona, não mostra erro)
+
+### Investigação Necessária
+- [ ] Verificar logs do servidor para erros de API
+- [ ] Verificar se mutation está retornando erro
+- [ ] Verificar validação de campos (parseFloat pode estar falhando)
+- [ ] Verificar se API está sendo chamada corretamente
+- [ ] Adicionar console.log para debug
+
+### Possíveis Causas
+- [ ] Erro de validação no schema Zod
+- [ ] Erro ao fazer parseFloat de altura/peso
+- [ ] API não está respondendo
+- [ ] Erro de conexão com PostgreSQL
+- [ ] Campos não estão no formato esperado pela API
+
+
+---
+
+## Tarefa Urgente - Configurar DATABASE_URL (24/02/2026 - 12:00)
+
+### Problema
+- Cadastro não funciona porque banco de dados MySQL não está conectado
+- DATABASE_URL não está configurada ou está incorreta
+- API trava ao tentar salvar dados
+
+### Solução
+- [ ] Verificar informações de conexão do banco MySQL no painel
+- [ ] Configurar DATABASE_URL via webdev_request_secrets
+- [ ] Reiniciar servidor após configurar
+- [ ] Testar cadastro novamente
+
+
+---
+
+## Solução - Link Direto para Cadastro (24/02/2026 - 12:10)
+
+### Problema
+- App vai direto para Home devido a dados salvos no AsyncStorage
+- Usuário não consegue acessar tela de cadastro para testar
+- Botão de limpar dados só aparece na Home
+
+### Solução
+- [x] Criar URL com parâmetro ?reset=true que limpa AsyncStorage
+- [x] Modificar app/index.tsx para detectar parâmetro e limpar dados
+- [x] Gerar novo QR code com URL de reset
+
+
+---
+
+## Bug Crítico - Erro 401 no Cadastro (24/02/2026 - 12:15)
+
+### Problema
+- Cliente tRPC está enviando header Authorization mesmo para rotas públicas
+- Servidor retorna 401 (Unauthorized) no cadastro
+- Cadastro trava com loading infinito
+
+### Causa Raiz
+- lib/trpc.ts sempre tenta obter token via Auth.getSessionToken()
+- Rotas públicas (como employeeProfile.saveProfile) não devem exigir token
+
+### Solução
+- [ ] Modificar lib/trpc.ts para enviar token apenas quando disponível
+- [ ] Não falhar se token não existir
+- [ ] Testar cadastro novamente
+
+
+---
+
+## Bug Crítico - API Travando ao Cadastrar (24/02/2026 - 12:20)
+
+### Sintomas
+- API employeeProfile.saveProfile trava indefinidamente
+- Curl também trava ao chamar a API
+- Loading infinito no frontend
+- Nenhum erro aparece nos logs
+
+### Investigação
+- [x] Verificar logs do servidor MySQL
+- [x] Verificar se há deadlock no banco
+- [x] Verificar implementação da função saveProfile
+- [x] Testar inserção direta no MySQL (já testado - funciona)
+- [x] Verificar se Drizzle ORM está configurado corretamente
+
+### Solução
+- [x] Criar pool de conexões MySQL2 corretamente em server/db.ts
+- [x] Testar API via curl - SUCESSO (id: 90002 criado)
+
+
+---
+
+## Investigação - CORS (24/02/2026)
+- [ ] Verificar configuração de CORS no servidor Express
+- [ ] Verificar se há middleware bloqueando requisições do navegador
+- [ ] Testar se curl funciona mas navegador não (indica problema de CORS)
+- [ ] Corrigir headers CORS para permitir origem do Metro (porta 8081)

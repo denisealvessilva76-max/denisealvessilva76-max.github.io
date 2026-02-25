@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator, Text } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trpc } from "@/lib/trpc";
 
@@ -14,6 +14,7 @@ import { trpc } from "@/lib/trpc";
  */
 export default function IndexScreen() {
   const [checking, setChecking] = useState(true);
+  const params = useLocalSearchParams();
 
   useEffect(() => {
     checkAuthStatus();
@@ -21,6 +22,14 @@ export default function IndexScreen() {
 
   const checkAuthStatus = async () => {
     try {
+      // Verificar se há parâmetro reset=true na URL
+      if (params.reset === 'true') {
+        console.log("[Index] Parâmetro reset detectado - limpando AsyncStorage");
+        await AsyncStorage.clear();
+        router.replace("/cadastro");
+        return;
+      }
+      
       // 1. Verificar se há matrícula salva localmente (usuário logado)
       const matricula = await AsyncStorage.getItem("employee:matricula");
       const nome = await AsyncStorage.getItem("employee:name");

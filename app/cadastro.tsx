@@ -28,6 +28,8 @@ export default function CadastroScreen() {
   const cadastrarMutation = trpc.employeeProfile.saveProfile.useMutation();
 
   const handleCadastro = async () => {
+    console.log("[Cadastro] Iniciando cadastro...");
+    
     // Validação
     if (
       !nome ||
@@ -38,24 +40,59 @@ export default function CadastroScreen() {
       !tipoTrabalho ||
       !funcao
     ) {
+      console.log("[Cadastro] Validação falhou - campos vazios");
       Alert.alert("Erro", "Por favor, preencha todos os campos");
       return;
     }
 
+    console.log("[Cadastro] Campos validados:", {
+      nome,
+      matricula,
+      turno,
+      altura,
+      peso,
+      tipoTrabalho,
+      funcao,
+    });
+
     setLoading(true);
 
     try {
-      // Salvar no PostgreSQL com TODOS os campos
-      const result = await cadastrarMutation.mutateAsync({
+      // Converter altura e peso para números
+      const alturaNum = parseFloat(altura);
+      const pesoNum = parseFloat(peso);
+      
+      console.log("[Cadastro] Valores convertidos:", {
+        alturaNum,
+        pesoNum,
+        alturaValida: !isNaN(alturaNum),
+        pesoValido: !isNaN(pesoNum),
+      });
+
+      if (isNaN(alturaNum) || isNaN(pesoNum)) {
+        console.log("[Cadastro] Erro: altura ou peso inválidos");
+        Alert.alert("Erro", "Altura e peso devem ser números válidos");
+        setLoading(false);
+        return;
+      }
+
+      const payload = {
         matricula,
         name: nome,
         position: funcao,
         cpf: "", // CPF não é obrigatório
         turno: turno as "diurno" | "noturno",
-        height: parseFloat(altura),
-        weight: parseFloat(peso),
+        height: alturaNum,
+        weight: pesoNum,
         workType: tipoTrabalho as "leve" | "moderado" | "pesado",
-      });
+      };
+
+      console.log("[Cadastro] Enviando para API:", payload);
+
+      // Salvar no PostgreSQL com TODOS os campos
+      const result = await cadastrarMutation.mutateAsync(payload);
+      
+      console.log("[Cadastro] Resposta da API:", result);
 
       if (result.success) {
         // Salvar dados adicionais no AsyncStorage
@@ -80,12 +117,16 @@ export default function CadastroScreen() {
         );
       }
     } catch (error) {
-      console.error("Erro ao cadastrar:", error);
+      console.error("[Cadastro] ERRO ao cadastrar:", error);
+      console.error("[Cadastro] Tipo do erro:", typeof error);
+      console.error("[Cadastro] Detalhes:", JSON.stringify(error, null, 2));
+      
       Alert.alert(
-        "Erro",
-        error instanceof Error ? error.message : "Erro ao cadastrar"
+        "Erro ao Cadastrar",
+        error instanceof Error ? error.message : "Erro desconhecido ao cadastrar. Verifique os dados e tente novamente."
       );
     } finally {
+      console.log("[Cadastro] Finalizando (loading = false)");
       setLoading(false);
     }
   };

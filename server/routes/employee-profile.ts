@@ -21,9 +21,9 @@ const employeeProfileSchema = z.object({
   department: z.string().optional(),
   position: z.string().optional(), // cargo/função
   turno: z.enum(["diurno", "noturno"]).optional(), // turno de trabalho
-  weight: z.number().optional(),
-  height: z.number().optional(),
-  workType: z.enum(["leve", "moderado", "pesado"]).optional(),
+  weight: z.number().int().positive("Peso deve ser um número positivo").optional(),
+  height: z.number().int().positive("Altura deve ser um número positivo").optional(),
+  workType: z.string().optional(), // leve, moderado, pesado (string no banco)
 });
 
 export const employeeProfileRouter = router({
@@ -33,12 +33,15 @@ export const employeeProfileRouter = router({
   saveProfile: publicProcedure
     .input(employeeProfileSchema)
     .mutation(async ({ input }) => {
+      console.log("[saveProfile] START - Input:", JSON.stringify(input));
       const db = await getDb();
+      console.log("[saveProfile] DB connection:", db ? "OK" : "NULL");
       if (!db) {
         throw new Error("Database not available");
       }
 
       try {
+        console.log("[saveProfile] Checking existing employee...");
         // Verificar se já existe um empregado com essa matrícula
         const existing = await db
           .select()
