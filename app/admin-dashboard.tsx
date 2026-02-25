@@ -6,30 +6,7 @@ import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { generateDashboardPDF, sharePDF } from "@/lib/pdf-generator";
-import { useAdminData } from "@/hooks/use-admin-data";
-
-interface DashboardStats {
-  totalEmployees: number;
-  activeToday: number;
-  checkInsToday: number;
-  hydrationAverage: number;
-  complaintsThisWeek: number;
-  challengesActive: number;
-  ergonomicsAdherence: number;
-  mentalHealthUsage: number;
-}
-
-interface EmployeeRecord {
-  id: string;
-  name: string;
-  matricula: string;
-  lastCheckIn: string | null;
-  hydrationToday: number;
-  hydrationGoal: number;
-  lastPressure: { systolic: number; diastolic: number } | null;
-  complaintsCount: number;
-  challengesActive: number;
-}
+import { useFirebaseAdmin } from "@/hooks/use-firebase-admin";
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
@@ -39,32 +16,8 @@ export default function AdminDashboardScreen() {
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"overview" | "employees" | "reports">("overview");
   
-  // Buscar dados do backend
-  const { stats: backendStats, employees: backendEmployees, isLoading, refreshAll } = useAdminData();
-  
-  // Converter dados do backend para formato do dashboard
-  const stats: DashboardStats = {
-    totalEmployees: backendEmployees.length,
-    activeToday: backendStats.checkIns.today,
-    checkInsToday: backendStats.checkIns.today,
-    hydrationAverage: backendStats.hydration.averageWeekly,
-    complaintsThisWeek: backendStats.complaints.pending,
-    challengesActive: backendStats.challenges.total - backendStats.challenges.completed,
-    ergonomicsAdherence: 0, // TODO: Implementar
-    mentalHealthUsage: 0, // TODO: Implementar
-  };
-  
-  const employees: EmployeeRecord[] = backendEmployees.map(emp => ({
-    id: emp.workerId,
-    name: emp.name,
-    matricula: emp.matricula,
-    lastCheckIn: emp.lastLogin ? new Date(emp.lastLogin).toISOString().split('T')[0] : null,
-    hydrationToday: 0, // Será carregado ao clicar no funcionário
-    hydrationGoal: 2000,
-    lastPressure: null,
-    complaintsCount: 0,
-    challengesActive: 0,
-  }));
+  // Buscar dados do Firebase em tempo real
+  const { stats, employees, isLoading, error, refresh } = useFirebaseAdmin();
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -72,7 +25,6 @@ export default function AdminDashboardScreen() {
 
   const checkAuthAndLoadData = async () => {
     try {
-
       // Verificar autenticação admin
       const isAuth = await AsyncStorage.getItem("admin_authenticated");
       if (isAuth !== "true") {
@@ -87,142 +39,23 @@ export default function AdminDashboardScreen() {
         setEmail(storedEmail);
       }
 
-      // Carregar dados com tratamento de erro robusto
-      try {
-        await loadDashboardData();
-      } catch (dataError) {
-        console.error("[Dashboard] Erro ao carregar dados, mas não vai crashar:", dataError);
-        // Não mostrar alert, apenas logar. Dashboard vai exibir "Nenhum dado disponível"
-      }
-
+      console.log("[Dashboard] Autenticado, dados sendo carregados do Firebase");
     } catch (error) {
       console.error("[Dashboard] Erro crítico:", error);
-      // Tentar voltar para login se houver erro crítico
       try {
         router.replace("/admin-login");
       } catch (navError) {
         console.error("[Dashboard] Erro ao navegar:", navError);
       }
-    } finally {
-      // isLoading é gerenciado pelo useAdminData
     }
-  };
-
-  const loadDashboardData = async () => {
-    try {
-      // Dados já estão sendo carregados pelo useAdminData
-      // Não precisa fazer nada aqui
-
-    } catch (error) {
-      console.error("[Dashboard] Erro ao carregar dados:", error);
-      Alert.alert("Erro", "Erro ao carregar dados dos funcionários.");
-    }
-  };
-
-  const loadAllEmployeesFromStorage = async (): Promise<EmployeeRecord[]> => {
-    try {
-      // Buscar lista de IDs de funcionários cadastrados
-      const employeeIdsStr = await AsyncStorage.getItem("employee_ids");
-      if (!employeeIdsStr) {
-        console.log("[Dashboard] Nenhum funcionário cadastrado ainda");
-        return [];
-      }
-
-      let employeeIds: string[] = [];
-      try {
-        employeeIds = JSON.parse(employeeIdsStr);
-      } catch (parseError) {
-        console.error("[Dashboard] Erro ao parsear employee_ids:", parseError);
-        return [];
-      }
-      console.log(`[Dashboard] Encontrados ${employeeIds.length} funcionários cadastrados`);
-
-      const employeesData: EmployeeRecord[] = [];
-
-      for (const empId of employeeIds) {
-        try {
-          // Buscar dados do funcionário
-          const empDataStr = await AsyncStorage.getItem(`employee_${empId}`);
-          if (!empDataStr) continue;
-
-          const empData = JSON.parse(empDataStr);
-
-          // Buscar check-ins
-          const checkInsStr = await AsyncStorage.getItem(`check_ins_${empId}`);
-          const checkIns = checkInsStr ? JSON.parse(checkInsStr) : [];
-          const today = new Date().toISOString().split("T")[0];
-          const lastCheckIn = checkIns.find((c: any) => c.date === today);
-
-          // Buscar hidratação
-          const hydrationStr = await AsyncStorage.getItem(`hydration_${empId}`);
-          const hydration = hydrationStr ? JSON.parse(hydrationStr) : { intake: 0, goal: 2000 };
-
-          // Buscar pressão
-          const pressureStr = await AsyncStorage.getItem(`pressure_${empId}`);
-          const pressureRecords = pressureStr ? JSON.parse(pressureStr) : [];
-          const lastPressure = pressureRecords.length > 0 ? pressureRecords[pressureRecords.length - 1] : null;
-
-          // Buscar queixas
-          const complaintsStr = await AsyncStorage.getItem(`complaints_${empId}`);
-          const complaints = complaintsStr ? JSON.parse(complaintsStr) : [];
-
-          // Buscar desafios
-          const challengesStr = await AsyncStorage.getItem(`challenges_${empId}`);
-          const challenges = challengesStr ? JSON.parse(challengesStr) : [];
-          const activeChallenges = challenges.filter((c: any) => c.status === "active");
-
-          employeesData.push({
-            id: empId,
-            name: empData.name || "Sem nome",
-            matricula: empData.matricula || "Sem matrícula",
-            lastCheckIn: lastCheckIn ? lastCheckIn.status : null,
-            hydrationToday: hydration.intake || 0,
-            hydrationGoal: hydration.goal || 2000,
-            lastPressure: lastPressure ? { systolic: lastPressure.systolic, diastolic: lastPressure.diastolic } : null,
-            complaintsCount: complaints.length,
-            challengesActive: activeChallenges.length,
-          });
-
-        } catch (error) {
-          console.error(`[Dashboard] Erro ao carregar dados do funcionário ${empId}:`, error);
-        }
-      }
-
-      return employeesData;
-
-    } catch (error) {
-      console.error("[Dashboard] Erro ao buscar funcionários:", error);
-      return [];
-    }
-  };
-
-  const calculateStats = (employeesData: EmployeeRecord[]): DashboardStats => {
-    const totalEmployees = employeesData.length;
-    const activeToday = employeesData.filter(e => e.lastCheckIn !== null).length;
-    const checkInsToday = activeToday;
-    const hydrationAverage = totalEmployees > 0
-      ? Math.round(employeesData.reduce((sum, e) => sum + (e.hydrationToday / e.hydrationGoal * 100), 0) / totalEmployees)
-      : 0;
-    const complaintsThisWeek = employeesData.reduce((sum, e) => sum + e.complaintsCount, 0);
-    const challengesActive = employeesData.reduce((sum, e) => sum + e.challengesActive, 0);
-
-    return {
-      totalEmployees,
-      activeToday,
-      checkInsToday,
-      hydrationAverage,
-      complaintsThisWeek,
-      challengesActive,
-      ergonomicsAdherence: 0, // TODO: Implementar
-      mentalHealthUsage: 0, // TODO: Implementar
-    };
   };
   
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refreshAll();
+    await refresh();
     setRefreshing(false);
   };
+
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("admin_authenticated");
@@ -238,7 +71,20 @@ export default function AdminDashboardScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       Alert.alert("Gerando PDF", "Por favor, aguarde...");
 
-      const pdfUri = await generateDashboardPDF(stats, employees, period);
+      // Converter dados do Firebase para formato esperado pelo PDF
+      const pdfEmployees = employees.map(emp => ({
+        id: emp.id,
+        name: emp.name,
+        matricula: emp.matricula,
+        lastCheckIn: emp.lastCheckIn,
+        hydrationToday: emp.hydrationToday,
+        hydrationGoal: emp.hydrationGoal,
+        lastPressure: emp.lastPressure,
+        complaintsCount: emp.complaintsCount,
+        challengesActive: emp.challengesActive,
+      }));
+
+      const pdfUri = await generateDashboardPDF(stats, pdfEmployees, period);
       if (!pdfUri) {
         Alert.alert("Erro", "Não foi possível gerar o PDF");
         return;
@@ -272,7 +118,20 @@ export default function AdminDashboardScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       Alert.alert("Gerando PDF", "Por favor, aguarde...");
 
-      const pdfUri = await generateDashboardPDF(stats, employees, period);
+      // Converter dados do Firebase para formato esperado pelo PDF
+      const pdfEmployees = employees.map(emp => ({
+        id: emp.id,
+        name: emp.name,
+        matricula: emp.matricula,
+        lastCheckIn: emp.lastCheckIn,
+        hydrationToday: emp.hydrationToday,
+        hydrationGoal: emp.hydrationGoal,
+        lastPressure: emp.lastPressure,
+        complaintsCount: emp.complaintsCount,
+        challengesActive: emp.challengesActive,
+      }));
+
+      const pdfUri = await generateDashboardPDF(stats, pdfEmployees, period);
       if (!pdfUri) {
         Alert.alert("Erro", "Não foi possível gerar o PDF");
         return;
@@ -290,6 +149,22 @@ export default function AdminDashboardScreen() {
     return (
       <ScreenContainer className="items-center justify-center">
         <Text className="text-foreground text-lg">Carregando dashboard...</Text>
+        <Text className="text-muted text-sm mt-2">Conectando ao Firebase...</Text>
+      </ScreenContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenContainer className="items-center justify-center p-4">
+        <Text className="text-error text-lg font-bold mb-2">Erro ao carregar dados</Text>
+        <Text className="text-muted text-center mb-4">{error}</Text>
+        <TouchableOpacity
+          onPress={handleRefresh}
+          className="bg-primary px-6 py-3 rounded-lg"
+        >
+          <Text className="text-white font-semibold">Tentar Novamente</Text>
+        </TouchableOpacity>
       </ScreenContainer>
     );
   }
@@ -308,6 +183,7 @@ export default function AdminDashboardScreen() {
             <View>
               <Text className="text-2xl font-bold text-foreground">Dashboard Admin</Text>
               <Text className="text-sm text-muted mt-1">{email}</Text>
+              <Text className="text-xs text-success mt-1">🔥 Tempo Real (Firebase)</Text>
             </View>
             <TouchableOpacity
               onPress={handleLogout}
@@ -402,7 +278,7 @@ export default function AdminDashboardScreen() {
                 <View className="w-1/2 p-2">
                   <View className="bg-surface p-4 rounded-lg">
                     <Text className="text-muted text-sm">Hidratação Média</Text>
-                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.hydrationAverage}%</Text>
+                    <Text className="text-foreground text-3xl font-bold mt-1">{stats.hydrationAverage}ml</Text>
                   </View>
                 </View>
 
@@ -443,6 +319,12 @@ export default function AdminDashboardScreen() {
                       <View className="flex-1">
                         <Text className="text-foreground font-bold text-lg">{emp.name}</Text>
                         <Text className="text-muted text-sm">Matrícula: {emp.matricula}</Text>
+                        {emp.position && (
+                          <Text className="text-muted text-xs">Cargo: {emp.position}</Text>
+                        )}
+                        {emp.turno && (
+                          <Text className="text-muted text-xs">Turno: {emp.turno}</Text>
+                        )}
                       </View>
                       <View
                         className="px-3 py-1 rounded-full"
@@ -462,16 +344,16 @@ export default function AdminDashboardScreen() {
 
                     <View className="mt-2 space-y-1">
                       <Text className="text-muted text-sm">
-                        Hidratação: {emp.hydrationToday}ml / {emp.hydrationGoal}ml (
+                        💧 Hidratação: {emp.hydrationToday}ml / {emp.hydrationGoal}ml (
                         {Math.round((emp.hydrationToday / emp.hydrationGoal) * 100)}%)
                       </Text>
                       {emp.lastPressure && (
                         <Text className="text-muted text-sm">
-                          Pressão: {emp.lastPressure.systolic}/{emp.lastPressure.diastolic} mmHg
+                          ❤️ Pressão: {emp.lastPressure.systolic}/{emp.lastPressure.diastolic} mmHg
                         </Text>
                       )}
-                      <Text className="text-muted text-sm">Queixas: {emp.complaintsCount}</Text>
-                      <Text className="text-muted text-sm">Desafios ativos: {emp.challengesActive}</Text>
+                      <Text className="text-muted text-sm">⚠️ Queixas: {emp.complaintsCount}</Text>
+                      <Text className="text-muted text-sm">🎯 Desafios ativos: {emp.challengesActive}</Text>
                     </View>
                   </View>
                 ))
@@ -489,7 +371,7 @@ export default function AdminDashboardScreen() {
                   className="bg-primary p-4 rounded-lg"
                   style={{ opacity: 0.9 }}
                 >
-                  <Text className="text-white font-semibold text-center">Exportar PDF</Text>
+                  <Text className="text-white font-semibold text-center">📄 Exportar PDF</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -497,12 +379,12 @@ export default function AdminDashboardScreen() {
                   className="bg-primary p-4 rounded-lg"
                   style={{ opacity: 0.9 }}
                 >
-                  <Text className="text-white font-semibold text-center">Enviar por Email</Text>
+                  <Text className="text-white font-semibold text-center">📧 Enviar por Email</Text>
                 </TouchableOpacity>
 
                 <View className="bg-surface p-4 rounded-lg">
                   <Text className="text-muted text-sm text-center">
-                    Funcionalidades de relatório em desenvolvimento
+                    Relatórios baseados em dados do Firebase em tempo real
                   </Text>
                 </View>
               </View>

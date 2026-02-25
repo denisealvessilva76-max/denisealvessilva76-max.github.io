@@ -2805,3 +2805,13 @@ canteiro-saudavel/
 ✅ Dados salvos localmente (sempre funcionam)
 ✅ Offline-first (funciona sem internet)
 ✅ Escalável (suporta milhares de funcionários)
+
+
+---
+
+## 🔥 Dashboard Admin com Firebase (Nova Tarefa - 25/02/2026)
+- [x] Atualizar dashboard administrativo para buscar dados do Firebase em tempo real
+- [x] Criar hook useFirebaseAdmin para agregar dados de todos os funcionários
+- [x] Exibir funcionários ativos, hidratação média, queixas e check-ins no dashboard
+- [x] Substituir consultas tRPC/MySQL por leitura direta do Firebase Realtime Database
+- [x] Implementar atualização em tempo real (onValue listeners)
