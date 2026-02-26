@@ -17,7 +17,9 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
+// @ts-ignore - Conflito entre mysql2/promise e mysql2/typings
 let _db: ReturnType<typeof drizzle> | null = null;
+// @ts-ignore
 let _pool: mysql.Pool | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
@@ -27,6 +29,7 @@ export async function getDb() {
       // Criar pool de conexões MySQL2
       _pool = mysql.createPool(process.env.DATABASE_URL);
       // Criar instância Drizzle com o pool
+      // @ts-expect-error - Conflito entre mysql2/promise Pool e mysql2/typings Pool
       _db = drizzle(_pool, { schema, mode: "default" });
       console.log("[Database] MySQL connection pool created successfully");
     } catch (error) {

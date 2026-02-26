@@ -2815,3 +2815,11 @@ canteiro-saudavel/
 - [x] Exibir funcionários ativos, hidratação média, queixas e check-ins no dashboard
 - [x] Substituir consultas tRPC/MySQL por leitura direta do Firebase Realtime Database
 - [x] Implementar atualização em tempo real (onValue listeners)
+
+
+---
+
+## 🐛 Bug Bloqueando Publicação (26/02/2026)
+- [x] Corrigir erro TypeScript: MySql2Database type incompatibility
+- [x] Verificar se há outros erros de compilação
+- [x] Testar publicação após correção

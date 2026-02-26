@@ -47,7 +47,7 @@ export default function EmployeeLoginScreen() {
         await login({
           id: String(result.employee.id),
           name: result.employee.nome,
-          cpf: result.employee.cpf,
+          cpf: result.employee.cpf || '',
           matricula: result.employee.matricula,
           setor: result.employee.setor || undefined,
           cargo: result.employee.cargo || undefined,
