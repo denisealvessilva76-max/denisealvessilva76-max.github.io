@@ -5,6 +5,7 @@ import { useHydration } from "@/hooks/use-hydration";
 import { useEffect, useState } from "react";
 import { useColors } from "@/hooks/use-colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFirebaseSync } from "@/hooks/use-firebase-sync";
 
 type WorkType = "leve" | "moderado" | "pesado";
 
@@ -20,6 +21,15 @@ export default function HydrationTrackerScreen() {
   const colors = useColors();
   const { logWaterIntake, getTodayHydration, getDailyProgress, setDailyGoal, reminderSettings, hydrationData } =
     useHydration();
+  const [matricula, setMatricula] = useState<string>("");
+  const { syncWaterIntake } = useFirebaseSync({ matricula, enabled: !!matricula });
+
+  // Carregar matrícula do AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem("employee:matricula").then((mat) => {
+      if (mat) setMatricula(mat);
+    });
+  }, []);
   const [todayData, setTodayData] = useState(getTodayHydration());
   const [progress, setProgress] = useState(getDailyProgress());
   const [isLogging, setIsLogging] = useState(false);
@@ -123,6 +133,10 @@ export default function HydrationTrackerScreen() {
     try {
       const success = await logWaterIntake(glasses);
       if (success) {
+        // Sincronizar com Firebase
+        const mlAmount = glasses * 150; // 150ml por copo
+        await syncWaterIntake(mlAmount);
+        
         // Forçar atualização imediata
         setTimeout(() => {
           setTodayData(getTodayHydration());

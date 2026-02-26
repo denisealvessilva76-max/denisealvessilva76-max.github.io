@@ -2779,8 +2779,8 @@ Integrar Firebase Realtime Database para que o administrador possa visualizar TO
 - [x] Instalar dependências do Firebase (`firebase`)
 - [x] Configurar Firebase no projeto (usar variável de ambiente para credenciais)
 - [x] Testar conexão com Firebase - SUCESSO!
-- [ ] Criar hook `useFirebaseSync` para sincronização automática
-- [ ] Modificar hooks (perfil, água, pressão, sintomas) para sincronizar com Firebase
+- [x] Criar hook `useFirebaseSync` para sincronização automática
+- [x] Modificar hooks (perfil, água, pressão, sintomas) para sincronizar com Firebase
 - [ ] Atualizar dashboard admin para ler dados do Firebase em tempo real
 - [ ] Adicionar indicador visual de "sincronizado" no app
 
@@ -2960,3 +2960,25 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [x] Implementar narração em alongamentos
 - [x] Adicionar controle de volume e velocidade (pitch: 1.0, rate: 0.85)
 - [x] Testar narração em português brasileiro (language: pt-BR)
+
+
+---
+
+## 🚨 PROBLEMA URGENTE: Dados Não Aparecem no Painel Admin
+
+**Usuária:** Denise Alves (matrícula 34501997)
+**Atividades realizadas hoje:**
+- [x] Login no app
+- [x] Registro de consumo de água
+- [x] Registro de pressão arterial
+- [x] Iniciou desafio
+- [ ] Envio de foto (não funcionou)
+
+**Problema:** Apesar de ter configurado as regras do Firebase, os dados não aparecem no painel administrativo.
+
+**Tarefas:**
+- [x] Verificar se dados estão sendo salvos no Firebase
+- [x] Verificar estrutura de dados (caminho correto)
+- [x] Integrar useFirebaseSync em todas as telas principais (saúde, hidratação, check-in)
+- [ ] Testar fluxo completo de salvamento com usuário real
+- [ ] Corrigir problema de sincronização

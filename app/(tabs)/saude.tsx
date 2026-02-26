@@ -1,6 +1,8 @@
 import { ScrollView, Text, View, TouchableOpacity, TextInput, Pressable, Alert } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFirebaseSync } from "@/hooks/use-firebase-sync";
 import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { Badge, getPressureBadgeVariant, getPressureLabel } from "@/components/ui/badge";
@@ -13,6 +15,15 @@ export default function SaudeScreen() {
   const router = useRouter();
   const { addPressureReading, addSymptomReport, classifyPressure, getLatestPressure, pressureReadings } = useHealthData();
   const { sendPainNotification } = useAdminNotifications();
+  const [matricula, setMatricula] = useState<string>("");
+  const { syncBloodPressure, syncSymptoms } = useFirebaseSync({ matricula, enabled: !!matricula });
+
+  // Carregar matrícula do AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem("employee:matricula").then((mat) => {
+      if (mat) setMatricula(mat);
+    });
+  }, []);
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
@@ -48,6 +59,10 @@ export default function SaudeScreen() {
     }
 
     await addPressureReading(sys, dia);
+    
+    // Sincronizar com Firebase
+    await syncBloodPressure(sys, dia);
+    
     setSystolic("");
     setDiastolic("");
     setShowPressureForm(false);
@@ -78,6 +93,9 @@ export default function SaudeScreen() {
   const handleReportSymptoms = async () => {
     if (selectedSymptoms.length > 0) {
       await addSymptomReport(selectedSymptoms);
+      
+      // Sincronizar com Firebase
+      await syncSymptoms(selectedSymptoms, symptomDetails);
       
       // Enviar notificação ao admin com detalhes
       const hasPain = selectedSymptoms.some(s => s.includes("pain"));

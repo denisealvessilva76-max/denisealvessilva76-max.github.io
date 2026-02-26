@@ -5,7 +5,9 @@ import { Card } from "@/components/ui/card";
 import { useCheckIn } from "@/hooks/use-checkin";
 import { CheckInStatus } from "@/lib/types";
 import * as Haptics from "expo-haptics";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFirebaseSync } from "@/hooks/use-firebase-sync";
 
 const CHECK_IN_OPTIONS: Array<{ status: CheckInStatus; emoji: string; label: string; description: string; color: string }> = [
   { 
@@ -35,6 +37,15 @@ export default function HealthCheckScreen() {
   const router = useRouter();
   const { saveCheckIn, todayCheckIn, loading } = useCheckIn();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [matricula, setMatricula] = useState<string>("");
+  const { syncCheckin } = useFirebaseSync({ matricula, enabled: !!matricula });
+
+  // Carregar matrícula do AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem("employee:matricula").then((mat) => {
+      if (mat) setMatricula(mat);
+    });
+  }, []);
 
   const handleCheckIn = async (status: CheckInStatus) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -58,6 +69,9 @@ export default function HealthCheckScreen() {
       });
       
       if (result.success) {
+        // Sincronizar com Firebase
+        await syncCheckin();
+        
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         Alert.alert(
           "Check-in Realizado!",
