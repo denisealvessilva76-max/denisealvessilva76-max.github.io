@@ -2861,3 +2861,22 @@ canteiro-saudavel/
 - Login persistente funcionando corretamente
 - Dados sincronizando com Firebase
 - Interface responsiva no mobile
+
+
+---
+
+## 🎯 Painel Admin Separado
+
+### Objetivo
+Criar site HTML standalone independente para administradores acessarem via navegador
+
+### Tarefas
+- [x] Criar estrutura HTML/CSS/JS do painel
+- [x] Integrar Firebase para dados em tempo real
+- [x] Adicionar sistema de login simples
+- [x] Implementar visualização de estatísticas
+- [x] Mostrar lista de funcionários com detalhes
+- [x] Adicionar gráficos de evolução
+- [x] Testar acesso e performance
+- [ ] Remover dashboard do app mobile (opcional)
+- [x] Documentar como hospedar no GitHub Pages
