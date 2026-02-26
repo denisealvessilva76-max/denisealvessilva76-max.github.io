@@ -2929,3 +2929,17 @@ Usuário cadastrado no app mobile com dados registrados (água, pressão, desafi
 - [x] Corrigir incompatibilidade entre caminhos (não havia incompatibilidade)
 - [x] Adicionar emails de admin: denise.silva@mip.com.br, estefane.mendes@mip.com.br
 - [ ] Testar fluxo completo: cadastro → dados → visualização admin (aguardando configuração de regras Firebase)
+
+
+---
+
+## 📸 Corrigir Envio de Fotos nos Desafios
+
+### Problema
+Erro "FileSystem.readAsStringAsync não disponível na web" ao tentar enviar fotos nos desafios.
+
+### Tarefas
+- [x] Localizar código de upload de fotos em desafios
+- [x] Adicionar verificação de plataforma (Platform.OS !== 'web')
+- [x] Implementar alternativa para web usando fetch/blob
+- [x] Testar upload em mobile e web

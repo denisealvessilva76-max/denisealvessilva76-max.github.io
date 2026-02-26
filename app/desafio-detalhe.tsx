@@ -9,6 +9,34 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trpc } from "@/lib/trpc";
 import * as FileSystem from "expo-file-system/legacy";
 
+// Função auxiliar para converter URI para base64 (funciona em web e mobile)
+async function uriToBase64(uri: string): Promise<string> {
+  if (Platform.OS !== "web") {
+    // Mobile: usar FileSystem
+    return await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+  } else {
+    // Web: usar fetch + blob
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('[Photo] Error converting URI to base64:', error);
+      return "";
+    }
+  }
+}
+
 // Tipos
 interface ChallengeData {
   id: string;
@@ -461,13 +489,8 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
-      // Converter imagem para base64 (apenas em plataformas nativas)
-      let base64 = "";
-      if (Platform.OS !== "web") {
-        base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-      }
+      // Converter imagem para base64 (funciona em web e mobile)
+      const base64 = await uriToBase64(result.assets[0].uri);
       
       const newPhoto: PhotoEntry = {
         uri: result.assets[0].uri,
@@ -528,13 +551,8 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
-      // Converter imagem para base64 (apenas em plataformas nativas)
-      let base64 = "";
-      if (Platform.OS !== "web") {
-        base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-      }
+      // Converter imagem para base64 (funciona em web e mobile)
+      const base64 = await uriToBase64(result.assets[0].uri);
       
       const newPhoto: PhotoEntry = {
         uri: result.assets[0].uri,
