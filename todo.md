@@ -2914,3 +2914,18 @@ Adicionar funcionalidade de exportar relatórios mensais em PDF com gráficos e 
 - [x] Adicionar lista de funcionários com detalhes
 - [x] Implementar botão "Exportar PDF" na interface
 - [x] Testar download e qualidade do PDF
+
+
+---
+
+## 🚨 PROBLEMA CRÍTICO: Dados Não Aparecem no Painel Admin
+
+### Situação
+Usuário cadastrado no app mobile com dados registrados (água, pressão, desafios) mas nada aparece no painel administrativo.
+
+### Tarefas
+- [x] Verificar estrutura de dados do Firebase no app mobile
+- [x] Verificar caminho de leitura no painel admin (caminho correto)
+- [x] Corrigir incompatibilidade entre caminhos (não havia incompatibilidade)
+- [x] Adicionar emails de admin: denise.silva@mip.com.br, estefane.mendes@mip.com.br
+- [ ] Testar fluxo completo: cadastro → dados → visualização admin (aguardando configuração de regras Firebase)
