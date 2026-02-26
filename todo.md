@@ -2943,3 +2943,20 @@ Erro "FileSystem.readAsStringAsync não disponível na web" ao tentar enviar fot
 - [x] Adicionar verificação de plataforma (Platform.OS !== 'web')
 - [x] Implementar alternativa para web usando fetch/blob
 - [x] Testar upload em mobile e web
+
+
+---
+
+## 🔊 Narração de Voz nos Exercícios
+
+### Objetivo
+Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exercícios de respiração, postura e alongamento.
+
+### Tarefas
+- [x] Instalar expo-speech no projeto
+- [x] Criar hook useVoiceGuide para gerenciar narração (não necessário, Speech.speak direto)
+- [x] Implementar narração em respiração guiada (4-7-8) (já estava implementado)
+- [x] Implementar narração em postura ergonômica
+- [x] Implementar narração em alongamentos
+- [x] Adicionar controle de volume e velocidade (pitch: 1.0, rate: 0.85)
+- [x] Testar narração em português brasileiro (language: pt-BR)

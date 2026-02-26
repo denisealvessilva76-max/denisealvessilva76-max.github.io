@@ -6,6 +6,7 @@ import { useColors } from "@/hooks/use-colors";
 import { getExerciseById } from "@/lib/exercise-types";
 import * as Haptics from "expo-haptics";
 import * as Notifications from "expo-notifications";
+import * as Speech from "expo-speech";
 
 export default function ExerciseScreen() {
   const router = useRouter();
@@ -20,10 +21,18 @@ export default function ExerciseScreen() {
 
   const currentPhase = exercise?.phases[currentPhaseIndex];
 
-  // Inicializar tempo
+  // Inicializar tempo e narrar instrução
   useEffect(() => {
     if (currentPhase) {
       setTimeRemaining(currentPhase.duration);
+      
+      // Narrar instrução da fase
+      Speech.stop();
+      Speech.speak(currentPhase.name, {
+        language: "pt-BR",
+        pitch: 1.0,
+        rate: 0.85,
+      });
     }
   }, [currentPhaseIndex, currentPhase]);
 
@@ -59,10 +68,21 @@ export default function ExerciseScreen() {
   const handleSideNotification = async () => {
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      
+      const nextSide = currentPhase?.name.includes("Direito") ? "lado esquerdo" : "lado direito";
+      const message = `Prepare-se para trocar para o ${nextSide} em alguns segundos`;
+      
+      // Narrar aviso de troca de lado
+      Speech.speak(message, {
+        language: "pt-BR",
+        pitch: 1.0,
+        rate: 0.9,
+      });
+      
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "⏰ Trocar de Lado!",
-          body: `Prepare-se para trocar para o ${currentPhase?.name.includes("Direito") ? "lado esquerdo" : "lado direito"} em alguns segundos`,
+          body: message,
           sound: "default",
           badge: 1,
         },
@@ -83,10 +103,20 @@ export default function ExerciseScreen() {
 
       if (currentPhaseIndex < exercise!.phases.length - 1) {
         // Próxima fase
+        const nextPhaseName = exercise!.phases[currentPhaseIndex + 1].name;
+        const message = `Fase completa! Próxima: ${nextPhaseName}`;
+        
+        // Narrar conclusão e próxima fase
+        Speech.speak(message, {
+          language: "pt-BR",
+          pitch: 1.0,
+          rate: 0.85,
+        });
+        
         await Notifications.scheduleNotificationAsync({
           content: {
             title: "✅ Fase Completa!",
-            body: `Próxima: ${exercise!.phases[currentPhaseIndex + 1].name}`,
+            body: `Próxima: ${nextPhaseName}`,
             sound: "default",
             badge: 1,
           },
@@ -105,6 +135,13 @@ export default function ExerciseScreen() {
         // Exercício completo
         setIsCompleted(true);
         setIsRunning(false);
+        
+        // Narrar conclusão
+        Speech.speak("Parabéns! Você completou o exercício com sucesso.", {
+          language: "pt-BR",
+          pitch: 1.0,
+          rate: 0.85,
+        });
 
         await Notifications.scheduleNotificationAsync({
           content: {
