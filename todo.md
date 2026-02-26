@@ -2880,3 +2880,37 @@ Criar site HTML standalone independente para administradores acessarem via naveg
 - [x] Testar acesso e performance
 - [ ] Remover dashboard do app mobile (opcional)
 - [x] Documentar como hospedar no GitHub Pages
+
+
+---
+
+## 📄 Exportação de Relatórios PDF
+
+### Objetivo
+Adicionar funcionalidade de exportar relatórios mensais em PDF com gráficos e estatísticas
+
+### Tarefas
+- [x] Integrar jsPDF e html2canvas no painel admin
+- [x] Criar função de geração de PDF com cabeçalho e rodapé
+- [x] Adicionar estatísticas mensais ao PDF
+- [x] Capturar gráficos como imagens e incluir no PDF
+- [x] Adicionar lista de funcionários com detalhes
+- [x] Implementar botão "Exportar PDF" na interface
+- [x] Testar download e qualidade do PDF
+
+
+---
+
+## 📄 Exportação de Relatórios PDF
+
+### Objetivo
+Adicionar funcionalidade de exportar relatórios mensais em PDF com gráficos e estatísticas
+
+### Tarefas
+- [x] Integrar jsPDF e html2canvas no painel admin
+- [x] Criar função de geração de PDF com cabeçalho e rodapé
+- [x] Adicionar estatísticas mensais ao PDF
+- [x] Capturar gráficos como imagens e incluir no PDF
+- [x] Adicionar lista de funcionários com detalhes
+- [x] Implementar botão "Exportar PDF" na interface
+- [x] Testar download e qualidade do PDF
