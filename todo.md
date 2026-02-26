@@ -2823,3 +2823,41 @@ canteiro-saudavel/
 - [x] Corrigir erro TypeScript: MySql2Database type incompatibility
 - [x] Verificar se há outros erros de compilação
 - [x] Testar publicação após correção
+
+
+---
+
+## 🚨 Problema Crítico: Publicação Bloqueada (26/02/2026)
+- [x] Bug na plataforma: "Build request is being processed" há 1 mês
+- [x] Investigar deploy alternativo (Vercel, Netlify, Render)
+- [x] Configurar URL permanente para funcionários
+- [x] Gerar QR code fixo após solução
+
+
+---
+
+## 🐛 Bugs Identificados no Teste Mobile (26/02/2026)
+
+### ✅ Funcionando Corretamente
+- [x] Check-ins salvos dos dias anteriores
+- [x] Desafios salvos
+- [x] Perfil salvo (não precisa preencher novamente)
+
+### 🔴 Bugs Críticos a Corrigir
+- [ ] **Hidratação:** Copos aparecem mas ML não são contabilizados
+- [x] **Registro Fotográfico:** Erro "FileSystem.readAsStringAsync não disponível na web"
+- [x] **Histórico de Pressão:** Não está visível (adicionado botão)
+- [x] **Confirmações:** Envio de pressão e queixas não mostram confirmação (já existem no código)
+- [ ] **Respiração Guiada:** Sem narração guiando
+- [ ] **Postura:** Sem narração explicando
+- [ ] **Alongamentos:** Sem guia de voz instruindo
+
+### 🎯 Melhorias de UX
+- [ ] **Dashboard Admin:** Remover credenciais expostas no painel
+- [ ] **Dashboard Admin:** Separar em URL própria (fora do app principal)
+- [ ] **Dashboard Admin:** Otimizar carregamento (está muito lento)
+
+### 📝 Observações
+- Login persistente funcionando corretamente
+- Dados sincronizando com Firebase
+- Interface responsiva no mobile

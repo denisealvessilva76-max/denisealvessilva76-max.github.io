@@ -86,9 +86,15 @@ export default function BackupScreen() {
 
               // Ler arquivo
               const fileUri = result.assets[0].uri;
-              const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-                encoding: FileSystem.EncodingType.UTF8,
-              });
+              let fileContent = "";
+              if (Platform.OS !== "web") {
+                fileContent = await FileSystem.readAsStringAsync(fileUri, {
+                  encoding: FileSystem.EncodingType.UTF8,
+                });
+              } else {
+                Alert.alert("Erro", "Restauração de backup não disponível na web. Use um dispositivo móvel.");
+                return;
+              }
 
               // Restaurar backup
               const success = await restoreBackup(fileContent);

@@ -135,19 +135,35 @@ export default function SaudeScreen() {
               </View>
             )}
 
-            {!showPressureForm ? (
-              <TouchableOpacity
-                className="bg-primary rounded-lg py-3 active:opacity-80"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setShowPressureForm(true);
-                }}
-              >
-                <Text className="text-center font-semibold text-white">
-                  + Registrar Pressão
-                </Text>
-              </TouchableOpacity>
-            ) : (
+            <View className="gap-2">
+              {!showPressureForm ? (
+                <>
+                  <TouchableOpacity
+                    className="bg-primary rounded-lg py-3 active:opacity-80"
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setShowPressureForm(true);
+                    }}
+                  >
+                    <Text className="text-center font-semibold text-white">
+                      + Registrar Pressão
+                    </Text>
+                  </TouchableOpacity>
+                  {pressureReadings.length > 0 && (
+                    <TouchableOpacity
+                      className="bg-surface border border-primary rounded-lg py-2 active:opacity-80"
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push("/blood-pressure-history");
+                      }}
+                    >
+                      <Text className="text-center font-semibold text-primary">
+                        📊 Ver Histórico Completo
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              ) : (
               <View className="gap-3 p-3 bg-surface rounded-lg border border-border">
                 <View className="flex-row gap-2">
                   <View className="flex-1">
@@ -193,7 +209,8 @@ export default function SaudeScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
-            )}
+              )}
+            </View>
           </Card>
 
           {/* Seção de Sintomas */}

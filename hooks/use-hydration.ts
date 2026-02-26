@@ -58,7 +58,8 @@ export function useHydration() {
     try {
       await AsyncStorage.setItem(HYDRATION_KEY, JSON.stringify(data));
       // Forçar atualização do estado com novo objeto
-      setHydrationData(prev => ({...data}));
+      setHydrationData({...data});
+      console.log("[Hydration] Dados salvos:", JSON.stringify(data, null, 2));
       return true;
     } catch (error) {
       console.error("Erro ao salvar dados de hidratação:", error);
@@ -83,6 +84,7 @@ export function useHydration() {
       const today = new Date().toISOString().split("T")[0];
       const waterPerGlass = 150; // ml (padrão de canteiro de obras)
       const waterIntake = glassesConsumed * waterPerGlass;
+      console.log(`[Hydration] Registrando: ${glassesConsumed} copos = ${waterIntake}ml`);
 
       const currentEntry = hydrationData[today] || {
         date: today,
@@ -95,6 +97,7 @@ export function useHydration() {
         waterIntake: currentEntry.waterIntake + waterIntake,
         glassesConsumed: currentEntry.glassesConsumed + glassesConsumed,
       };
+      console.log(`[Hydration] Entrada atualizada:`, updatedEntry);
 
       const updatedData = {
         ...hydrationData,

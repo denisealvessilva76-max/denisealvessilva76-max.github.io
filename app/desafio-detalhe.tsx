@@ -461,10 +461,13 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
-      // Converter imagem para base64
-      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Converter imagem para base64 (apenas em plataformas nativas)
+      let base64 = "";
+      if (Platform.OS !== "web") {
+        base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
       
       const newPhoto: PhotoEntry = {
         uri: result.assets[0].uri,
@@ -525,10 +528,13 @@ export default function DesafioDetalheScreen() {
     if (!result.canceled && result.assets[0]) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
-      // Converter imagem para base64
-      const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Converter imagem para base64 (apenas em plataformas nativas)
+      let base64 = "";
+      if (Platform.OS !== "web") {
+        base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
       
       const newPhoto: PhotoEntry = {
         uri: result.assets[0].uri,
