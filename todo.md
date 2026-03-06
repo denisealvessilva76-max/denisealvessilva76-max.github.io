@@ -2982,3 +2982,9 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [x] Integrar useFirebaseSync em todas as telas principais (saúde, hidratação, check-in)
 - [ ] Testar fluxo completo de salvamento com usuário real
 - [ ] Corrigir problema de sincronização
+
+## Bugs na Versão Web (GitHub Pages) - 2026-03-03
+- [ ] Bug: cadastro não funciona na versão web publicada (botão "Cadastrar" não responde)
+- [ ] Bug: login com matrícula existente retorna "usuário não existente" na versão web
+- [ ] Verificar se AsyncStorage funciona corretamente na versão web
+- [ ] Verificar se o Firebase está sendo chamado corretamente no cadastro web

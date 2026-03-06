@@ -94,7 +94,7 @@ const config: ExpoConfig = {
     },
   },
   plugins: [
-    "expo-router",
+    ["expo-router", { origin: "https://denisealvessilva76-max.github.io" }],
     [
       "expo-audio",
       {
