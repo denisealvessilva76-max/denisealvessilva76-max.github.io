@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canteiro Saudável - Painel Administrativo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="logo">
+                    <h1>🏗️ Canteiro Saudável</h1>
+                    <p>Painel Administrativo</p>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="admin-email">Email</label>
+                        <input type="email" id="admin-email" placeholder="admin@empresa.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Senha</label>
+                        <input type="password" id="admin-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Entrar</button>
+                    <div id="login-error" class="error-message" style="display: none;"></div>
+                </form>
+                
+                <div class="login-footer">
+                    <p class="text-muted">Credenciais: admin@canteiro.com / admin123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Dashboard -->
+    <div id="dashboard-screen" class="screen">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>🏗️ Canteiro Saudável</h1>
+                    <p id="admin-email-display" class="text-muted"></p>
+                </div>
+                <div class="header-right">
+                    <button id="export-pdf-btn" class="btn-secondary">📄 Exportar PDF</button>
+                    <button id="refresh-btn" class="btn-secondary">🔄 Atualizar</button>
+                    <button id="logout-btn" class="btn-secondary">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-tab="overview">📊 Visão Geral</button>
+                <button class="tab" data-tab="employees">👷 Funcionários</button>
+                <button class="tab" data-tab="reports">📈 Relatórios</button>
+                <button class="tab" data-tab="rewards">🏆 Recompensas</button>
+            </div>
+
+            <!-- Tab Content: Overview -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card clickable" id="card-active" title="Clique para ver detalhes">
+                        <div class="stat-icon">👷</div>
+                        <div class="stat-info">
+                            <p class="stat-label">Funcionários Ativos</p>
+                            <p id="stat-active" class="stat-value">0</p>
+                        </div>
+                        <div class="stat-arrow">›</div>
+                    </div>
+                    
+                    <div class="stat-card clickable" id="card-hydration" title="Clique para ver detalhes">
+                        <div class="stat-icon">💧</div>
+                        <div class="stat-info">
+                            <p class="stat-label">Hidratação Média</p>
+                            <p id="stat-hydration" class="stat-value">0%</p>
+                        </div>
+                        <div class="stat-arrow">›</div>
+                    </div>
+                    
+                    <div class="stat-card clickable" id="card-pressure" title="Clique para ver detalhes">
+                        <div class="stat-icon">🩺</div>
+                        <div class="stat-info">
+                            <p class="stat-label">Pressão Monitorada</p>
+                            <p id="stat-pressure" class="stat-value">0</p>
+                        </div>
+                        <div class="stat-arrow">›</div>
+                    </div>
+                    
+                    <div class="stat-card clickable" id="card-complaints" title="Clique para ver detalhes">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-info">
+                            <p class="stat-label">Queixas na Semana</p>
+                            <p id="stat-complaints" class="stat-value">0</p>
+                        </div>
+                        <div class="stat-arrow">›</div>
+                    </div>
+                    
+                    <div class="stat-card clickable" id="card-checkins" title="Clique para ver detalhes">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <p class="stat-label">Check-ins Hoje</p>
+                            <p id="stat-checkins" class="stat-value">0</p>
+                        </div>
+                        <div class="stat-arrow">›</div>
+                    </div>
+                    
+                    <div class="stat-card clickable" id="card-challenges" title="Clique para ver detalhes">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <p class="stat-label">Desafios Ativos</p>
+                            <p id="stat-challenges" class="stat-value">0</p>
+                        </div>
+                        <div class="stat-arrow">›</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>📊 Atividade Recente</h2>
+                </div>
+                <div id="recent-activity" class="activity-list">
+                    <p class="text-muted">Carregando atividades...</p>
+                </div>
+            </div>
+
+            <!-- Tab Content: Employees -->
+            <div id="employees-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>👷 Lista de Funcionários</h2>
+                    <input type="text" id="search-employee" class="search-input" placeholder="Buscar por nome ou matrícula...">
+                </div>
+                <div id="employees-list" class="employees-grid">
+                    <p class="text-muted">Carregando funcionários...</p>
+                </div>
+            </div>
+
+            <!-- Tab Content: Reports -->
+            <div id="reports-tab" class="tab-content">
+                <div class="section-title">
+                    <h2>📈 Relatórios e Análises</h2>
+                </div>
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>💧 Hidratação Semanal (ml)</h3>
+                        <canvas id="hydration-chart"></canvas>
+                    </div>
+                    <div class="report-card">
+                        <h3>🩺 Pressão Arterial (últimas leituras)</h3>
+                        <canvas id="pressure-chart"></canvas>
+                    </div>
+                    <div class="report-card">
+                        <h3>⚠️ Queixas por Tipo</h3>
+                        <canvas id="complaints-chart"></canvas>
+                    </div>
+                    <div class="report-card">
+                        <h3>✅ Check-ins (7 dias)</h3>
+                        <canvas id="checkins-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Rewards -->
+            <div id="rewards-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>🏆 Gestão de Recompensas</h2>
+                    <button class="btn-primary" id="add-reward-btn">+ Nova Recompensa</button>
+                </div>
+                <p class="text-muted" style="margin-bottom:16px;">Configure os prêmios mensais para os funcionários mais engajados.</p>
+                <div id="rewards-list" class="rewards-grid">
+                    <p class="text-muted">Carregando recompensas...</p>
+                </div>
+
+                <div class="section-title" style="margin-top:32px;">
+                    <h2>🥇 Ranking de Funcionários</h2>
+                </div>
+                <div id="ranking-list" class="ranking-container">
+                    <p class="text-muted">Carregando ranking...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Carregando dados...</p>
+    </div>
+
+    <!-- ===== MODAIS DE DRILL-DOWN ===== -->
+
+    <!-- Modal: Funcionários Ativos -->
+    <div id="modal-active" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>👷 Funcionários Ativos (últimos 7 dias)</h2>
+                <button class="modal-close" data-modal="modal-active">✕</button>
+            </div>
+            <div id="modal-active-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Hidratação -->
+    <div id="modal-hydration" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>💧 Hidratação por Funcionário (hoje)</h2>
+                <button class="modal-close" data-modal="modal-hydration">✕</button>
+            </div>
+            <div id="modal-hydration-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Pressão -->
+    <div id="modal-pressure" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>🩺 Leituras de Pressão Arterial</h2>
+                <button class="modal-close" data-modal="modal-pressure">✕</button>
+            </div>
+            <div id="modal-pressure-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Queixas -->
+    <div id="modal-complaints" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>⚠️ Queixas e Sintomas (últimos 7 dias)</h2>
+                <button class="modal-close" data-modal="modal-complaints">✕</button>
+            </div>
+            <div id="modal-complaints-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Check-ins -->
+    <div id="modal-checkins" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>✅ Check-ins de Hoje</h2>
+                <button class="modal-close" data-modal="modal-checkins">✕</button>
+            </div>
+            <div id="modal-checkins-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Desafios -->
+    <div id="modal-challenges" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>🎯 Desafios Ativos</h2>
+                <button class="modal-close" data-modal="modal-challenges">✕</button>
+            </div>
+            <div id="modal-challenges-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Funcionário Individual -->
+    <div id="modal-employee" class="modal-overlay" style="display:none;">
+        <div class="modal-box modal-large">
+            <div class="modal-header">
+                <h2 id="modal-employee-title">👷 Detalhe do Funcionário</h2>
+                <button class="modal-close" data-modal="modal-employee">✕</button>
+            </div>
+            <div id="modal-employee-content" class="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Adicionar/Editar Recompensa -->
+    <div id="modal-reward" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 id="modal-reward-title">🏆 Nova Recompensa</h2>
+                <button class="modal-close" data-modal="modal-reward">✕</button>
+            </div>
+            <div class="modal-content">
+                <form id="reward-form">
+                    <input type="hidden" id="reward-id">
+                    <div class="form-group">
+                        <label>Posição</label>
+                        <select id="reward-position" required>
+                            <option value="1">🥇 1º Lugar</option>
+                            <option value="2">🥈 2º Lugar</option>
+                            <option value="3">🥉 3º Lugar</option>
+                            <option value="4">4º Lugar</option>
+                            <option value="5">5º Lugar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Prêmio</label>
+                        <input type="text" id="reward-prize" placeholder="Ex: Vale-presente R$100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="reward-description" placeholder="Descreva o prêmio..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Mês de Referência</label>
+                        <input type="month" id="reward-month" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ícone (emoji)</label>
+                        <input type="text" id="reward-icon" placeholder="🎁" maxlength="4">
+                    </div>
+                    <div style="display:flex; gap:12px; margin-top:16px;">
+                        <button type="submit" class="btn-primary" style="flex:1;">Salvar</button>
+                        <button type="button" class="btn-secondary" id="cancel-reward-btn" style="flex:1;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
