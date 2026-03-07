@@ -12,6 +12,7 @@ import adminRoutes from "../routes/admin";
 import feedbackRoutes from "../routes/feedback";
 import hydrationRoutes from "../routes/hydration";
 import employeeRoutes from "../routes/employee-rest";
+import painelApiRoutes from "../routes/painel-api";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -63,6 +64,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
   registerOAuthRoutes(app);
+
+  // API do Painel SESMT (dados do PostgreSQL)
+  app.use("/api/painel", painelApiRoutes);
 
   // Painel SESMT (arquivo HTML estático)
   app.get("/painel", (_req, res) => {

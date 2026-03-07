@@ -3059,3 +3059,11 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [x] Painel admin: alerta automático de queixas coletivas (3+ funcionários com mesmo sintoma em 7 dias)
 - [x] Painel admin: relatório PDF com seção comparativa diurno vs noturno
 - [x] App: notificação push de lembrete de check-in às 10h para quem não fez check-in
+
+## Melhorias Solicitadas (Sessão 07/03/2026 - v2.3)
+- [ ] GitHub Pages: habilitar via API com token correto
+- [ ] Painel admin: adicionar credencial denise.silva@mip.com.br com senha personalizada
+- [ ] Sincronização PostgreSQL: conectar check-ins ao banco de dados do servidor
+- [ ] Sincronização PostgreSQL: conectar hidratação ao banco de dados do servidor
+- [ ] Sincronização PostgreSQL: conectar queixas ao banco de dados do servidor
+- [ ] Painel admin: ler dados do PostgreSQL via API REST (não só Firebase)
