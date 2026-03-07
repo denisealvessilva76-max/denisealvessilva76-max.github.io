@@ -3047,3 +3047,10 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [ ] Corrigir painel admin para ler queixas/sintomas do Firebase com detalhes
 - [ ] Corrigir painel admin para ler desafios ativos do Firebase com progresso e fotos
 - [ ] Testar fluxo completo: registrar dado no app → verificar no Firebase → verificar no painel admin
+
+## Melhorias Solicitadas (Sessão Atual)
+- [ ] Campo de turno (Diurno/Noturno) na tela de cadastro/login do trabalhador
+- [ ] Salvar turno no perfil do trabalhador e sincronizar com Firebase
+- [ ] Painel admin: filtro por período (semana atual, mês atual, personalizado)
+- [ ] Painel admin: filtrar cards e gráficos pelo período selecionado
+- [ ] Painel admin: filtrar lista de funcionários por turno
