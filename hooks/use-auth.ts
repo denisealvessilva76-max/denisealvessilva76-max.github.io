@@ -1,7 +1,8 @@
+import * as Api from "@/lib/_core/api";
 import * as Auth from "@/lib/_core/auth";
-import { saveToFirebase } from "@/lib/firebase";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
+import { getApiBaseUrl } from "@/constants/oauth";
 
 type UseAuthOptions = {
   autoFetch?: boolean;
@@ -19,16 +20,66 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       setError(null);
 
-      // Verificar usuário em cache local (funciona sem servidor)
+      // Web platform: check local cache first, then try API
+      if (Platform.OS === "web") {
+        console.log("[useAuth] Web platform: checking local cache first...");
+        const cachedUser = await Auth.getUserInfo();
+        
+        // If we have a local user (from local login), use it and skip API
+        if (cachedUser && cachedUser.loginMethod === "local") {
+          console.log("[useAuth] Using cached local user, skipping API:", cachedUser);
+          setUser(cachedUser);
+          return;
+        }
+        
+        // Otherwise, try OAuth API
+        console.log("[useAuth] No local user, fetching from OAuth API...");
+        const apiUser = await Api.getMe();
+        console.log("[useAuth] API user response:", apiUser);
+
+        if (apiUser) {
+          const userInfo: Auth.User = {
+            id: apiUser.id,
+            openId: apiUser.openId,
+            name: apiUser.name,
+            email: apiUser.email,
+            loginMethod: apiUser.loginMethod,
+            lastSignedIn: new Date(apiUser.lastSignedIn),
+          };
+          setUser(userInfo);
+          // Cache user info in localStorage for faster subsequent loads
+          await Auth.setUserInfo(userInfo);
+          console.log("[useAuth] Web user set from API:", userInfo);
+        } else {
+          console.log("[useAuth] Web: No authenticated user from API");
+          setUser(null);
+          await Auth.clearUserInfo();
+        }
+        return;
+      }
+
+      // Native platform: use token-based auth
+      console.log("[useAuth] Native platform: checking for session token...");
+      const sessionToken = await Auth.getSessionToken();
+      console.log(
+        "[useAuth] Session token:",
+        sessionToken ? `present (${sessionToken.substring(0, 20)}...)` : "missing",
+      );
+      if (!sessionToken) {
+        console.log("[useAuth] No session token, setting user to null");
+        setUser(null);
+        return;
+      }
+
+      // Use cached user info for native (token validates the session)
       const cachedUser = await Auth.getUserInfo();
       console.log("[useAuth] Cached user:", cachedUser);
-
       if (cachedUser) {
+        console.log("[useAuth] Using cached user info");
         setUser(cachedUser);
-        console.log("[useAuth] Using cached user:", cachedUser);
       } else {
+        console.log("[useAuth] No cached user, setting user to null");
         setUser(null);
-        console.log("[useAuth] No cached user found");
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to fetch user");
@@ -37,83 +88,83 @@ export function useAuth(options?: UseAuthOptions) {
       setUser(null);
     } finally {
       setLoading(false);
-      console.log("[useAuth] fetchUser completed");
+      console.log("[useAuth] fetchUser completed, loading:", false);
     }
   }, []);
 
-  /**
-   * Login local — verifica se o usuário existe no AsyncStorage
-   * Se não existir, cria um novo perfil básico
-   */
   const login = useCallback(async (matricula: string, nome: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log("[useAuth] Starting local login...", { matricula, nome });
+      console.log("[useAuth] Registering user in backend...", { matricula, nome });
 
-      // Verificar se o usuário já existe no AsyncStorage
-      const existingProfile = await AsyncStorage.getItem(`employee:profile:${matricula}`);
+      // CRITICAL: Register user in PostgreSQL backend first via direct API call
+      // Gerar CPF fake baseado na matrícula (11 dígitos)
+      const cpfFake = matricula.padStart(11, "0");
       
-      let userInfo: Auth.User;
+      const response = await fetch(`${getApiBaseUrl()}/api/trpc/employeeAuth.register?batch=1`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          "0": {
+            json: {
+              name: nome,
+              cpf: cpfFake,
+              matricula: matricula,
+              weight: 70,
+              height: 170,
+              setor: "Geral",
+              cargo: "Funcionário",
+              workType: "moderado",
+            },
+          },
+        }),
+      });
 
-      if (existingProfile) {
-        // Usuário já cadastrado — fazer login com dados existentes
-        const profile = JSON.parse(existingProfile);
-        console.log("[useAuth] Found existing profile:", profile);
-        
-        userInfo = {
-          id: parseInt(matricula, 10),
-          openId: matricula,
-          name: profile.name || nome,
-          email: `${matricula}@canteiro.com`,
-          loginMethod: "local",
-          lastSignedIn: new Date(),
-        };
-      } else {
-        // Usuário não encontrado — criar perfil básico para login rápido
-        console.log("[useAuth] No existing profile, creating basic profile...");
-        
-        const basicProfile = {
-          matricula,
-          name: nome,
-          createdAt: new Date().toISOString(),
-        };
-        
-        await AsyncStorage.setItem(`employee:profile:${matricula}`, JSON.stringify(basicProfile));
-        await AsyncStorage.setItem("employee:matricula", matricula);
-        await AsyncStorage.setItem("employee:name", nome);
-        
-        userInfo = {
-          id: parseInt(matricula, 10),
-          openId: matricula,
-          name: nome,
-          email: `${matricula}@canteiro.com`,
-          loginMethod: "local",
-          lastSignedIn: new Date(),
-          firstLogin: true,
-        };
-
-        // Sincronizar com Firebase em background
-        try {
-          await saveToFirebase(matricula, "profile", {
-            matricula,
-            name: nome,
-            createdAt: new Date().toISOString(),
-            loginMethod: "local",
-          });
-          console.log("[useAuth] Basic profile synced to Firebase");
-        } catch (fbError) {
-          console.warn("[useAuth] Firebase sync failed (non-critical):", fbError);
-        }
+      if (!response.ok) {
+        throw new Error("Falha ao cadastrar usuário no backend");
       }
 
-      // Salvar sessão localmente
+      const registerResult = await response.json();
+      console.log("[useAuth] Backend registration result:", JSON.stringify(registerResult, null, 2));
+
+      const resultData = registerResult[0]?.result?.data?.json;
+      console.log("[useAuth] Extracted resultData:", JSON.stringify(resultData, null, 2));
+      
+      // Se o CPF já existe ou houve sucesso, permitir login local
+      const isSuccess = resultData?.success === true;
+      const isExistingUser = resultData?.message?.includes("CPF já cadastrado") || resultData?.error?.includes("CPF já cadastrado");
+      
+      console.log("[useAuth] Login check:", { isSuccess, isExistingUser, hasResultData: !!resultData });
+      
+      if (!resultData && !isSuccess && !isExistingUser) {
+        console.error("[useAuth] Login failed: no valid response from backend");
+        throw new Error("Falha ao cadastrar usuário no servidor");
+      }
+
+      // Create user object
+      const userInfo: Auth.User = {
+        id: resultData?.employee?.id || parseInt(matricula, 10),
+        openId: matricula,
+        name: nome,
+        email: `${matricula}@empresa.com`,
+        loginMethod: "local",
+        lastSignedIn: new Date(),
+        firstLogin: resultData?.employee?.firstLogin ?? false,
+      };
+
+      // Save user info locally
       await Auth.setUserInfo(userInfo);
+      
+      // Set session token (using matricula as token for local auth)
       await Auth.setSessionToken(matricula);
       
       setUser(userInfo);
-      console.log("[useAuth] Login successful:", userInfo);
+      console.log("[useAuth] User logged in and registered:", userInfo);
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Failed to login");
       console.error("[useAuth] login error:", error);
@@ -126,35 +177,55 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logout = useCallback(async () => {
     try {
+      await Api.logout();
+    } catch (err) {
+      console.error("[Auth] Logout API call failed:", err);
+      // Continue with logout even if API call fails
+    } finally {
       await Auth.removeSessionToken();
       await Auth.clearUserInfo();
       setUser(null);
       setError(null);
-      console.log("[useAuth] Logged out");
-    } catch (err) {
-      console.error("[Auth] Logout failed:", err);
     }
   }, []);
 
   const isAuthenticated = useMemo(() => Boolean(user), [user]);
 
   useEffect(() => {
-    console.log("[useAuth] useEffect triggered, autoFetch:", autoFetch);
+    console.log("[useAuth] useEffect triggered, autoFetch:", autoFetch, "platform:", Platform.OS);
     if (autoFetch) {
-      // Verificar cache local primeiro para carregamento rápido
-      Auth.getUserInfo().then((cachedUser) => {
-        console.log("[useAuth] Initial cache check:", cachedUser);
-        if (cachedUser) {
-          setUser(cachedUser);
-          setLoading(false);
-        } else {
-          fetchUser();
-        }
-      });
+      if (Platform.OS === "web") {
+        // Web: fetch user from API directly (user will login manually if needed)
+        console.log("[useAuth] Web: fetching user from API...");
+        fetchUser();
+      } else {
+        // Native: check for cached user info first for faster initial load
+        Auth.getUserInfo().then((cachedUser) => {
+          console.log("[useAuth] Native cached user check:", cachedUser);
+          if (cachedUser) {
+            console.log("[useAuth] Native: setting cached user immediately");
+            setUser(cachedUser);
+            setLoading(false);
+          } else {
+            // No cached user, check session token
+            fetchUser();
+          }
+        });
+      }
     } else {
+      console.log("[useAuth] autoFetch disabled, setting loading to false");
       setLoading(false);
     }
   }, [autoFetch, fetchUser]);
+
+  useEffect(() => {
+    console.log("[useAuth] State updated:", {
+      hasUser: !!user,
+      loading,
+      isAuthenticated,
+      error: error?.message,
+    });
+  }, [user, loading, isAuthenticated, error]);
 
   return {
     user,

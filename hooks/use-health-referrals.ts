@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
+import { pushToFirebase } from "@/lib/firebase";
 
 const REFERRALS_KEY = "health_referrals";
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export interface HealthReferral {
   id?: string;
@@ -57,12 +56,7 @@ export function useHealthReferrals() {
     severity: "leve" | "moderada" | "grave"
   ): Promise<HealthReferral | null> => {
     try {
-      let workerId = await SecureStore.getItemAsync("worker_id");
-      if (!workerId) {
-        // Gerar novo Worker ID se não existir
-        workerId = `worker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        await SecureStore.setItemAsync("worker_id", workerId);
-      }
+      const workerId = await AsyncStorage.getItem("employee:matricula") || `worker_${Date.now()}`;
 
       const newReferral: HealthReferral = {
         id: Date.now().toString(),
@@ -77,8 +71,8 @@ export function useHealthReferrals() {
       const updatedReferrals = [...referrals, newReferral];
       await saveReferrals(updatedReferrals);
 
-      // Sincronizar com servidor
-      await syncReferralToServer(newReferral);
+      // Sincronizar com Firebase
+      await syncReferralToFirebase(newReferral);
 
       return newReferral;
     } catch (error) {
@@ -88,26 +82,26 @@ export function useHealthReferrals() {
   };
 
   /**
-   * Sincronizar encaminhamento com servidor
+   * Sincronizar encaminhamento com Firebase
+   * Salva em: canteiro-saudavel/employees/{matricula}/symptoms/{pushId}
    */
-  const syncReferralToServer = async (referral: HealthReferral) => {
+  const syncReferralToFirebase = async (referral: HealthReferral) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/health-referrals/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(referral),
+      const matricula = await AsyncStorage.getItem("employee:matricula");
+      if (!matricula) return;
+
+      await pushToFirebase(matricula, 'symptoms', {
+        id: referral.id,
+        complaintType: referral.complaintType,
+        description: referral.description,
+        severity: referral.severity,
+        status: referral.status,
+        date: referral.createdAt.split('T')[0],
+        createdAt: referral.createdAt,
       });
-
-      if (!response.ok) {
-        throw new Error(`Erro ao sincronizar: ${response.statusText}`);
-      }
-
-      console.log("Encaminhamento sincronizado com servidor");
+      console.log('[Firebase] Queixa sincronizada para', matricula);
     } catch (error) {
-      console.error("Erro ao sincronizar encaminhamento:", error);
-      // Não falhar se o servidor não estiver disponível
+      console.error('Erro ao sincronizar queixa com Firebase:', error);
     }
   };
 

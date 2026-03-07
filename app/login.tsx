@@ -5,6 +5,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useAuth } from "@/hooks/use-auth";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { saveToFirebase } from "@/lib/firebase";
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -40,6 +41,27 @@ export default function LoginScreen() {
       // Fazer login (salva no localStorage/SecureStore)
       await login(matricula, nome);
       console.log("[LOGIN] Login completed successfully");
+      
+      // Salvar matrícula na chave usada pelos hooks de sincronização Firebase
+      await AsyncStorage.setItem("employee:matricula", matricula.trim());
+      
+      // Salvar perfil básico para que a tela de perfil exiba os dados
+      const existingProfile = await AsyncStorage.getItem("employee:profile");
+      if (!existingProfile) {
+        const basicProfile = { matricula: matricula.trim(), name: nome.trim(), position: '', cpf: '' };
+        await AsyncStorage.setItem("employee:profile", JSON.stringify(basicProfile));
+      }
+      
+      // Sincronizar perfil básico com Firebase
+      try {
+        await saveToFirebase(matricula.trim(), 'profile', {
+          name: nome.trim(),
+          matricula: matricula.trim(),
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('[LOGIN] Firebase sync failed:', e);
+      }
       
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

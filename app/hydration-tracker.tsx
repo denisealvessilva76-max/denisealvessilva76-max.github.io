@@ -5,7 +5,6 @@ import { useHydration } from "@/hooks/use-hydration";
 import { useEffect, useState } from "react";
 import { useColors } from "@/hooks/use-colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFirebaseSync } from "@/hooks/use-firebase-sync";
 
 type WorkType = "leve" | "moderado" | "pesado";
 
@@ -21,15 +20,7 @@ export default function HydrationTrackerScreen() {
   const colors = useColors();
   const { logWaterIntake, getTodayHydration, getDailyProgress, setDailyGoal, reminderSettings, hydrationData } =
     useHydration();
-  const [matricula, setMatricula] = useState<string>("");
-  const { syncWaterIntake } = useFirebaseSync({ matricula, enabled: !!matricula });
-
-  // Carregar matrícula do AsyncStorage
-  useEffect(() => {
-    AsyncStorage.getItem("employee:matricula").then((mat) => {
-      if (mat) setMatricula(mat);
-    });
-  }, []);
+  // Matrícula é usada internamente pelo use-hydration via AsyncStorage
   const [todayData, setTodayData] = useState(getTodayHydration());
   const [progress, setProgress] = useState(getDailyProgress());
   const [isLogging, setIsLogging] = useState(false);
@@ -133,15 +124,12 @@ export default function HydrationTrackerScreen() {
     try {
       const success = await logWaterIntake(glasses);
       if (success) {
-        // Sincronizar com Firebase
-        const mlAmount = glasses * 150; // 150ml por copo
-        await syncWaterIntake(mlAmount);
-        
-        // Forçar atualização imediata
+        // O use-hydration já sincroniza com Firebase automaticamente
+        // Forçar atualização imediata do estado local
         setTimeout(() => {
           setTodayData(getTodayHydration());
           setProgress(getDailyProgress());
-        }, 100);
+        }, 200);
         Alert.alert("Sucesso", `${glasses} copo(s) de água registrado(s)!`);
       } else {
         Alert.alert("Erro", "Não foi possível registrar o consumo de água.");

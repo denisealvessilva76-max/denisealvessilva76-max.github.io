@@ -3,9 +3,19 @@ import { getDatabase, ref, set, push, onValue, off, get } from 'firebase/databas
 
 /**
  * Configuração do Firebase Realtime Database
- * Usa EXPO_PUBLIC_* para estar disponível no build web estático (GitHub Pages)
+ * 
+ * Para usar, configure as variáveis de ambiente:
+ * - FIREBASE_API_KEY
+ * - FIREBASE_AUTH_DOMAIN
+ * - FIREBASE_DATABASE_URL
+ * - FIREBASE_PROJECT_ID
+ * - FIREBASE_STORAGE_BUCKET
+ * - FIREBASE_MESSAGING_SENDER_ID
+ * - FIREBASE_APP_ID
  */
 
+// EXPO_PUBLIC_* vars são embutidas no bundle web pelo Metro bundler
+// process.env.FIREBASE_* são apenas para o servidor Node.js
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || 'demo-key',
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || 'demo.firebaseapp.com',
@@ -20,7 +30,7 @@ const firebaseConfig = {
 let app;
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
-  console.log('[Firebase] Initialized with project:', firebaseConfig.projectId);
+  console.log('[Firebase] Initialized');
 } else {
   app = getApp();
   console.log('[Firebase] Already initialized');

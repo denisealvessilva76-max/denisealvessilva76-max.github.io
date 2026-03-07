@@ -7,13 +7,11 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
+import { trpc } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { saveToFirebase } from "@/lib/firebase";
-import * as Haptics from "expo-haptics";
 
 export default function CadastroScreen() {
   const [nome, setNome] = useState("");
@@ -27,77 +25,92 @@ export default function CadastroScreen() {
   const [funcao, setFuncao] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const cadastrarMutation = trpc.employeeProfile.saveProfile.useMutation();
+
   const handleCadastro = async () => {
     console.log("[Cadastro] Iniciando cadastro...");
-
+    
     // Validação
-    if (!nome || !matricula || !turno || !altura || !peso || !tipoTrabalho || !funcao) {
+    if (
+      !nome ||
+      !matricula ||
+      !turno ||
+      !altura ||
+      !peso ||
+      !tipoTrabalho ||
+      !funcao
+    ) {
+      console.log("[Cadastro] Validação falhou - campos vazios");
       Alert.alert("Erro", "Por favor, preencha todos os campos");
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
       return;
     }
 
-    const alturaNum = parseFloat(altura);
-    const pesoNum = parseFloat(peso);
-
-    if (isNaN(alturaNum) || isNaN(pesoNum)) {
-      Alert.alert("Erro", "Altura e peso devem ser números válidos");
-      return;
-    }
+    console.log("[Cadastro] Campos validados:", {
+      nome,
+      matricula,
+      turno,
+      altura,
+      peso,
+      tipoTrabalho,
+      funcao,
+    });
 
     setLoading(true);
 
     try {
-      const profileData = {
+      // Converter altura e peso para números
+      const alturaNum = parseFloat(altura);
+      const pesoNum = parseFloat(peso);
+      
+      console.log("[Cadastro] Valores convertidos:", {
+        alturaNum,
+        pesoNum,
+        alturaValida: !isNaN(alturaNum),
+        pesoValido: !isNaN(pesoNum),
+      });
+
+      if (isNaN(alturaNum) || isNaN(pesoNum)) {
+        console.log("[Cadastro] Erro: altura ou peso inválidos");
+        Alert.alert("Erro", "Altura e peso devem ser números válidos");
+        setLoading(false);
+        return;
+      }
+
+      const payload = {
         matricula,
         name: nome,
         position: funcao,
+        cpf: "", // CPF não é obrigatório
         turno: turno as "diurno" | "noturno",
         height: alturaNum,
         weight: pesoNum,
         workType: tipoTrabalho as "leve" | "moderado" | "pesado",
-        createdAt: new Date().toISOString(),
       };
 
-      console.log("[Cadastro] Salvando perfil localmente...", profileData);
+      console.log("[Cadastro] Enviando para API:", payload);
 
-      // 1. Salvar perfil completo no AsyncStorage
-      await AsyncStorage.setItem(
-        `employee:profile:${matricula}`,
-        JSON.stringify(profileData)
-      );
-      await AsyncStorage.setItem("employee:matricula", matricula);
-      await AsyncStorage.setItem("employee:name", nome);
-      await AsyncStorage.setItem("employee:turno", turno);
-      await AsyncStorage.setItem("employee:altura", altura);
-      await AsyncStorage.setItem("employee:peso", peso);
-      await AsyncStorage.setItem("employee:tipoTrabalho", tipoTrabalho);
-      await AsyncStorage.setItem("employee:funcao", funcao);
-      await AsyncStorage.setItem("registration:completed", "true");
+      // Salvar no PostgreSQL com TODOS os campos
+      const result = await cadastrarMutation.mutateAsync(payload);
+      
+      console.log("[Cadastro] Resposta da API:", result);
 
-      console.log("[Cadastro] Perfil salvo localmente com sucesso");
+      if (result.success) {
+        // Salvar dados adicionais no AsyncStorage
+        await AsyncStorage.setItem("employee:matricula", matricula);
+        await AsyncStorage.setItem("employee:name", nome);
+        await AsyncStorage.setItem("employee:turno", turno);
+        await AsyncStorage.setItem("employee:altura", altura);
+        await AsyncStorage.setItem("employee:peso", peso);
+        await AsyncStorage.setItem("employee:tipoTrabalho", tipoTrabalho);
+        await AsyncStorage.setItem("employee:funcao", funcao);
+        await AsyncStorage.setItem("registration:completed", "true");
 
-      // 2. Sincronizar com Firebase em background (não bloqueia o cadastro)
-      saveToFirebase(matricula, "profile", profileData)
-        .then(() => console.log("[Cadastro] Perfil sincronizado com Firebase"))
-        .catch((err) => console.warn("[Cadastro] Firebase sync falhou (não crítico):", err));
-
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-
-      // No web, Alert.alert não funciona bem — redirecionar diretamente
-      if (Platform.OS === "web") {
-        router.replace("/login");
-      } else {
         Alert.alert(
-          "Cadastro Realizado!",
-          `Bem-vindo(a), ${nome}! Agora faça login para continuar.`,
+          "Sucesso!",
+          "Cadastro realizado com sucesso! Agora faça login.",
           [
             {
-              text: "Fazer Login",
+              text: "OK",
               onPress: () => router.replace("/login"),
             },
           ]
@@ -105,16 +118,15 @@ export default function CadastroScreen() {
       }
     } catch (error) {
       console.error("[Cadastro] ERRO ao cadastrar:", error);
+      console.error("[Cadastro] Tipo do erro:", typeof error);
+      console.error("[Cadastro] Detalhes:", JSON.stringify(error, null, 2));
+      
       Alert.alert(
         "Erro ao Cadastrar",
-        error instanceof Error
-          ? error.message
-          : "Erro desconhecido. Tente novamente."
+        error instanceof Error ? error.message : "Erro desconhecido ao cadastrar. Verifique os dados e tente novamente."
       );
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
     } finally {
+      console.log("[Cadastro] Finalizando (loading = false)");
       setLoading(false);
     }
   };
@@ -176,66 +188,48 @@ export default function CadastroScreen() {
               </Text>
               <View className="flex-row gap-2">
                 <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    backgroundColor: turno === "diurno" ? "#0a7ea4" : "#f5f5f5",
-                    borderColor: turno === "diurno" ? "#0a7ea4" : "#E5E7EB",
-                  }}
+                  className={`flex-1 border rounded-lg px-4 py-3 ${
+                    turno === "diurno"
+                      ? "bg-primary border-primary"
+                      : "bg-surface border-border"
+                  }`}
                   onPress={() => setTurno("diurno")}
                 >
                   <Text
-                    style={{
-                      textAlign: "center",
-                      fontWeight: "600",
-                      color: turno === "diurno" ? "#fff" : "#11181C",
-                    }}
+                    className={`text-center font-medium ${
+                      turno === "diurno" ? "text-white" : "text-foreground"
+                    }`}
                   >
                     Diurno
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 12,
-                      textAlign: "center",
-                      marginTop: 4,
-                      color: turno === "diurno" ? "#fff" : "#687076",
-                    }}
+                    className={`text-xs text-center mt-1 ${
+                      turno === "diurno" ? "text-white" : "text-muted"
+                    }`}
                   >
                     7:30 - 17:30
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    backgroundColor: turno === "noturno" ? "#0a7ea4" : "#f5f5f5",
-                    borderColor: turno === "noturno" ? "#0a7ea4" : "#E5E7EB",
-                  }}
+                  className={`flex-1 border rounded-lg px-4 py-3 ${
+                    turno === "noturno"
+                      ? "bg-primary border-primary"
+                      : "bg-surface border-border"
+                  }`}
                   onPress={() => setTurno("noturno")}
                 >
                   <Text
-                    style={{
-                      textAlign: "center",
-                      fontWeight: "600",
-                      color: turno === "noturno" ? "#fff" : "#11181C",
-                    }}
+                    className={`text-center font-medium ${
+                      turno === "noturno" ? "text-white" : "text-foreground"
+                    }`}
                   >
                     Noturno
                   </Text>
                   <Text
-                    style={{
-                      fontSize: 12,
-                      textAlign: "center",
-                      marginTop: 4,
-                      color: turno === "noturno" ? "#fff" : "#687076",
-                    }}
+                    className={`text-xs text-center mt-1 ${
+                      turno === "noturno" ? "text-white" : "text-muted"
+                    }`}
                   >
                     17:30 - 3:30
                   </Text>
@@ -280,32 +274,60 @@ export default function CadastroScreen() {
                 Tipo de Trabalho *
               </Text>
               <View className="flex-row gap-2">
-                {(["leve", "moderado", "pesado"] as const).map((tipo) => (
-                  <TouchableOpacity
-                    key={tipo}
-                    style={{
-                      flex: 1,
-                      borderWidth: 1,
-                      borderRadius: 8,
-                      paddingHorizontal: 8,
-                      paddingVertical: 12,
-                      backgroundColor: tipoTrabalho === tipo ? "#0a7ea4" : "#f5f5f5",
-                      borderColor: tipoTrabalho === tipo ? "#0a7ea4" : "#E5E7EB",
-                    }}
-                    onPress={() => setTipoTrabalho(tipo)}
+                <TouchableOpacity
+                  className={`flex-1 border rounded-lg px-4 py-3 ${
+                    tipoTrabalho === "leve"
+                      ? "bg-primary border-primary"
+                      : "bg-surface border-border"
+                  }`}
+                  onPress={() => setTipoTrabalho("leve")}
+                >
+                  <Text
+                    className={`text-center font-medium ${
+                      tipoTrabalho === "leve" ? "text-white" : "text-foreground"
+                    }`}
                   >
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        fontWeight: "600",
-                        textTransform: "capitalize",
-                        color: tipoTrabalho === tipo ? "#fff" : "#11181C",
-                      }}
-                    >
-                      {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                    Leve
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className={`flex-1 border rounded-lg px-4 py-3 ${
+                    tipoTrabalho === "moderado"
+                      ? "bg-primary border-primary"
+                      : "bg-surface border-border"
+                  }`}
+                  onPress={() => setTipoTrabalho("moderado")}
+                >
+                  <Text
+                    className={`text-center font-medium ${
+                      tipoTrabalho === "moderado"
+                        ? "text-white"
+                        : "text-foreground"
+                    }`}
+                  >
+                    Moderado
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className={`flex-1 border rounded-lg px-4 py-3 ${
+                    tipoTrabalho === "pesado"
+                      ? "bg-primary border-primary"
+                      : "bg-surface border-border"
+                  }`}
+                  onPress={() => setTipoTrabalho("pesado")}
+                >
+                  <Text
+                    className={`text-center font-medium ${
+                      tipoTrabalho === "pesado"
+                        ? "text-white"
+                        : "text-foreground"
+                    }`}
+                  >
+                    Pesado
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -326,27 +348,14 @@ export default function CadastroScreen() {
 
             {/* Botão Cadastrar */}
             <TouchableOpacity
-              style={{
-                backgroundColor: loading ? "#9BA1A6" : "#0a7ea4",
-                borderRadius: 8,
-                paddingHorizontal: 24,
-                paddingVertical: 16,
-                marginTop: 16,
-              }}
+              className="bg-primary rounded-lg px-6 py-4 mt-4"
               onPress={handleCadastro}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text
-                  style={{
-                    color: "#fff",
-                    textAlign: "center",
-                    fontWeight: "600",
-                    fontSize: 18,
-                  }}
-                >
+                <Text className="text-white text-center font-semibold text-lg">
                   Cadastrar
                 </Text>
               )}
@@ -354,7 +363,7 @@ export default function CadastroScreen() {
 
             {/* Link para Login */}
             <TouchableOpacity
-              style={{ marginTop: 16 }}
+              className="mt-4"
               onPress={() => router.push("/login")}
             >
               <Text className="text-primary text-center">

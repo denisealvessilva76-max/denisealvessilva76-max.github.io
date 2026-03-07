@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { saveToFirebase, pushToFirebase } from "@/lib/firebase";
 import {
   CheckIn,
   PressureReading,
@@ -15,6 +16,17 @@ const STORAGE_KEYS = {
   PRESSURE_READINGS: "health:pressure-readings",
   SYMPTOM_REPORTS: "health:symptom-reports",
 };
+
+/**
+ * Obter matrícula do usuário logado
+ */
+async function getMatricula(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem("employee:matricula");
+  } catch {
+    return null;
+  }
+}
 
 export function useHealthData() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -55,22 +67,31 @@ export function useHealthData() {
       console.log("[SAVE PROFILE] Salvando perfil:", newProfile);
       await AsyncStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
       setProfile(newProfile);
-      console.log("[SAVE PROFILE] Perfil salvo com sucesso!");
-      
-      // Verificar se foi salvo corretamente
-      const saved = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE);
-      console.log("[SAVE PROFILE] Verificação:", saved);
+
+      // Sincronizar com Firebase
+      const matricula = await getMatricula();
+      if (matricula) {
+        await saveToFirebase(matricula, 'profile', {
+          name: newProfile.name,
+          matricula: newProfile.matricula,
+          cargo: newProfile.cargo,
+          turno: newProfile.turno,
+          updatedAt: new Date().toISOString(),
+        });
+        console.log("[SAVE PROFILE] Perfil sincronizado com Firebase");
+      }
     } catch (error) {
       console.error("[SAVE PROFILE] Erro ao salvar perfil:", error);
     }
   }, []);
 
-  // Adicionar check-in
+  // Adicionar check-in — salva localmente E no Firebase
   const addCheckIn = useCallback(async (status: CheckInStatus) => {
     try {
+      const today = new Date().toISOString().split("T")[0];
       const newCheckIn: CheckIn = {
         id: Date.now().toString(),
-        date: new Date().toISOString().split("T")[0],
+        date: today,
         status,
         timestamp: Date.now(),
       };
@@ -78,19 +99,32 @@ export function useHealthData() {
       const updated = [...checkIns, newCheckIn];
       await AsyncStorage.setItem(STORAGE_KEYS.CHECK_INS, JSON.stringify(updated));
       setCheckIns(updated);
+
+      // Sincronizar com Firebase (campo 'checkins' para bater com painel admin)
+      const matricula = await getMatricula();
+      if (matricula) {
+        await pushToFirebase(matricula, 'checkins', {
+          date: today,
+          status,
+          timestamp: Date.now(),
+        });
+        console.log("[CheckIn] Sincronizado com Firebase:", status);
+      }
+
       return newCheckIn;
     } catch (error) {
       console.error("Erro ao adicionar check-in:", error);
     }
   }, [checkIns]);
 
-  // Adicionar leitura de pressão
+  // Adicionar leitura de pressão — salva localmente E no Firebase
   const addPressureReading = useCallback(
     async (systolic: number, diastolic: number) => {
       try {
+        const today = new Date().toISOString().split("T")[0];
         const newReading: PressureReading = {
           id: Date.now().toString(),
-          date: new Date().toISOString().split("T")[0],
+          date: today,
           systolic,
           diastolic,
           timestamp: Date.now(),
@@ -99,6 +133,19 @@ export function useHealthData() {
         const updated = [...pressureReadings, newReading];
         await AsyncStorage.setItem(STORAGE_KEYS.PRESSURE_READINGS, JSON.stringify(updated));
         setPressureReadings(updated);
+
+        // Sincronizar com Firebase (campo 'pressure' para bater com painel admin)
+        const matricula = await getMatricula();
+        if (matricula) {
+          await pushToFirebase(matricula, 'pressure', {
+            date: today,
+            systolic,
+            diastolic,
+            timestamp: Date.now(),
+          });
+          console.log("[Pressure] Sincronizado com Firebase:", systolic, "/", diastolic);
+        }
+
         return newReading;
       } catch (error) {
         console.error("Erro ao adicionar leitura de pressão:", error);
@@ -107,13 +154,14 @@ export function useHealthData() {
     [pressureReadings]
   );
 
-  // Adicionar relatório de sintomas
+  // Adicionar relatório de sintomas — salva localmente E no Firebase
   const addSymptomReport = useCallback(
-    async (symptoms: string[]) => {
+    async (symptoms: string[], details?: string) => {
       try {
+        const today = new Date().toISOString().split("T")[0];
         const newReport: SymptomReport = {
           id: Date.now().toString(),
-          date: new Date().toISOString().split("T")[0],
+          date: today,
           symptoms,
           timestamp: Date.now(),
         };
@@ -121,6 +169,19 @@ export function useHealthData() {
         const updated = [...symptomReports, newReport];
         await AsyncStorage.setItem(STORAGE_KEYS.SYMPTOM_REPORTS, JSON.stringify(updated));
         setSymptomReports(updated);
+
+        // Sincronizar com Firebase (campo 'symptoms' para bater com painel admin)
+        const matricula = await getMatricula();
+        if (matricula) {
+          await pushToFirebase(matricula, 'symptoms', {
+            date: today,
+            symptoms,
+            details: details || '',
+            timestamp: Date.now(),
+          });
+          console.log("[Symptoms] Sincronizado com Firebase:", symptoms);
+        }
+
         return newReport;
       } catch (error) {
         console.error("Erro ao adicionar relatório de sintomas:", error);

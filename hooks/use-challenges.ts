@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
+import { saveToFirebase } from "@/lib/firebase";
 import {
   Challenge,
   ChallengeProgress,
@@ -46,14 +46,9 @@ export function useChallenges() {
     }
   };
 
-  // Obter Worker ID
-  const getWorkerId = async (): Promise<string> => {
-    let workerId = await SecureStore.getItemAsync("worker_id");
-    if (!workerId) {
-      workerId = `worker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      await SecureStore.setItemAsync("worker_id", workerId);
-    }
-    return workerId;
+  // Obter matrícula do trabalhador
+  const getMatricula = async (): Promise<string> => {
+    return (await AsyncStorage.getItem("employee:matricula")) || `worker-${Date.now()}`;
   };
 
   // Obter nome do trabalhador
@@ -72,7 +67,7 @@ export function useChallenges() {
       const challenge = AVAILABLE_CHALLENGES.find((c) => c.id === challengeId);
       if (!challenge) return false;
 
-      const workerId = await getWorkerId();
+      const workerId = await getMatricula();
       const workerName = await getWorkerName();
 
       // Adicionar aos desafios ativos
@@ -107,6 +102,23 @@ export function useChallenges() {
       setProgressList(updatedProgress);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProgress));
 
+      // Sincronizar com Firebase
+      try {
+        await saveToFirebase(workerId, `challenges/${challengeId}`, {
+          challengeId,
+          title: challenge.title,
+          status: 'active',
+          progress: 0,
+          goal: challenge.goal,
+          startDate,
+          endDate,
+          updatedAt: Date.now(),
+        });
+        console.log('[Challenges] Desafio iniciado sincronizado com Firebase:', challengeId);
+      } catch (e) {
+        console.error('[Challenges] Erro ao sincronizar desafio:', e);
+      }
+
       return true;
     } catch (error) {
       console.error("Erro ao iniciar desafio:", error);
@@ -121,7 +133,7 @@ export function useChallenges() {
     increment: boolean = true
   ) => {
     try {
-      const workerId = await getWorkerId();
+      const workerId = await getMatricula();
       const progressIndex = progressList.findIndex(
         (p) => p.challengeId === challengeId && p.userId === workerId
       );
@@ -153,6 +165,21 @@ export function useChallenges() {
       setProgressList(updatedList);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedList));
 
+      // Sincronizar com Firebase
+      try {
+        await saveToFirebase(workerId, `challenges/${challengeId}`, {
+          challengeId,
+          progress: Math.min(100, (newValue / challenge.goal) * 100),
+          currentValue: newValue,
+          goalValue: challenge.goal,
+          completed,
+          completedDate: completed ? new Date().toISOString() : null,
+          updatedAt: Date.now(),
+        });
+      } catch (e) {
+        console.error('[Challenges] Erro ao sincronizar progresso:', e);
+      }
+
       return true;
     } catch (error) {
       console.error("Erro ao atualizar progresso:", error);
@@ -162,7 +189,7 @@ export function useChallenges() {
 
   // Obter progresso de um desafio específico
   const getChallengeProgress = useCallback(async (challengeId: string): Promise<ChallengeProgress | null> => {
-    const workerId = await getWorkerId();
+    const workerId = await getMatricula();
     return progressList.find(
       (p) => p.challengeId === challengeId && p.userId === workerId
     ) || null;
@@ -182,7 +209,7 @@ export function useChallenges() {
 
   // Obter desafios completados
   const getCompletedChallenges = useCallback(async () => {
-    const workerId = await getWorkerId();
+    const workerId = await getMatricula();
     const completed = progressList.filter(
       (p) => p.userId === workerId && p.completed
     );

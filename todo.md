@@ -248,6 +248,15 @@
 
 ## Bugs Críticos Reportados (Prioridade Máxima)
 - [x] Aba de acesso administrativo não aparece no Perfil
+- [x] Remover link admin do perfil do trabalhador (v2 - removido completamente)
+- [x] Painel admin: cards clicáveis com drill-down interativo
+- [x] Painel admin: gestão de recompensas mensais
+- [x] Painel admin: ranking de funcionários por pontuação
+- [x] Painel admin: gráficos com dados reais do Firebase
+- [x] Painel admin: suporte a campos 'water'/'bloodPressure' além de 'hydration'/'pressure'
+- [x] Sincronização Firebase: desafios sincronizados com Firebase
+- [x] Login: matrícula salva na chave employee:matricula para sincronização Firebase
+- [x] Login: perfil básico criado automaticamente no primeiro login
 - [x] Ao relatar dor não aparece campo para escrever detalhes
 - [x] Não tem campo para calcular água ingerida (copos/garrafas)
 - [x] Lembretes de água não funcionam
@@ -2988,3 +2997,53 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [ ] Bug: login com matrícula existente retorna "usuário não existente" na versão web
 - [ ] Verificar se AsyncStorage funciona corretamente na versão web
 - [ ] Verificar se o Firebase está sendo chamado corretamente no cadastro web
+
+---
+
+## 🔴 Bugs e Melhorias — Feedback do Teste (07/03/2026)
+
+### Bugs Críticos — App dos Trabalhadores
+- [ ] Bug: hidratação mostra 0ml mesmo após registrar consumo — total não atualiza na tela
+- [ ] Bug: dados do perfil (nome, matrícula, função) precisam ser reinseridos após novo acesso — não persistem
+- [ ] Bug: pressão arterial só salva na segunda tentativa, não na primeira
+- [ ] Bug: check-in do dia não aparece no painel administrativo
+- [ ] Bug: desafio ativo zera ao reabrir o app — não persiste
+
+### Melhorias — App dos Trabalhadores
+- [ ] Melhoria: voz guiada (TTS) na respiração guiada — narrar "Sente-se confortável com coluna reta, respire profundamente pelo nariz contando até 4, segure contando até 4..."
+- [ ] Melhoria: voz guiada (TTS) nos alongamentos — narrar cada exercício e posição ("Incline a cabeça para o lado direito. Sente-se ou fique em pé com a coluna reta...")
+- [ ] Melhoria: remover seção "Área Administrativa" da tela de Perfil do trabalhador
+
+### Bugs Críticos — Painel Administrativo
+- [ ] Bug: queixas/sintomas não aparecem ao clicar em "Queixas" no painel admin
+- [ ] Bug: pressão arterial registrada não aparece no painel admin
+- [ ] Bug: check-in diário não aparece no painel admin
+- [ ] Bug: desafios ativos não aparecem no painel admin
+
+### Melhorias — Painel Administrativo
+- [ ] Melhoria: ao clicar em "Funcionários Ativos" mostrar lista detalhada com dados de cada funcionário
+- [ ] Melhoria: ao clicar em "Hidratação" mostrar consumo de água por funcionário com gráfico
+- [ ] Melhoria: ao clicar em "Pressão" mostrar histórico de pressão por funcionário
+- [ ] Melhoria: ao clicar em "Queixas" mostrar lista com nome, matrícula e queixa detalhada
+- [ ] Melhoria: ao clicar em "Desafios" mostrar qual desafio cada funcionário está fazendo, fotos e progresso
+- [ ] Melhoria: mostrar pontuação/ranking dos funcionários no painel admin
+- [ ] Melhoria: mostrar se funcionário fez alongamento e usou respiração guiada
+- [ ] Melhoria: adicionar seção para editar prêmios que vão rodar no mês
+
+---
+
+## 🔴 Sincronização Firebase — Prioridade Máxima (07/03/2026)
+
+- [ ] Auditar lib/firebase.ts e todos os hooks para identificar onde a sincronização falha
+- [ ] Corrigir hook de check-in para salvar no Firebase imediatamente ao registrar
+- [ ] Corrigir hook de hidratação para salvar consumo de água no Firebase em tempo real
+- [ ] Corrigir hook de pressão arterial para salvar no Firebase na primeira tentativa
+- [ ] Corrigir hook de sintomas/queixas para salvar no Firebase com detalhes completos
+- [ ] Corrigir hook de desafios para salvar progresso e não zerar ao reabrir o app
+- [ ] Garantir que perfil do usuário persiste no Firebase e carrega automaticamente no login
+- [ ] Corrigir painel admin para ler check-ins do Firebase e exibir em tempo real
+- [ ] Corrigir painel admin para ler hidratação do Firebase por funcionário
+- [ ] Corrigir painel admin para ler pressão arterial do Firebase por funcionário
+- [ ] Corrigir painel admin para ler queixas/sintomas do Firebase com detalhes
+- [ ] Corrigir painel admin para ler desafios ativos do Firebase com progresso e fotos
+- [ ] Testar fluxo completo: registrar dado no app → verificar no Firebase → verificar no painel admin

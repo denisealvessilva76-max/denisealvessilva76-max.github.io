@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
+import { saveToFirebase } from "@/lib/firebase";
 
 const HYDRATION_KEY = "hydration_tracking";
 const HYDRATION_REMINDER_KEY = "hydration_reminder_settings";
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 
 export interface HydrationEntry {
   date: string;
@@ -111,8 +110,8 @@ export function useHydration() {
         await sendDailyGoalNotification(updatedEntry.waterIntake);
       }
 
-      // Sincronizar com servidor (incluindo dados do perfil)
-      await syncHydrationToServer(updatedEntry, reminderSettings.dailyGoal);
+      // Sincronizar com Firebase
+      await syncHydrationToFirebase(updatedEntry, reminderSettings.dailyGoal);
 
       return true;
     } catch (error) {
@@ -122,42 +121,25 @@ export function useHydration() {
   };
 
   /**
-   * Sincronizar dados de hidratação com o servidor
+   * Sincronizar dados de hidratação com Firebase
+   * Salva no caminho: canteiro-saudavel/employees/{matricula}/hydration/{date}
    */
-  const syncHydrationToServer = async (entry: HydrationEntry, dailyGoal: number) => {
+  const syncHydrationToFirebase = async (entry: HydrationEntry, dailyGoal: number) => {
     try {
-      const token = await SecureStore.getItemAsync("auth_token");
-      if (!token) return;
+      const matricula = await AsyncStorage.getItem("employee:matricula");
+      if (!matricula) return;
 
-      // Carregar perfil do usuário
-      const profileData = await AsyncStorage.getItem("user_hydration_profile");
-      let profile = null;
-      if (profileData) {
-        profile = JSON.parse(profileData);
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/hydration/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          date: entry.date,
-          waterIntake: entry.waterIntake,
-          glassesConsumed: entry.glassesConsumed,
-          dailyGoal,
-          weight: profile?.weight,
-          height: profile?.height,
-          workType: profile?.workType,
-        }),
+      // Salva no campo 'hydration' com a data como chave (padrão do painel admin)
+      await saveToFirebase(matricula, `hydration/${entry.date}`, {
+        date: entry.date,
+        waterIntake: entry.waterIntake,
+        glassesConsumed: entry.glassesConsumed,
+        goal: dailyGoal,
+        updatedAt: Date.now(),
       });
-
-      if (!response.ok) {
-        throw new Error(`Erro ao sincronizar: ${response.statusText}`);
-      }
+      console.log(`[Hydration] Sincronizado com Firebase: ${entry.waterIntake}ml`);
     } catch (error) {
-      console.error("Erro ao sincronizar hidratação:", error);
+      console.error("Erro ao sincronizar hidratação com Firebase:", error);
     }
   };
 
