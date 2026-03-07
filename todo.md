@@ -3067,3 +3067,9 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [ ] Sincronização PostgreSQL: conectar hidratação ao banco de dados do servidor
 - [ ] Sincronização PostgreSQL: conectar queixas ao banco de dados do servidor
 - [ ] Painel admin: ler dados do PostgreSQL via API REST (não só Firebase)
+
+## Melhorias Solicitadas (Sessão 07/03/2026 - v3.1)
+- [x] Sincronizar cadastro do trabalhador com banco PostgreSQL (imediato ao cadastrar)
+- [x] Sincronizar todos os dados do app (check-in, hidratação, queixas, desafios) com PostgreSQL
+- [x] Painel admin: gráfico de evolução mensal (linha) na aba Relatórios
+- [x] Guia passo a passo para habilitar GitHub Pages

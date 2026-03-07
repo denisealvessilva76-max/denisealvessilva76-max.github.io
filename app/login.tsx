@@ -71,6 +71,34 @@ export default function LoginScreen() {
         console.warn("[LOGIN] Firebase sync failed:", e);
       }
 
+      // Sincronizar cadastro com banco PostgreSQL (imediato)
+      try {
+        const profileRaw = await AsyncStorage.getItem("employee:profile");
+        const profile = profileRaw ? JSON.parse(profileRaw) : {};
+        const apiUrl = typeof window !== "undefined" && window.location?.hostname
+          ? `${window.location.protocol}//${window.location.hostname.replace(/^\d{4}-/, "3000-")}/api/painel/register-employee`
+          : "/api/painel/register-employee";
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            matricula: matricula.trim(),
+            name: nome.trim(),
+            turno,
+            weight: profile.weight ? parseInt(profile.weight) : null,
+            height: profile.height ? parseInt(profile.height) : null,
+            workType: profile.workType || "moderado",
+            position: profile.position || "",
+            department: profile.department || "",
+          }),
+        });
+        const result = await response.json();
+        console.log("[LOGIN] PostgreSQL sync:", result.action, result.message);
+      } catch (e) {
+        console.warn("[LOGIN] PostgreSQL sync failed (offline?):", e);
+        // Não bloquear login se API estiver offline
+      }
+
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

@@ -568,4 +568,157 @@ router.get("/blood-pressure", authMiddleware, async (req: Request, res: Response
   }
 });
 
+// ========== REGISTRO DE FUNCIONÁRIO (chamado pelo app ao cadastrar) ==========
+// Esta rota é pública (sem authMiddleware) pois é chamada pelo app do trabalhador
+router.post("/register-employee", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, name, turno, weight, height, workType, position, department } = req.body;
+
+    if (!matricula || !name) {
+      return res.status(400).json({ error: "Matrícula e nome são obrigatórios" });
+    }
+
+    // Verificar se já existe
+    const existing = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+
+    if (existing[0]) {
+      // Atualizar dados existentes
+      await db.update(employees)
+        .set({
+          name: name.trim(),
+          turno: turno || existing[0].turno,
+          weight: weight ? parseInt(weight) : existing[0].weight,
+          height: height ? parseInt(height) : existing[0].height,
+          workType: workType || existing[0].workType,
+          position: position || existing[0].position,
+          department: department || existing[0].department,
+          lastLogin: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(employees.matricula, matricula.trim()));
+
+      return res.json({
+        success: true,
+        action: "updated",
+        employeeId: existing[0].id,
+        message: "Dados do funcionário atualizados",
+      });
+    }
+
+    // Criar workerId único anônimo
+    const workerId = `worker_${matricula.trim()}_${Date.now()}`;
+
+    // Inserir novo funcionário
+    const result = await db.insert(employees).values({
+      matricula: matricula.trim(),
+      workerId,
+      name: name.trim(),
+      turno: turno || "diurno",
+      weight: weight ? parseInt(weight) : null,
+      height: height ? parseInt(height) : null,
+      workType: workType || "moderado",
+      position: position || "",
+      department: department || "",
+      isActive: 1,
+      lastLogin: new Date(),
+    });
+
+    const newId = (result as any).insertId || (result as any)[0]?.insertId;
+
+    console.log(`[API] Novo funcionário cadastrado: ${name} (matrícula: ${matricula})`);
+
+    res.json({
+      success: true,
+      action: "created",
+      employeeId: newId,
+      workerId,
+      message: "Funcionário cadastrado com sucesso",
+    });
+  } catch (error) {
+    console.error("Erro ao registrar funcionário:", error);
+    res.status(500).json({ error: "Erro ao registrar funcionário" });
+  }
+});
+
+// ========== EVOLUÇÃO MENSAL (para gráfico de linha) ==========
+router.get("/monthly-evolution", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { turno, months = "6" } = req.query;
+    const monthsBack = parseInt(months as string) || 6;
+
+    // Gerar array dos últimos N meses
+    const monthsData: any[] = [];
+    const now = new Date();
+
+    for (let i = monthsBack - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStart = d.toISOString().split("T")[0];
+      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split("T")[0];
+      const monthLabel = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+
+      // Buscar funcionários (com filtro de turno)
+      let empList: any[] = await db.select().from(employees).where(eq(employees.isActive, 1));
+      if (turno && turno !== "todos") {
+        empList = empList.filter((e: any) => e.turno === turno);
+      }
+      const empIds = empList.map((e: any) => e.userId).filter(Boolean);
+
+      // Check-ins no mês
+      let ciData = await db.select().from(checkIns)
+        .where(and(
+          gte(checkIns.date as any, monthStart),
+          lte(checkIns.date as any, monthEnd)
+        ));
+      if (turno && turno !== "todos" && empIds.length > 0) {
+        ciData = ciData.filter((c: any) => empIds.includes(c.userId));
+      }
+
+      // Hidratação no mês
+      let hydData = await db.select().from(userHydration)
+        .where(and(
+          gte(userHydration.date as any, monthStart),
+          lte(userHydration.date as any, monthEnd)
+        ));
+      if (turno && turno !== "todos" && empIds.length > 0) {
+        hydData = hydData.filter((h: any) => empIds.includes(h.userId));
+      }
+      const hydAvg = hydData.length > 0
+        ? Math.round(hydData.reduce((s: number, h: any) => s + (h.totalMl / (h.goalMl || 2000) * 100), 0) / hydData.length)
+        : 0;
+
+      // Queixas no mês
+      let compData = await db.select().from(complaints)
+        .where(and(
+          gte(complaints.date as any, monthStart),
+          lte(complaints.date as any, monthEnd)
+        ));
+      if (turno && turno !== "todos" && empIds.length > 0) {
+        compData = compData.filter((c: any) => empIds.includes(c.userId));
+      }
+
+      monthsData.push({
+        month: monthLabel,
+        monthStart,
+        monthEnd,
+        checkIns: ciData.length,
+        hydrationAvg: hydAvg,
+        complaints: compData.length,
+        employees: empList.length,
+      });
+    }
+
+    res.json({ success: true, data: monthsData });
+  } catch (error) {
+    console.error("Erro na evolução mensal:", error);
+    res.status(500).json({ error: "Erro ao calcular evolução mensal" });
+  }
+});
+
 export default router;
