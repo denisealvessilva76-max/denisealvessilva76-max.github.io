@@ -9,6 +9,7 @@ import { useGamification } from "@/hooks/use-gamification";
 import { usePersonalDashboard } from "@/hooks/use-personal-dashboard";
 import { CheckInStatus } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { useCheckinReminder } from "@/hooks/use-checkin-reminder";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const { stats: dashboardStats, loading: dashboardLoading, refresh } = usePersonalDashboard();
   const [todayCheckIn, setTodayCheckIn] = useState(getTodayCheckIn());
   const [refreshing, setRefreshing] = useState(false);
+  const { markCheckinDone } = useCheckinReminder();
 
   useEffect(() => {
     setTodayCheckIn(getTodayCheckIn());
@@ -39,6 +41,8 @@ export default function HomeScreen() {
     
     // Se reportar dor, abrir formulário detalhado
     if (status === "dor-leve" || status === "dor-forte") {
+      // Cancela o lembrete mesmo ao reportar dor (já interagiu)
+      await markCheckinDone();
       router.push({
         pathname: "/complaint-form",
         params: { severity: status === "dor-leve" ? "leve" : "forte" }
@@ -49,6 +53,8 @@ export default function HomeScreen() {
     const result = await addCheckIn(status);
     if (result) {
       setTodayCheckIn(result);
+      // Cancela o lembrete das 10h pois o check-in foi concluído
+      await markCheckinDone();
       refresh(); // Atualizar dashboard
     }
   };

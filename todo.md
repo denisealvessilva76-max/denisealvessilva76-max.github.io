@@ -3054,3 +3054,8 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [ ] Painel admin: filtro por período (semana atual, mês atual, personalizado)
 - [ ] Painel admin: filtrar cards e gráficos pelo período selecionado
 - [ ] Painel admin: filtrar lista de funcionários por turno
+
+## Melhorias Solicitadas (Sessão 07/03/2026 - v2.2)
+- [x] Painel admin: alerta automático de queixas coletivas (3+ funcionários com mesmo sintoma em 7 dias)
+- [x] Painel admin: relatório PDF com seção comparativa diurno vs noturno
+- [x] App: notificação push de lembrete de check-in às 10h para quem não fez check-in
