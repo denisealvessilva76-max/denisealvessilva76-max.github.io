@@ -2,6 +2,8 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import path from "path";
+import { fileURLToPath } from "url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
@@ -10,6 +12,8 @@ import adminRoutes from "../routes/admin";
 import feedbackRoutes from "../routes/feedback";
 import hydrationRoutes from "../routes/hydration";
 import employeeRoutes from "../routes/employee-rest";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -59,6 +63,16 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
   registerOAuthRoutes(app);
+
+  // Painel SESMT (arquivo HTML estático)
+  app.get("/painel", (_req, res) => {
+    const painelPath = path.resolve(__dirname, "../../painel-sesmt.html");
+    res.sendFile(painelPath, (err) => {
+      if (err) {
+        res.status(404).json({ error: "Painel não encontrado", path: painelPath });
+      }
+    });
+  });
 
   // Admin routes
   app.use("/api/admin", adminRoutes);
