@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canteiro Saudável - Painel Administrativo</title>
-    <style>
-/* Reset e Variáveis */
+    <style>/* Reset e Variáveis */
 * {
     margin: 0;
     padding: 0;
@@ -1000,7 +999,6 @@ body {
     border-top: 1px solid var(--border);
     width: 100%;
 }
-
 </style>
 </head>
 <body>
@@ -1040,7 +1038,8 @@ body {
             <div class="header-content">
                 <div class="header-left">
                     <h1>🏗️ Canteiro Saudável</h1>
-                    <p id="admin-email-display" class="text-muted"></p>
+                    <p id="admin-email-display" class="text-muted" style="display:flex;align-items:center;gap:6px;"></p>
+                    <span id="data-source-badge" style="display:none;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;"></span>
                 </div>
                 <div class="header-right">
                     <button id="export-pdf-btn" class="btn-secondary">📄 Exportar PDF</button>
@@ -1172,6 +1171,21 @@ body {
                 <div class="section-title">
                     <h2>📈 Relatórios e Análises</h2>
                 </div>
+
+                <!-- Gráfico de Evolução Mensal (destaque) -->
+                <div class="report-card" style="margin-bottom:24px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <h3 style="margin:0">📅 Evolução Mensal (6 meses)</h3>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn-apply" id="monthly-6m-btn" onclick="loadMonthlyEvolution(6)" style="padding:4px 12px;font-size:12px;">6 meses</button>
+                            <button class="btn-apply" id="monthly-12m-btn" onclick="loadMonthlyEvolution(12)" style="padding:4px 12px;font-size:12px;background:#687076;">12 meses</button>
+                        </div>
+                    </div>
+                    <div id="monthly-evolution-loading" style="text-align:center;padding:20px;color:var(--muted);display:none;">Carregando dados mensais...</div>
+                    <canvas id="monthly-evolution-chart" style="max-height:300px;"></canvas>
+                    <div id="monthly-evolution-table" style="margin-top:16px;"></div>
+                </div>
+
                 <div class="reports-grid">
                     <div class="report-card">
                         <h3>💧 Hidratação Semanal (ml)</h3>
@@ -1357,11 +1371,146 @@ body {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- App Script -->
-    <script>
-/**
+    <script>/**
  * Painel Administrativo - Canteiro Saudável
- * Versão 2.2 - Alertas coletivos, PDF comparativo por turno, push de check-in
+ * Versão 3.0 - Sincronização PostgreSQL + Firebase fallback, credenciais personalizadas
  */
+
+// ========== CONFIGURAÇÃO DA API POSTGRESQL ==========
+// A URL base da API REST do servidor. Quando o painel é servido pelo próprio servidor
+// (rota /painel), a API fica em /api/painel. Quando hospedado externamente (GitHub Pages),
+// deve apontar para o servidor publicado.
+const API_BASE = window.location.hostname.includes('github.io')
+    ? 'https://3000-itldlyatedialpnf14oog-701edde6.us2.manus.computer/api/painel'
+    : '/api/painel';
+
+let apiToken = null; // Token JWT da API PostgreSQL
+let useApiMode = false; // true = usando PostgreSQL, false = usando Firebase
+
+/** Faz uma requisição autenticada à API PostgreSQL */
+async function apiRequest(path, options = {}) {
+    const url = `${API_BASE}${path}`;
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiToken) headers['Authorization'] = `Bearer ${apiToken}`;
+    const res = await fetch(url, { ...options, headers: { ...headers, ...(options.headers || {}) } });
+    if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+    return res.json();
+}
+
+/** Tenta login na API PostgreSQL. Retorna true se bem-sucedido. */
+async function tryApiLogin(email, password) {
+    try {
+        const data = await fetch(`${API_BASE}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        }).then(r => r.json());
+        if (data.success && data.token) {
+            apiToken = data.token;
+            localStorage.setItem('api_token', data.token);
+            localStorage.setItem('api_user', JSON.stringify({ email: data.email, name: data.name, role: data.role }));
+            useApiMode = true;
+            console.log('[API] Login PostgreSQL bem-sucedido');
+            return true;
+        }
+    } catch (e) {
+        console.warn('[API] Servidor PostgreSQL não disponível, usando Firebase:', e.message);
+    }
+    return false;
+}
+
+/** Carrega todos os dados do dashboard via API PostgreSQL */
+async function loadFromApi() {
+    showLoading(true);
+    try {
+        const { from, to } = getDateRange();
+        const turno = filterState.shift === 'all' ? 'todos' : filterState.shift;
+
+        const [empRes, ciRes, hydRes, compRes, bpRes, chalRes, rankRes] = await Promise.all([
+            apiRequest(`/employees?turno=${turno}`),
+            apiRequest(`/checkins?startDate=${from}&endDate=${to}&turno=${turno}`),
+            apiRequest(`/hydration?startDate=${from}&endDate=${to}&turno=${turno}`),
+            apiRequest(`/complaints?startDate=${from}&endDate=${to}&turno=${turno}`),
+            apiRequest(`/blood-pressure?startDate=${from}&endDate=${to}&turno=${turno}`),
+            apiRequest(`/challenges?turno=${turno}`),
+            apiRequest(`/ranking?turno=${turno}`),
+        ]);
+
+        // Converter dados da API para o formato interno do painel
+        employeesData = (empRes.data || []).map(emp => {
+            // Agrupar check-ins deste funcionário
+            const empCheckins = {};
+            (ciRes.data || []).filter(c => c.userId === emp.userId).forEach(c => {
+                empCheckins[c.id] = { date: c.date ? c.date.split('T')[0] : null, status: c.mood === 'bem' ? 'good' : 'pain', notes: c.notes };
+            });
+
+            // Agrupar hidratação
+            const empHydration = {};
+            (hydRes.data || []).filter(h => h.userId === emp.userId).forEach(h => {
+                const d = h.date ? h.date.split('T')[0] : null;
+                if (d) empHydration[d] = { waterIntake: h.totalMl || 0, goal: h.goalMl || 2000 };
+            });
+
+            // Agrupar sintomas/queixas
+            const empSymptoms = {};
+            (compRes.data || []).filter(c => c.userId === emp.userId).forEach(c => {
+                empSymptoms[c.id] = {
+                    date: c.date ? c.date.split('T')[0] : null,
+                    symptoms: c.complaint ? [c.complaint] : [],
+                    details: c.notes || '',
+                    severity: c.severity,
+                };
+            });
+
+            // Agrupar pressão
+            const empPressure = {};
+            (bpRes.data || []).filter(b => b.userId === emp.userId).forEach(b => {
+                empPressure[b.id] = { date: b.date ? b.date.split('T')[0] : null, systolic: b.systolic, diastolic: b.diastolic };
+            });
+
+            // Agrupar desafios
+            const empChallenges = {};
+            (chalRes.data || []).filter(c => c.userId === emp.userId).forEach(c => {
+                const pct = c.targetValue > 0 ? Math.round((c.currentValue / c.targetValue) * 100) : 0;
+                empChallenges[c.id] = {
+                    challengeId: c.challengeId,
+                    title: c.challengeId,
+                    status: c.completed ? 'completed' : 'active',
+                    progress: pct,
+                    completed: !!c.completed,
+                    endDate: c.endDate ? c.endDate.split('T')[0] : null,
+                };
+            });
+
+            return {
+                matricula: emp.matricula || emp.id,
+                name: emp.name || 'Sem nome',
+                cargo: emp.position || emp.department || '-',
+                turno: emp.turno || '-',
+                email: '',
+                hydration: empHydration,
+                pressure: empPressure,
+                symptoms: empSymptoms,
+                checkins: empCheckins,
+                challenges: empChallenges,
+                points: emp.points || 0,
+                _apiId: emp.id,
+                _userId: emp.userId,
+            };
+        });
+
+        console.log(`[API] Carregados ${employeesData.length} funcionários do PostgreSQL`);
+        updateDashboard();
+    } catch (e) {
+        console.error('[API] Erro ao carregar dados:', e);
+        // Fallback para Firebase
+        useApiMode = false;
+        loadEmployeesDataFirebase();
+        return;
+    } finally {
+        showLoading(false);
+    }
+}
 
 // ========== CONFIGURAÇÃO DO FIREBASE ==========
 const firebaseConfig = {
@@ -1438,55 +1587,8 @@ function formatDate(dateStr) {
 }
 
 // ========== AUTENTICAÇÃO ==========
-function login(email, password) {
-    const validCredentials = [
-        { email: 'admin@canteiro.com', password: 'admin123' },
-        { email: 'sesmt@empresa.com', password: 'sesmt2024' },
-        { email: 'denise.silva@mip.com.br', password: 'mip2024' },
-        { email: 'estefane.mendes@mip.com.br', password: 'mip2024' }
-    ];
-    const user = validCredentials.find(u => u.email === email && u.password === password);
-    if (user) {
-        currentUser = { email: user.email };
-        localStorage.setItem('admin_user', JSON.stringify(currentUser));
-        showDashboard();
-        return true;
-    }
-    return false;
-}
-
-function logout() {
-    currentUser = null;
-    localStorage.removeItem('admin_user');
-    if (unsubscribe) unsubscribe();
-    showLogin();
-}
-
-function checkAuth() {
-    const stored = localStorage.getItem('admin_user');
-    if (stored) {
-        currentUser = JSON.parse(stored);
-        showDashboard();
-    } else {
-        showLogin();
-    }
-}
-
-function showLogin() {
-    document.getElementById('login-screen').classList.add('active');
-    document.getElementById('dashboard-screen').classList.remove('active');
-}
-
-function showDashboard() {
-    document.getElementById('login-screen').classList.remove('active');
-    document.getElementById('dashboard-screen').classList.add('active');
-    document.getElementById('admin-email-display').textContent = currentUser.email;
-    loadEmployeesData();
-    loadRewardsData();
-}
-
-// ========== FIREBASE DATA ==========
-function loadEmployeesData() {
+// Renomear a função Firebase para não conflitar
+function loadEmployeesDataFirebase() {
     showLoading(true);
     const employeesRef = database.ref('canteiro-saudavel/employees');
     unsubscribe = employeesRef.on('value', (snapshot) => {
@@ -1508,7 +1610,7 @@ function loadEmployeesData() {
                     points: emp.points || 0,
                 };
             });
-            console.log(`[Admin] Carregados ${employeesData.length} funcionários`);
+            console.log(`[Firebase] Carregados ${employeesData.length} funcionários`);
             updateDashboard();
         } else {
             employeesData = [];
@@ -1516,9 +1618,109 @@ function loadEmployeesData() {
         }
         showLoading(false);
     }, (error) => {
-        console.error('[Admin] Erro ao carregar dados:', error);
+        console.error('[Firebase] Erro ao carregar dados:', error);
         showLoading(false);
     });
+}
+
+// Indicador de fonte de dados no cabeçalho
+function updateDataSourceBadge() {
+    const badge = document.getElementById('data-source-badge');
+    if (!badge) return;
+    if (useApiMode) {
+        badge.textContent = '✅ PostgreSQL';
+        badge.style.background = '#22C55E';
+        badge.style.color = '#fff';
+    } else {
+        badge.textContent = '⚡ Firebase';
+        badge.style.background = '#F59E0B';
+        badge.style.color = '#fff';
+    }
+    badge.style.display = 'inline-block';
+}
+
+// ========== AUTENTICAÇÃO ORIGINAL ==========
+function login(email, password) {
+    const validCredentials = [
+        { email: 'admin@canteiro.com', password: 'admin123', role: 'admin', name: 'Administrador' },
+        { email: 'sesmt@empresa.com', password: 'sesmt2024', role: 'sesmt', name: 'SESMT' },
+        { email: 'denise.silva@mip.com.br', password: 'Canteiro@2024', role: 'sesmt', name: 'Denise Silva' },
+        { email: 'estefane.mendes@mip.com.br', password: 'Canteiro@2024', role: 'sesmt', name: 'Estefane Mendes' },
+    ];
+    const user = validCredentials.find(u => u.email === email && u.password === password);
+    if (user) {
+        currentUser = { email: user.email, name: user.name, role: user.role, _rawPassword: password };
+        localStorage.setItem('admin_user', JSON.stringify(currentUser));
+        // Tentar login na API PostgreSQL em paralelo
+        tryApiLogin(email, password).then(ok => {
+            useApiMode = ok;
+            updateDataSourceBadge();
+        });
+        showDashboard();
+        return true;
+    }
+    return false;
+}
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('admin_user');
+    if (unsubscribe) unsubscribe();
+    showLogin();
+}
+
+function checkAuth() {
+    const stored = localStorage.getItem('admin_user');
+    const savedToken = localStorage.getItem('api_token');
+    if (stored) {
+        currentUser = JSON.parse(stored);
+        if (savedToken) {
+            apiToken = savedToken;
+            useApiMode = true;
+        }
+        showDashboard();
+    } else {
+        showLogin();
+    }
+}
+
+function showLogin() {
+    document.getElementById('login-screen').classList.add('active');
+    document.getElementById('dashboard-screen').classList.remove('active');
+}
+
+function showDashboard() {
+    document.getElementById('login-screen').classList.remove('active');
+    document.getElementById('dashboard-screen').classList.add('active');
+    document.getElementById('admin-email-display').textContent = currentUser.name || currentUser.email;
+    loadEmployeesData();
+    loadRewardsData();
+}
+
+// ========== CARREGAMENTO DE DADOS (API + Firebase fallback) ==========
+function loadEmployeesData() {
+    // Verificar se já temos token da API
+    const savedToken = localStorage.getItem('api_token');
+    if (savedToken) {
+        apiToken = savedToken;
+        useApiMode = true;
+    }
+
+    if (useApiMode && apiToken) {
+        loadFromApi().then(() => updateDataSourceBadge());
+    } else {
+        // Tentar API primeiro, depois Firebase
+        tryApiLogin(currentUser.email, currentUser._rawPassword || '')
+            .then(ok => {
+                if (ok) {
+                    loadFromApi().then(() => updateDataSourceBadge());
+                } else {
+                    useApiMode = false;
+                    updateDataSourceBadge();
+                    loadEmployeesDataFirebase();
+                }
+            });
+    }
 }
 
 function loadRewardsData() {
@@ -2446,8 +2648,13 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 
 document.getElementById('logout-btn').addEventListener('click', logout);
 document.getElementById('refresh-btn').addEventListener('click', () => {
-    showLoading(true);
-    loadEmployeesData();
+    // Recarregar dados respeitando o modo atual
+    if (useApiMode && apiToken) {
+        loadFromApi().then(() => updateDataSourceBadge());
+    } else {
+        showLoading(true);
+        loadEmployeesDataFirebase();
+    }
 });
 
 // Tabs
@@ -2461,6 +2668,9 @@ document.querySelectorAll('.tab').forEach(tab => {
         if (tabName === 'rewards') {
             renderRewards();
             renderRanking();
+        }
+        if (tabName === 'reports') {
+            loadMonthlyEvolution(6);
         }
     });
 });
@@ -2856,11 +3066,195 @@ async function exportToPDF() {
 const exportPdfBtn = document.getElementById('export-pdf-btn');
 if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportToPDF);
 
+// ========== GRÁFICO DE EVOLUÇÃO MENSAL ==========
+let monthlyChartInstance = null;
+
+async function loadMonthlyEvolution(months = 6) {
+    const loadingEl = document.getElementById('monthly-evolution-loading');
+    const tableEl = document.getElementById('monthly-evolution-table');
+    if (loadingEl) loadingEl.style.display = 'block';
+
+    // Atualizar visual dos botões
+    const btn6 = document.getElementById('monthly-6m-btn');
+    const btn12 = document.getElementById('monthly-12m-btn');
+    if (btn6 && btn12) {
+        btn6.style.background = months === 6 ? '#0a7ea4' : '#687076';
+        btn12.style.background = months === 12 ? '#0a7ea4' : '#687076';
+    }
+
+    const turno = filterState.shift === 'all' ? 'todos' : filterState.shift;
+    let monthsData = [];
+
+    // Tentar API PostgreSQL primeiro
+    if (useApiMode && apiToken) {
+        try {
+            const res = await apiRequest(`/monthly-evolution?months=${months}&turno=${turno}`);
+            if (res.success && res.data) {
+                monthsData = res.data;
+            }
+        } catch (e) {
+            console.warn('[Monthly] API falhou, usando dados locais Firebase:', e.message);
+        }
+    }
+
+    // Fallback: calcular a partir dos dados Firebase em memória
+    if (monthsData.length === 0 && employeesData.length > 0) {
+        const now = new Date();
+        for (let i = months - 1; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const monthStart = d.toISOString().split('T')[0];
+            const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+            const monthLabel = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+
+            const filtered = getFilteredEmployees();
+            let ciCount = 0;
+            let hydTotal = 0;
+            let hydCount = 0;
+            let compCount = 0;
+
+            filtered.forEach(emp => {
+                Object.values(emp.checkins).forEach(c => {
+                    if (c && c.date && c.date >= monthStart && c.date <= monthEnd) ciCount++;
+                });
+                for (let dd = new Date(d); dd <= new Date(d.getFullYear(), d.getMonth() + 1, 0); dd.setDate(dd.getDate() + 1)) {
+                    const ds = dd.toISOString().split('T')[0];
+                    const h = emp.hydration[ds];
+                    if (h && h.waterIntake) { hydTotal += h.waterIntake / (h.goal || 2000) * 100; hydCount++; }
+                }
+                Object.values(emp.symptoms).forEach(s => {
+                    if (s && s.date && s.date >= monthStart && s.date <= monthEnd) compCount++;
+                });
+            });
+
+            monthsData.push({
+                month: monthLabel,
+                checkIns: ciCount,
+                hydrationAvg: hydCount > 0 ? Math.round(hydTotal / hydCount) : 0,
+                complaints: compCount,
+                employees: filtered.length,
+            });
+        }
+    }
+
+    if (loadingEl) loadingEl.style.display = 'none';
+
+    if (monthsData.length === 0) {
+        if (tableEl) tableEl.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Nenhum dado disponível para o período selecionado.</p>';
+        return;
+    }
+
+    // Renderizar gráfico de linha
+    const ctx = document.getElementById('monthly-evolution-chart');
+    if (ctx && typeof Chart !== 'undefined') {
+        if (monthlyChartInstance) monthlyChartInstance.destroy();
+        monthlyChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthsData.map(m => m.month),
+                datasets: [
+                    {
+                        label: 'Check-ins',
+                        data: monthsData.map(m => m.checkIns),
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34,197,94,0.1)',
+                        tension: 0.4,
+                        fill: false,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Hidratação Média (%)',
+                        data: monthsData.map(m => m.hydrationAvg),
+                        borderColor: '#0a7ea4',
+                        backgroundColor: 'rgba(10,126,164,0.1)',
+                        tension: 0.4,
+                        fill: false,
+                        yAxisID: 'y1',
+                    },
+                    {
+                        label: 'Queixas',
+                        data: monthsData.map(m => m.complaints),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239,68,68,0.1)',
+                        tension: 0.4,
+                        fill: false,
+                        yAxisID: 'y',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const label = ctx.dataset.label;
+                                const val = ctx.parsed.y;
+                                return label.includes('%') ? `${label}: ${val}%` : `${label}: ${val}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Quantidade' },
+                        beginAtZero: true,
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Hidratação (%)' },
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { drawOnChartArea: false },
+                    },
+                },
+            },
+        });
+    }
+
+    // Tabela resumo abaixo do gráfico
+    if (tableEl) {
+        const rows = monthsData.map((m, i) => {
+            const prev = monthsData[i - 1];
+            const ciTrend = prev ? (m.checkIns > prev.checkIns ? '↗️' : m.checkIns < prev.checkIns ? '↘️' : '➡️') : '';
+            const hydTrend = prev ? (m.hydrationAvg > prev.hydrationAvg ? '↗️' : m.hydrationAvg < prev.hydrationAvg ? '↘️' : '➡️') : '';
+            const compTrend = prev ? (m.complaints < prev.complaints ? '↗️' : m.complaints > prev.complaints ? '↘️' : '➡️') : '';
+            return `<tr>
+                <td style="padding:8px;font-weight:600;">${m.month}</td>
+                <td style="padding:8px;text-align:center;">${m.employees || '-'}</td>
+                <td style="padding:8px;text-align:center;color:#22C55E;">${m.checkIns} ${ciTrend}</td>
+                <td style="padding:8px;text-align:center;color:#0a7ea4;">${m.hydrationAvg}% ${hydTrend}</td>
+                <td style="padding:8px;text-align:center;color:#EF4444;">${m.complaints} ${compTrend}</td>
+            </tr>`;
+        }).join('');
+        tableEl.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:var(--surface);">
+                        <th style="padding:8px;text-align:left;">Mês</th>
+                        <th style="padding:8px;text-align:center;">Funcionários</th>
+                        <th style="padding:8px;text-align:center;">Check-ins</th>
+                        <th style="padding:8px;text-align:center;">Hidratação Média</th>
+                        <th style="padding:8px;text-align:center;">Queixas</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+}
+
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 });
-
 </script>
 </body>
 </html>
