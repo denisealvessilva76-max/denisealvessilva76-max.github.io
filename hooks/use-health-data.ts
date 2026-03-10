@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { saveToFirebase, pushToFirebase } from "@/lib/firebase";
+import { syncCheckInToPostgres, syncPressureToPostgres, syncComplaintToPostgres } from "@/lib/sync-api";
 import {
   CheckIn,
   PressureReading,
@@ -100,15 +101,23 @@ export function useHealthData() {
       await AsyncStorage.setItem(STORAGE_KEYS.CHECK_INS, JSON.stringify(updated));
       setCheckIns(updated);
 
-      // Sincronizar com Firebase (campo 'checkins' para bater com painel admin)
+      // Sincronizar com Firebase e PostgreSQL em paralelo
       const matricula = await getMatricula();
       if (matricula) {
-        await pushToFirebase(matricula, 'checkins', {
+        // Firebase (legado)
+        pushToFirebase(matricula, 'checkins', {
           date: today,
           status,
           timestamp: Date.now(),
-        });
-        console.log("[CheckIn] Sincronizado com Firebase:", status);
+        }).catch(() => {});
+        // PostgreSQL (tempo real para painel admin)
+        syncCheckInToPostgres({
+          matricula,
+          date: today,
+          status,
+          mood: status,
+        }).catch(() => {});
+        console.log("[CheckIn] Sincronizado com Firebase + PostgreSQL:", status);
       }
 
       return newCheckIn;
@@ -134,16 +143,26 @@ export function useHealthData() {
         await AsyncStorage.setItem(STORAGE_KEYS.PRESSURE_READINGS, JSON.stringify(updated));
         setPressureReadings(updated);
 
-        // Sincronizar com Firebase (campo 'pressure' para bater com painel admin)
+        // Sincronizar com Firebase e PostgreSQL em paralelo
         const matricula = await getMatricula();
         if (matricula) {
-          await pushToFirebase(matricula, 'pressure', {
+          // Firebase (legado)
+          pushToFirebase(matricula, 'pressure', {
             date: today,
             systolic,
             diastolic,
             timestamp: Date.now(),
-          });
-          console.log("[Pressure] Sincronizado com Firebase:", systolic, "/", diastolic);
+          }).catch(() => {});
+          // PostgreSQL (tempo real para painel admin)
+          const classification = classifyPressure(systolic, diastolic);
+          syncPressureToPostgres({
+            matricula,
+            date: today,
+            systolic,
+            diastolic,
+            classification,
+          }).catch(() => {});
+          console.log("[Pressure] Sincronizado com Firebase + PostgreSQL:", systolic, "/", diastolic);
         }
 
         return newReading;
@@ -170,16 +189,25 @@ export function useHealthData() {
         await AsyncStorage.setItem(STORAGE_KEYS.SYMPTOM_REPORTS, JSON.stringify(updated));
         setSymptomReports(updated);
 
-        // Sincronizar com Firebase (campo 'symptoms' para bater com painel admin)
+        // Sincronizar com Firebase e PostgreSQL em paralelo
         const matricula = await getMatricula();
         if (matricula) {
-          await pushToFirebase(matricula, 'symptoms', {
+          // Firebase (legado)
+          pushToFirebase(matricula, 'symptoms', {
             date: today,
             symptoms,
             details: details || '',
             timestamp: Date.now(),
-          });
-          console.log("[Symptoms] Sincronizado com Firebase:", symptoms);
+          }).catch(() => {});
+          // PostgreSQL (tempo real para painel admin)
+          syncComplaintToPostgres({
+            matricula,
+            date: today,
+            symptoms,
+            details: details || '',
+            severity: symptoms.length > 2 ? 'moderada' : 'leve',
+          }).catch(() => {});
+          console.log("[Symptoms] Sincronizado com Firebase + PostgreSQL:", symptoms);
         }
 
         return newReport;

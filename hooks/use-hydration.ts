@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { saveToFirebase } from "@/lib/firebase";
+import { syncHydrationToPostgres } from "@/lib/sync-api";
 
 const HYDRATION_KEY = "hydration_tracking";
 const HYDRATION_REMINDER_KEY = "hydration_reminder_settings";
@@ -110,8 +111,18 @@ export function useHydration() {
         await sendDailyGoalNotification(updatedEntry.waterIntake);
       }
 
-      // Sincronizar com Firebase
-      await syncHydrationToFirebase(updatedEntry, reminderSettings.dailyGoal);
+      // Sincronizar com Firebase e PostgreSQL em paralelo
+      syncHydrationToFirebase(updatedEntry, reminderSettings.dailyGoal).catch(() => {});
+      const matricula = await AsyncStorage.getItem("employee:matricula");
+      if (matricula) {
+        syncHydrationToPostgres({
+          matricula,
+          date: today,
+          waterIntake: updatedEntry.waterIntake,
+          glassesConsumed: updatedEntry.glassesConsumed,
+          goal: reminderSettings.dailyGoal,
+        }).catch(() => {});
+      }
 
       return true;
     } catch (error) {

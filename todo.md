@@ -3073,3 +3073,12 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [x] Sincronizar todos os dados do app (check-in, hidratação, queixas, desafios) com PostgreSQL
 - [x] Painel admin: gráfico de evolução mensal (linha) na aba Relatórios
 - [x] Guia passo a passo para habilitar GitHub Pages
+
+## Melhorias Solicitadas (Sessão 07/03/2026 - v3.2)
+- [x] GitHub Pages: painel publicado na branch main (já configurada no Pages)
+- [x] Sincronizar check-ins com PostgreSQL ao registrar no app
+- [x] Sincronizar hidratação com PostgreSQL ao registrar no app
+- [x] Sincronizar queixas/sintomas com PostgreSQL ao registrar no app
+- [x] Sincronizar pressão arterial com PostgreSQL ao registrar no app
+- [x] Criar endpoints POST /api/painel/sync-checkin, sync-hydration, sync-complaint, sync-pressure
+- [x] Criar lib/sync-api.ts com funções de sincronização PostgreSQL (fire-and-forget)

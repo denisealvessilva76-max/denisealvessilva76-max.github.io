@@ -721,4 +721,179 @@ router.get("/monthly-evolution", authMiddleware, async (req: Request, res: Respo
   }
 });
 
+// ========== SINCRONIZAÇÃO DE CHECK-IN (chamado pelo app ao fazer check-in) ==========
+// Esta rota é pública (sem authMiddleware) pois é chamada pelo app do trabalhador
+router.post("/sync-checkin", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, date, status, mood, symptoms, notes } = req.body;
+    if (!matricula || !date) {
+      return res.status(400).json({ error: "Matrícula e data são obrigatórias" });
+    }
+
+    // Buscar o funcionário pelo número de matrícula
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp || !emp.userId) {
+      return res.status(404).json({ error: "Funcionário não encontrado. Faça login primeiro." });
+    }
+
+    // Verificar se já existe check-in para essa data
+    const existing = await db.select().from(checkIns)
+      .where(and(eq(checkIns.userId, emp.userId), eq(checkIns.date as any, date))).limit(1);
+
+    if (existing[0]) {
+      // Atualizar check-in existente
+      await db.update(checkIns)
+        .set({
+          mood: mood || status || existing[0].mood,
+          symptoms: symptoms ? JSON.stringify(symptoms) : existing[0].symptoms,
+          notes: notes || existing[0].notes,
+        })
+        .where(and(eq(checkIns.userId, emp.userId), eq(checkIns.date as any, date)));
+      return res.json({ success: true, action: "updated", message: "Check-in atualizado" });
+    }
+
+    // Inserir novo check-in
+    await db.insert(checkIns).values({
+      userId: emp.userId,
+      date,
+      mood: mood || status || "ok",
+      symptoms: symptoms ? JSON.stringify(symptoms) : null,
+      notes: notes || null,
+    });
+
+    console.log(`[API] Check-in sincronizado: ${emp.name} (${date}) - ${mood || status}`);
+    res.json({ success: true, action: "created", message: "Check-in sincronizado" });
+  } catch (error) {
+    console.error("Erro ao sincronizar check-in:", error);
+    res.status(500).json({ error: "Erro ao sincronizar check-in" });
+  }
+});
+
+// ========== SINCRONIZAÇÃO DE HIDRATAÇÃO (chamado pelo app ao registrar água) ==========
+router.post("/sync-hydration", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, date, waterIntake, glassesConsumed, goal } = req.body;
+    if (!matricula || !date) {
+      return res.status(400).json({ error: "Matrícula e data são obrigatórias" });
+    }
+
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp || !emp.userId) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+
+    // Verificar se já existe registro para essa data
+    const existing = await db.select().from(userHydration)
+      .where(and(eq(userHydration.userId, emp.userId), eq(userHydration.date as any, date))).limit(1);
+
+    if (existing[0]) {
+      await db.update(userHydration)
+        .set({
+          cupsConsumed: glassesConsumed || existing[0].cupsConsumed,
+          totalMl: waterIntake || existing[0].totalMl,
+          goalMl: goal || existing[0].goalMl,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(userHydration.userId, emp.userId), eq(userHydration.date as any, date)));
+      return res.json({ success: true, action: "updated", message: "Hidratação atualizada" });
+    }
+
+    await db.insert(userHydration).values({
+      userId: emp.userId,
+      date,
+      cupsConsumed: glassesConsumed || 0,
+      totalMl: waterIntake || 0,
+      goalMl: goal || 2000,
+    });
+
+    console.log(`[API] Hidratação sincronizada: ${emp.name} (${date}) - ${waterIntake}ml`);
+    res.json({ success: true, action: "created", message: "Hidratação sincronizada" });
+  } catch (error) {
+    console.error("Erro ao sincronizar hidratação:", error);
+    res.status(500).json({ error: "Erro ao sincronizar hidratação" });
+  }
+});
+
+// ========== SINCRONIZAÇÃO DE QUEIXAS (chamado pelo app ao reportar sintomas) ==========
+router.post("/sync-complaint", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, date, symptoms, details, severity } = req.body;
+    if (!matricula || !date || !symptoms) {
+      return res.status(400).json({ error: "Matrícula, data e sintomas são obrigatórios" });
+    }
+
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp || !emp.userId) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+
+    const symptomList = Array.isArray(symptoms) ? symptoms : [symptoms];
+    const complaintText = symptomList.join(", ");
+
+    await db.insert(complaints).values({
+      userId: emp.userId,
+      date,
+      complaint: complaintText,
+      severity: severity || "leve",
+      notes: details || null,
+      resolved: 0,
+    });
+
+    console.log(`[API] Queixa sincronizada: ${emp.name} (${date}) - ${complaintText}`);
+    res.json({ success: true, action: "created", message: "Queixa sincronizada" });
+  } catch (error) {
+    console.error("Erro ao sincronizar queixa:", error);
+    res.status(500).json({ error: "Erro ao sincronizar queixa" });
+  }
+});
+
+// ========== SINCRONIZAÇÃO DE PRESSÃO ARTERIAL (chamado pelo app ao registrar pressão) ==========
+router.post("/sync-pressure", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, date, systolic, diastolic, classification } = req.body;
+    if (!matricula || !date || !systolic || !diastolic) {
+      return res.status(400).json({ error: "Matrícula, data e valores de pressão são obrigatórios" });
+    }
+
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp || !emp.userId) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+
+    await db.insert(bloodPressureRecords).values({
+      userId: emp.userId,
+      date,
+      systolic: parseInt(systolic),
+      diastolic: parseInt(diastolic),
+      classification: classification || "normal",
+    });
+
+    console.log(`[API] Pressão sincronizada: ${emp.name} (${date}) - ${systolic}/${diastolic}`);
+    res.json({ success: true, action: "created", message: "Pressão arterial sincronizada" });
+  } catch (error) {
+    console.error("Erro ao sincronizar pressão:", error);
+    res.status(500).json({ error: "Erro ao sincronizar pressão arterial" });
+  }
+});
+
 export default router;
