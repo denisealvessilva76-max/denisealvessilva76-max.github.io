@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Canteiro Saudável - Painel Administrativo</title>
-    <style>/* Reset e Variáveis */
+    <style>
+/* Reset e Variáveis */
 * {
     margin: 0;
     padding: 0;
@@ -999,6 +1000,7 @@ body {
     border-top: 1px solid var(--border);
     width: 100%;
 }
+
 </style>
 </head>
 <body>
@@ -1371,7 +1373,8 @@ body {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- App Script -->
-    <script>/**
+    <script>
+/**
  * Painel Administrativo - Canteiro Saudável
  * Versão 3.0 - Sincronização PostgreSQL + Firebase fallback, credenciais personalizadas
  */
@@ -3255,6 +3258,7 @@ async function loadMonthlyEvolution(months = 6) {
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 });
+
 </script>
 </body>
 </html>
