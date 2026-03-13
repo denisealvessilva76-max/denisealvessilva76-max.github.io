@@ -118,6 +118,50 @@ export async function syncPressureToPostgres(params: {
 }
 
 /**
+ * Sincronizar desafio com PostgreSQL
+ */
+export async function syncChallengeToPostgres(params: {
+  matricula: string;
+  challengeId: string;
+  title: string;
+  status: "active" | "completed" | "abandoned";
+  progress: number;
+  currentValue: number;
+  goalValue: number;
+  startDate: string;
+  completedDate?: string | null;
+}): Promise<void> {
+  await postToApi("sync-challenge", params);
+}
+
+/**
+ * Sincronizar comunicado lido com PostgreSQL
+ */
+export async function syncAnnouncementReadToPostgres(params: {
+  matricula: string;
+  announcementId: string;
+  readAt: string;
+}): Promise<void> {
+  await postToApi("sync-announcement-read", params);
+}
+
+/**
+ * Sincronizar triagem de comorbidades com PostgreSQL
+ */
+export async function syncComorbidityToPostgres(params: {
+  matricula: string;
+  date: string;
+  weight?: number;
+  height?: number;
+  imc?: number;
+  imcStatus?: string;
+  glucoseLevel?: number;
+  riskFlags?: string[];
+}): Promise<void> {
+  await postToApi("sync-comorbidity", params);
+}
+
+/**
  * Salvar URL do servidor para uso futuro (chamado ao publicar o app)
  */
 export async function setServerApiUrl(url: string): Promise<void> {

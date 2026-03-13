@@ -1001,6 +1001,65 @@ body {
     width: 100%;
 }
 
+/* ========== COMUNICADOS ========== */
+.announcements-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.announcement-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    border-left: 4px solid var(--primary);
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s;
+}
+
+.announcement-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.announcement-form-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.announcement-form-card h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: var(--foreground);
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-top: 4px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
 </style>
 </head>
 <body>
@@ -1062,6 +1121,7 @@ body {
                 <button class="tab" data-tab="employees">👷 Funcionários</button>
                 <button class="tab" data-tab="reports">📈 Relatórios</button>
                 <button class="tab" data-tab="rewards">🏆 Recompensas</button>
+                <button class="tab" data-tab="comunicados">📢 Comunicados</button>
             </div>
 
             <!-- Barra de Filtros -->
@@ -1086,6 +1146,16 @@ body {
                         <button class="filter-pill active" data-shift="all">Todos</button>
                         <button class="filter-pill" data-shift="diurno">☀️ Diurno</button>
                         <button class="filter-pill" data-shift="noturno">🌙 Noturno</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">⚠️ Grupo de Risco</label>
+                    <div class="filter-pills" id="risk-pills">
+                        <button class="filter-pill active" data-risk="all">Todos</button>
+                        <button class="filter-pill" data-risk="hipertensao">🟥 Hipertensão</button>
+                        <button class="filter-pill" data-risk="sobrepeso">🟡 Sobrepeso</button>
+                        <button class="filter-pill" data-risk="queixas">⚠️ Queixas</button>
+                        <button class="filter-pill" data-risk="sem-checkin">🔴 Sem Check-in</button>
                     </div>
                 </div>
                 <div class="filter-summary" id="filter-summary">Mostrando: todos os funcionários</div>
@@ -1224,6 +1294,56 @@ body {
                 </div>
                 <div id="ranking-list" class="ranking-container">
                     <p class="text-muted">Carregando ranking...</p>
+                </div>
+            </div>
+
+            <!-- Aba: Comunicados -->
+            <div id="comunicados-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>📢 Comunicados e Avisos</h2>
+                    <button class="btn-primary" id="add-announcement-btn">+ Novo Comunicado</button>
+                </div>
+                <p class="text-muted" style="margin-bottom:16px;">Envie avisos, campanhas de saúde e informações importantes para os trabalhadores.</p>
+
+                <!-- Formulário de novo comunicado -->
+                <div id="announcement-form-container" style="display:none;" class="announcement-form-card">
+                    <h3>📝 Novo Comunicado</h3>
+                    <div class="form-group">
+                        <label>Título *</label>
+                        <input type="text" id="ann-title" placeholder="Ex: Campanha de Hidratação" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoria *</label>
+                        <select id="ann-category" class="form-input">
+                            <option value="informativo">ℹ️ Informativo</option>
+                            <option value="urgente">🚨 Urgente</option>
+                            <option value="saude">💚 Saúde</option>
+                            <option value="desafio">🏆 Desafio</option>
+                            <option value="geral">📢 Geral</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem *</label>
+                        <textarea id="ann-body" placeholder="Escreva o comunicado aqui..." class="form-input" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL da Imagem (opcional)</label>
+                        <input type="url" id="ann-image" placeholder="https://..." class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Expira em (opcional)</label>
+                        <input type="datetime-local" id="ann-expires" class="form-input">
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:12px;">
+                        <button class="btn-primary" id="save-announcement-btn">📤 Publicar</button>
+                        <button class="btn-secondary" id="cancel-announcement-btn">Cancelar</button>
+                    </div>
+                    <div id="ann-feedback" style="margin-top:8px;font-size:13px;"></div>
+                </div>
+
+                <!-- Lista de comunicados -->
+                <div id="announcements-list" class="announcements-grid">
+                    <p class="text-muted">Carregando comunicados...</p>
                 </div>
             </div>
         </main>
@@ -1541,6 +1661,7 @@ let chartsInstances = {};
 let filterState = {
     period: 'week',       // 'week' | 'month' | 'custom'
     shift: 'all',         // 'all' | 'diurno' | 'noturno'
+    risk: 'all',          // 'all' | 'hipertensao' | 'sobrepeso' | 'queixas' | 'sem-checkin'
     dateFrom: null,       // string YYYY-MM-DD (para custom)
     dateTo: null,         // string YYYY-MM-DD (para custom)
 };
@@ -1567,20 +1688,58 @@ function getDateRange() {
 
 /** Retorna os funcionários filtrados pelo turno selecionado */
 function getFilteredEmployees() {
-    if (filterState.shift === 'all') return employeesData;
-    return employeesData.filter(emp => {
-        const t = (emp.turno || '').toLowerCase();
-        return t === filterState.shift;
-    });
+    let result = employeesData;
+
+    // Filtro por turno
+    if (filterState.shift !== 'all') {
+        result = result.filter(emp => (emp.turno || '').toLowerCase() === filterState.shift);
+    }
+
+    // Filtro por grupo de risco
+    if (filterState.risk !== 'all') {
+        const today = new Date().toISOString().split('T')[0];
+        result = result.filter(emp => {
+            if (filterState.risk === 'hipertensao') {
+                // Tem registro de pressão com classificação hipertensão
+                const pressures = Object.values(emp.bloodPressure || {});
+                return pressures.some(p => p && p.systolic >= 140 || (p && p.diastolic >= 90));
+            }
+            if (filterState.risk === 'sobrepeso') {
+                // IMC > 25 (precisa de peso e altura no perfil)
+                const peso = parseFloat(emp.peso || emp.weight || 0);
+                const altura = parseFloat(emp.altura || emp.height || 0) / 100;
+                if (peso > 0 && altura > 0) {
+                    const imc = peso / (altura * altura);
+                    return imc >= 25;
+                }
+                return false;
+            }
+            if (filterState.risk === 'queixas') {
+                // Tem queixas registradas
+                const symptoms = Object.values(emp.symptoms || {});
+                return symptoms.length > 0;
+            }
+            if (filterState.risk === 'sem-checkin') {
+                // Não fez check-in hoje
+                const todayCheckin = emp.checkins && emp.checkins[today];
+                return !todayCheckin;
+            }
+            return true;
+        });
+    }
+
+    return result;
 }
 
 /** Atualiza o texto de resumo do filtro */
 function updateFilterSummary() {
     const { from, to } = getDateRange();
     const shiftLabel = filterState.shift === 'all' ? 'todos os turnos' : filterState.shift;
+    const riskLabels = { all: '', hipertensao: ' · 🟥 Hipertensão', sobrepeso: ' · 🟡 Sobrepeso', queixas: ' · ⚠️ Queixas', 'sem-checkin': ' · 🔴 Sem Check-in' };
+    const riskLabel = riskLabels[filterState.risk] || '';
     const filtered = getFilteredEmployees();
     document.getElementById('filter-summary').textContent =
-        `Mostrando: ${filtered.length} funcionário(s) · ${shiftLabel} · ${formatDate(from)} a ${formatDate(to)}`;
+        `Mostrando: ${filtered.length} funcionário(s) · ${shiftLabel}${riskLabel} · ${formatDate(from)} a ${formatDate(to)}`;
 }
 
 function formatDate(dateStr) {
@@ -2675,6 +2834,9 @@ document.querySelectorAll('.tab').forEach(tab => {
         if (tabName === 'reports') {
             loadMonthlyEvolution(6);
         }
+        if (tabName === 'comunicados') {
+            loadAnnouncements();
+        }
     });
 });
 
@@ -2730,6 +2892,15 @@ document.querySelectorAll('#shift-pills .filter-pill').forEach(btn => {
         document.querySelectorAll('#shift-pills .filter-pill').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         filterState.shift = btn.dataset.shift;
+        updateDashboard();
+    });
+});
+
+document.querySelectorAll('#risk-pills .filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#risk-pills .filter-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterState.risk = btn.dataset.risk;
         updateDashboard();
     });
 });
@@ -3253,6 +3424,117 @@ async function loadMonthlyEvolution(months = 6) {
         `;
     }
 }
+
+// ========== COMUNICADOS ==========
+
+/** Carrega comunicados da API e renderiza na lista */
+async function loadAnnouncements() {
+    const container = document.getElementById('announcements-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted">Carregando comunicados...</p>';
+    try {
+        const data = await fetch(`${API_BASE}/announcements`).then(r => r.json());
+        const list = data.announcements || [];
+        if (list.length === 0) {
+            container.innerHTML = '<p class="text-muted">Nenhum comunicado publicado ainda.</p>';
+            return;
+        }
+        const categoryColors = {
+            urgente: '#EF4444', informativo: '#3B82F6', saude: '#22C55E',
+            desafio: '#F59E0B', geral: '#6B7280'
+        };
+        const categoryLabels = {
+            urgente: '🚨 Urgente', informativo: 'ℹ️ Informativo', saude: '💚 Saúde',
+            desafio: '🏆 Desafio', geral: '📢 Geral'
+        };
+        container.innerHTML = list.map(ann => {
+            const color = categoryColors[ann.category] || '#6B7280';
+            const label = categoryLabels[ann.category] || ann.category;
+            const date = new Date(ann.createdAt).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            const expires = ann.expiresAt ? `<span style="color:#F59E0B;font-size:11px;">Expira: ${new Date(ann.expiresAt).toLocaleDateString('pt-BR')}</span>` : '';
+            const img = ann.imageUrl ? `<img src="${ann.imageUrl}" alt="" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin:8px 0;">` : '';
+            return `
+                <div class="announcement-card" style="border-left:4px solid ${color};">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                        <div style="flex:1;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                <span style="background:${color}20;color:${color};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">${label}</span>
+                                ${expires}
+                            </div>
+                            <h3 style="margin:0 0 6px;font-size:15px;">${ann.title}</h3>
+                            ${img}
+                            <p style="margin:0 0 8px;font-size:13px;color:var(--muted);line-height:1.5;">${ann.body}</p>
+                            <div style="font-size:11px;color:var(--muted);">
+                                Publicado em ${date} por ${ann.createdBy || 'Admin'}
+                            </div>
+                        </div>
+                        <button onclick="deleteAnnouncement('${ann.id}')" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:18px;padding:4px;" title="Remover">🗑️</button>
+                    </div>
+                </div>`;
+        }).join('');
+    } catch (e) {
+        container.innerHTML = `<p style="color:#EF4444;">Erro ao carregar comunicados: ${e.message}</p>`;
+    }
+}
+
+/** Publica um novo comunicado */
+async function saveAnnouncement() {
+    const title = document.getElementById('ann-title').value.trim();
+    const body = document.getElementById('ann-body').value.trim();
+    const category = document.getElementById('ann-category').value;
+    const imageUrl = document.getElementById('ann-image').value.trim();
+    const expiresAt = document.getElementById('ann-expires').value;
+    const feedback = document.getElementById('ann-feedback');
+
+    if (!title || !body) {
+        feedback.style.color = '#EF4444';
+        feedback.textContent = 'Título e mensagem são obrigatórios.';
+        return;
+    }
+    try {
+        feedback.style.color = '#6B7280';
+        feedback.textContent = 'Publicando...';
+        await apiRequest('/announcements', {
+            method: 'POST',
+            body: JSON.stringify({ title, body, category, imageUrl: imageUrl || undefined, expiresAt: expiresAt || undefined })
+        });
+        feedback.style.color = '#22C55E';
+        feedback.textContent = '✅ Comunicado publicado com sucesso!';
+        document.getElementById('ann-title').value = '';
+        document.getElementById('ann-body').value = '';
+        document.getElementById('ann-image').value = '';
+        document.getElementById('ann-expires').value = '';
+        setTimeout(() => {
+            document.getElementById('announcement-form-container').style.display = 'none';
+            feedback.textContent = '';
+            loadAnnouncements();
+        }, 1500);
+    } catch (e) {
+        feedback.style.color = '#EF4444';
+        feedback.textContent = `Erro: ${e.message}`;
+    }
+}
+
+/** Remove um comunicado */
+async function deleteAnnouncement(id) {
+    if (!confirm('Remover este comunicado?')) return;
+    try {
+        await apiRequest(`/announcements/${id}`, { method: 'DELETE' });
+        loadAnnouncements();
+    } catch (e) {
+        alert('Erro ao remover: ' + e.message);
+    }
+}
+
+// Botões da aba comunicados
+document.getElementById('add-announcement-btn').addEventListener('click', () => {
+    const form = document.getElementById('announcement-form-container');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('save-announcement-btn').addEventListener('click', saveAnnouncement);
+document.getElementById('cancel-announcement-btn').addEventListener('click', () => {
+    document.getElementById('announcement-form-container').style.display = 'none';
+});
 
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', () => {

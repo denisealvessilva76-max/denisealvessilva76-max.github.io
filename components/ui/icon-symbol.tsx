@@ -20,6 +20,8 @@ const MAPPING = {
   "chevron.right": "chevron-right",
   "heart.fill": "favorite",
   "person.fill": "person",
+  "bell.fill": "notifications",
+  "megaphone.fill": "campaign",
 } as IconMapping;
 
 /**

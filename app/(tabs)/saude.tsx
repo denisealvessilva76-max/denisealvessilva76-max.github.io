@@ -24,6 +24,46 @@ export default function SaudeScreen() {
       if (mat) setMatricula(mat);
     });
   }, []);
+  // Triagem de Comorbidades
+  const [showTriagem, setShowTriagem] = useState(false);
+  const [triagemGlicemia, setTriagemGlicemia] = useState("");
+  const [triagemPeso, setTriagemPeso] = useState("");
+  const [triagemAltura, setTriagemAltura] = useState("");
+  const [triagemResultado, setTriagemResultado] = useState<null | { imc: number; imcClass: string; imcColor: string; riscos: string[] }>(null);
+
+  const calcularTriagem = () => {
+    const peso = parseFloat(triagemPeso);
+    const altura = parseFloat(triagemAltura) / 100;
+    const glicemia = parseFloat(triagemGlicemia);
+    const riscos: string[] = [];
+    let imc = 0;
+    let imcClass = "";
+    let imcColor = "#22C55E";
+
+    if (peso > 0 && altura > 0) {
+      imc = peso / (altura * altura);
+      if (imc < 18.5) { imcClass = "Abaixo do peso"; imcColor = "#F59E0B"; riscos.push("IMC abaixo do ideal — risco de desnutrição e fadiga"); }
+      else if (imc < 25) { imcClass = "Peso normal"; imcColor = "#22C55E"; }
+      else if (imc < 30) { imcClass = "Sobrepeso"; imcColor = "#F59E0B"; riscos.push("Sobrepeso — risco aumentado para doenças cardiovasculares"); }
+      else if (imc < 35) { imcClass = "Obesidade grau I"; imcColor = "#EF4444"; riscos.push("Obesidade grau I — risco elevado para diabetes e hipertensão"); }
+      else { imcClass = "Obesidade grau II+"; imcColor = "#991B1B"; riscos.push("Obesidade severa — risco muito elevado, recomenda-se avaliação médica urgente"); }
+    }
+
+    if (glicemia > 0) {
+      if (glicemia >= 100 && glicemia < 126) riscos.push("Glicemia de jejum alterada (pré-diabetes) — monitore a alimentação");
+      else if (glicemia >= 126) riscos.push("Glicemia elevada — possível diabetes, procure avaliação médica");
+    }
+
+    if (latestPressure) {
+      const cls = classifyPressure(latestPressure.systolic, latestPressure.diastolic);
+      if (cls === "hipertensao") riscos.push("Pressão arterial elevada — risco cardiovascular aumentado");
+      else if (cls === "pre-hipertensao") riscos.push("Pressão arterial limítrofe — atenção à alimentação e estresse");
+    }
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTriagemResultado({ imc: Math.round(imc * 10) / 10, imcClass, imcColor, riscos });
+  };
+
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
@@ -353,6 +393,110 @@ export default function SaudeScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
+              </View>
+            )}
+          </Card>
+
+          {/* Seção de Triagem de Saúde */}
+          <Card className="gap-4">
+            <View className="flex-row items-center justify-between">
+              <View>
+                <Text className="text-lg font-semibold text-foreground">🧑‍⚕️ Triagem de Saúde</Text>
+                <Text className="text-xs text-muted">IMC, glicemia e riscos de comorbidades</Text>
+              </View>
+              <TouchableOpacity
+                className="bg-primary/10 px-3 py-1 rounded-lg active:opacity-80"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowTriagem(!showTriagem);
+                  setTriagemResultado(null);
+                }}
+              >
+                <Text className="text-primary text-sm font-medium">{showTriagem ? "Fechar" : "Iniciar"}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {showTriagem && (
+              <View className="gap-4">
+                <View className="flex-row gap-2">
+                  <View className="flex-1">
+                    <Text className="text-xs text-muted mb-1">Peso (kg)</Text>
+                    <TextInput
+                      className="bg-surface border border-border rounded-lg p-2 text-foreground"
+                      placeholder="70"
+                      placeholderTextColor="#687076"
+                      keyboardType="decimal-pad"
+                      value={triagemPeso}
+                      onChangeText={setTriagemPeso}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xs text-muted mb-1">Altura (cm)</Text>
+                    <TextInput
+                      className="bg-surface border border-border rounded-lg p-2 text-foreground"
+                      placeholder="170"
+                      placeholderTextColor="#687076"
+                      keyboardType="number-pad"
+                      value={triagemAltura}
+                      onChangeText={setTriagemAltura}
+                    />
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-xs text-muted mb-1">Glicemia de jejum (mg/dL) — opcional</Text>
+                  <TextInput
+                    className="bg-surface border border-border rounded-lg p-2 text-foreground"
+                    placeholder="Ex: 95"
+                    placeholderTextColor="#687076"
+                    keyboardType="number-pad"
+                    value={triagemGlicemia}
+                    onChangeText={setTriagemGlicemia}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  className="bg-primary rounded-lg py-3 active:opacity-80"
+                  onPress={calcularTriagem}
+                >
+                  <Text className="text-center font-semibold text-white">Calcular Riscos</Text>
+                </TouchableOpacity>
+
+                {triagemResultado && (
+                  <View className="gap-3 p-4 bg-surface rounded-lg border border-border">
+                    {triagemResultado.imc > 0 && (
+                      <View className="flex-row items-center justify-between">
+                        <View>
+                          <Text className="text-xs text-muted">IMC calculado</Text>
+                          <Text className="text-2xl font-bold text-foreground">{triagemResultado.imc}</Text>
+                        </View>
+                        <View className="items-end">
+                          <View style={{ backgroundColor: triagemResultado.imcColor + '20', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 }}>
+                            <Text style={{ color: triagemResultado.imcColor, fontWeight: '600', fontSize: 13 }}>{triagemResultado.imcClass}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+
+                    {triagemResultado.riscos.length === 0 ? (
+                      <View className="flex-row items-center gap-2 p-3 bg-success/10 rounded-lg border border-success">
+                        <Text className="text-success text-base">✅</Text>
+                        <Text className="text-success text-sm font-medium flex-1">Nenhum risco identificado. Continue mantendo hábitos saudáveis!</Text>
+                      </View>
+                    ) : (
+                      <View className="gap-2">
+                        <Text className="text-sm font-semibold text-error">⚠️ Alertas de Risco:</Text>
+                        {triagemResultado.riscos.map((risco, i) => (
+                          <View key={i} className="flex-row gap-2 p-3 bg-error/10 rounded-lg border border-error">
+                            <Text className="text-error text-xs">•</Text>
+                            <Text className="text-foreground text-xs flex-1 leading-relaxed">{risco}</Text>
+                          </View>
+                        ))}
+                        <Text className="text-xs text-muted text-center mt-1">Comunique o SESMT para orientação</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             )}
           </Card>

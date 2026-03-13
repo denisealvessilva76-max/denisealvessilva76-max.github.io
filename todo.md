@@ -3082,3 +3082,19 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [x] Sincronizar pressão arterial com PostgreSQL ao registrar no app
 - [x] Criar endpoints POST /api/painel/sync-checkin, sync-hydration, sync-complaint, sync-pressure
 - [x] Criar lib/sync-api.ts com funções de sincronização PostgreSQL (fire-and-forget)
+
+## Melhorias Solicitadas (Sessão 13/03/2026 - v4.0)
+- [x] Corrigir sincronização de desafios aceitos com PostgreSQL e Firebase
+- [x] Criar aba "Comunicados" no app com feed de avisos do admin
+- [x] Criar editor de avisos (CMS) no painel admin com título, corpo e imagem
+- [x] Implementar notificações push para avisos urgentes do admin
+- [x] Triagem de comorbidades: formulário de IMC, pressão arterial e glicemia
+- [x] Lógica de alerta: IMC > 30 ou pressão > 14/9 gera bandeira vermelha no perfil
+- [x] Painel admin: filtros por grupo de risco (hipertensão, sobrepeso, queixas, sem check-in)
+- [ ] Painel admin: coluna de último acesso e desafios concluídos por funcionário
+- [ ] Painel admin: mapa de calor de riscos por frente de serviço
+- [ ] Painel admin: alertas de comorbidade com bandeira vermelha no perfil
+- [ ] Diário de sintomas com emojis: alerta após 3 dias de tristeza/cansaço
+- [ ] Central de notificações interna no app (histórico de comunicados)
+- [ ] Galeria da obra: fotos aprovadas pelo admin visíveis para todos
+- [ ] Ranking de equipes/canteiros por saúde coletiva

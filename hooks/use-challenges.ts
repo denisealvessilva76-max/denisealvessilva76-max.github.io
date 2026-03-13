@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { saveToFirebase } from "@/lib/firebase";
+import { syncChallengeToPostgres } from "@/lib/sync-api";
 import {
   Challenge,
   ChallengeProgress,
@@ -119,6 +120,19 @@ export function useChallenges() {
         console.error('[Challenges] Erro ao sincronizar desafio:', e);
       }
 
+      // Sincronizar com PostgreSQL
+      syncChallengeToPostgres({
+        matricula: workerId,
+        challengeId,
+        title: challenge.title,
+        status: 'active',
+        progress: 0,
+        currentValue: 0,
+        goalValue: challenge.goal,
+        startDate,
+        completedDate: null,
+      }).catch(() => {});
+
       return true;
     } catch (error) {
       console.error("Erro ao iniciar desafio:", error);
@@ -178,6 +192,22 @@ export function useChallenges() {
         });
       } catch (e) {
         console.error('[Challenges] Erro ao sincronizar progresso:', e);
+      }
+
+      // Sincronizar com PostgreSQL
+      const challenge2 = AVAILABLE_CHALLENGES.find((c) => c.id === challengeId);
+      if (challenge2) {
+        syncChallengeToPostgres({
+          matricula: workerId,
+          challengeId,
+          title: challenge2.title,
+          status: completed ? 'completed' : 'active',
+          progress: Math.min(100, (newValue / challenge2.goal) * 100),
+          currentValue: newValue,
+          goalValue: challenge2.goal,
+          startDate: progressList[progressIndex]?.startDate || new Date().toISOString(),
+          completedDate: completed ? new Date().toISOString() : null,
+        }).catch(() => {});
       }
 
       return true;

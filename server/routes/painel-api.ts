@@ -896,4 +896,164 @@ router.post("/sync-pressure", async (req: Request, res: Response) => {
   }
 });
 
+// ========== SINCRONIZAÇÃO DE DESAFIOS (chamado pelo app ao aceitar/concluir desafio) ==========
+router.post("/sync-challenge", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, challengeId, title, status, progress, currentValue, goalValue, startDate, completedDate } = req.body;
+    if (!matricula || !challengeId) {
+      return res.status(400).json({ error: "Matrícula e ID do desafio são obrigatórios" });
+    }
+
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp || !emp.userId) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+
+    const existing = await db.select().from(challengeProgress)
+      .where(and(eq(challengeProgress.userId, emp.userId), eq(challengeProgress.challengeId, challengeId)))
+      .limit(1);
+
+    const isCompleted = status === 'completed' ? 1 : 0;
+    if (existing.length > 0) {
+      await db.update(challengeProgress)
+        .set({
+          currentValue: currentValue || 0,
+          completed: isCompleted,
+          completedAt: completedDate ? new Date(completedDate) : null,
+        })
+        .where(and(eq(challengeProgress.userId, emp.userId), eq(challengeProgress.challengeId, challengeId)));
+      res.json({ success: true, action: "updated", message: "Desafio atualizado" });
+    } else {
+      const endDateObj = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const startDateObj = startDate ? new Date(startDate) : new Date();
+      await db.insert(challengeProgress).values({
+        userId: emp.userId,
+        challengeId,
+        currentValue: currentValue || 0,
+        targetValue: goalValue || 100,
+        completed: isCompleted,
+        startDate: startDateObj,
+        endDate: endDateObj,
+        completedAt: completedDate ? new Date(completedDate) : null,
+      });
+      res.json({ success: true, action: "created", message: "Desafio registrado" });
+    }
+  } catch (error) {
+    console.error("Erro ao sincronizar desafio:", error);
+    res.status(500).json({ error: "Erro ao sincronizar desafio" });
+  }
+});
+
+// ========== COMUNICADOS — CRUD para o painel admin ==========
+// Armazenamento em memória (pode ser migrado para banco futuramente)
+interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  imageUrl?: string;
+  category: "urgente" | "informativo" | "desafio" | "saude" | "geral";
+  createdAt: string;
+  createdBy?: string;
+  expiresAt?: string;
+}
+
+const announcementsStore: Announcement[] = [
+  {
+    id: "welcome-1",
+    title: "Bem-vindo ao Canteiro Saudável!",
+    body: "Este espaço é dedicado a comunicados importantes da equipe de saúde. Aqui você receberá avisos sobre campanhas de vacinação, lembretes de saúde e novidades do programa.",
+    category: "informativo",
+    createdAt: new Date().toISOString(),
+    createdBy: "SESMT",
+  },
+];
+
+// GET — listar comunicados (acessível pelo app sem autenticação)
+router.get("/announcements", (req: Request, res: Response) => {
+  const active = announcementsStore.filter(a => {
+    if (!a.expiresAt) return true;
+    return new Date(a.expiresAt) > new Date();
+  });
+  res.json({ announcements: active.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) });
+});
+
+// POST — criar comunicado (apenas admin)
+router.post("/announcements", authMiddleware, (req: Request, res: Response) => {
+  const { title, body, category, imageUrl, expiresAt } = req.body;
+  if (!title || !body || !category) {
+    return res.status(400).json({ error: "Título, corpo e categoria são obrigatórios" });
+  }
+  const token = req.headers.authorization?.replace("Bearer ", "") || req.query.token as string;
+  const session = activeSessions.get(token);
+  const newAnnouncement: Announcement = {
+    id: `ann-${Date.now()}`,
+    title,
+    body,
+    category,
+    imageUrl: imageUrl || undefined,
+    expiresAt: expiresAt || undefined,
+    createdAt: new Date().toISOString(),
+    createdBy: session?.name || "Admin",
+  };
+  announcementsStore.unshift(newAnnouncement);
+  console.log(`[API] Comunicado criado: "${title}" por ${newAnnouncement.createdBy}`);
+  res.json({ success: true, announcement: newAnnouncement });
+});
+
+// DELETE — remover comunicado (apenas admin)
+router.delete("/announcements/:id", authMiddleware, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const idx = announcementsStore.findIndex(a => a.id === id);
+  if (idx === -1) return res.status(404).json({ error: "Comunicado não encontrado" });
+  announcementsStore.splice(idx, 1);
+  res.json({ success: true, message: "Comunicado removido" });
+});
+
+// POST — marcar comunicado como lido (chamado pelo app)
+router.post("/sync-announcement-read", async (req: Request, res: Response) => {
+  const { matricula, announcementId, readAt } = req.body;
+  // Apenas loga — pode ser expandido para tabela de leituras
+  console.log(`[API] Comunicado lido: ${matricula} leu ${announcementId} em ${readAt}`);
+  res.json({ success: true });
+});
+
+// ========== SINCRONIZAÇÃO DE COMORBIDADES (triagem de saúde) ==========
+router.post("/sync-comorbidity", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+
+    const { matricula, date, weight, height, imc, imcStatus, glucoseLevel, riskFlags } = req.body;
+    if (!matricula) return res.status(400).json({ error: "Matrícula é obrigatória" });
+
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp) return res.status(404).json({ error: "Funcionário não encontrado" });
+
+    // Atualizar dados de saúde no perfil do funcionário
+    const updateData: Record<string, unknown> = {};
+    if (weight) updateData.weight = weight;
+    if (height) updateData.height = height;
+    if (imc) updateData.imc = imc;
+    if (imcStatus) updateData.imcStatus = imcStatus;
+    if (riskFlags) updateData.riskFlags = JSON.stringify(riskFlags);
+
+    if (Object.keys(updateData).length > 0) {
+      await db.update(employees).set(updateData).where(eq(employees.matricula, matricula.trim()));
+    }
+
+    console.log(`[API] Triagem sincronizada: ${emp.name} - IMC: ${imc} (${imcStatus})`);
+    res.json({ success: true, message: "Triagem de saúde sincronizada" });
+  } catch (error) {
+    console.error("Erro ao sincronizar triagem:", error);
+    res.status(500).json({ error: "Erro ao sincronizar triagem" });
+  }
+});
+
 export default router;
