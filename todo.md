@@ -3098,3 +3098,17 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [ ] Central de notificações interna no app (histórico de comunicados)
 - [ ] Galeria da obra: fotos aprovadas pelo admin visíveis para todos
 - [ ] Ranking de equipes/canteiros por saúde coletiva
+
+## Melhorias Solicitadas (Sessão 17/03/2026 - v5.0)
+- [x] Redesign visual completo do app (nova paleta, tipografia, espaçamentos)
+- [x] Tab bar modernizada com ícones com fundo destacado ao ativo
+- [x] Tela Home redesenhada com cards mais modernos e polidos
+- [x] Tela de Comunicados redesenhada com header arredondado e cards melhorados
+- [x] Corrigir workerId hardcoded no upload de fotos dos desafios (usar matrícula real)
+- [x] Salvar URL do servidor na foto local após upload bem-sucedido
+- [x] Redesign visual completo do painel admin (nova paleta, sombras, tipografia)
+- [x] Painel admin: cards de comunicados com imagem em destaque
+- [x] Painel admin: botão de remover comunicado com visual melhorado
+- [x] Painel admin: foto dos desafios com hover zoom e sombra verde
+- [x] Painel admin: aba de fotos dos desafios funcional com filtro por desafio
+- [x] Painel admin: formulário de comunicados com upload de foto

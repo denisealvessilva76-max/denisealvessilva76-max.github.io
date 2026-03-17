@@ -306,11 +306,24 @@ export default function DesafioDetalheScreen() {
   const [photoDescription, setPhotoDescription] = useState("");
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoEntry | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [workerMatricula, setWorkerMatricula] = useState("user-anonimo");
+  const [workerName, setWorkerName] = useState("");
 
   // Mutation para upload de fotos
   const uploadPhotoMutation = trpc.challengePhotos.upload.useMutation();
 
   const challengeId = Array.isArray(id) ? id[0] : id;
+
+  // Carregar matrícula do trabalhador
+  useEffect(() => {
+    AsyncStorage.getItem("worker_profile").then((data) => {
+      if (data) {
+        const p = JSON.parse(data);
+        if (p.matricula) setWorkerMatricula(p.matricula);
+        if (p.name) setWorkerName(p.name);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     loadChallenge();
@@ -512,7 +525,7 @@ export default function DesafioDetalheScreen() {
       // Sincronizar com backend
       try {
         const uploadResult = await uploadPhotoMutation.mutateAsync({
-          workerId: "user-001", // TODO: usar ID real do usuário
+          workerId: workerMatricula,
           challengeId: challenge!.id,
           challengeName: challenge!.title,
           photoBase64: `data:image/jpeg;base64,${base64}`,
@@ -522,6 +535,17 @@ export default function DesafioDetalheScreen() {
         });
         
         if (uploadResult.success) {
+          // Atualizar a foto local com a URL do servidor
+          const updatedWithUrl = {
+            ...updatedProgress,
+            photos: updatedProgress.photos.map((p, idx) =>
+              idx === updatedProgress.photos.length - 1
+                ? { ...p, serverUrl: uploadResult.photoUrl }
+                : p
+            )
+          };
+          await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedWithUrl));
+          setProgress(updatedWithUrl);
           Alert.alert("📸 Foto enviada!", "Sua foto foi salva e sincronizada com o servidor.");
         } else {
           Alert.alert("⚠️ Foto salva localmente", "A foto foi salva no dispositivo, mas não foi possível sincronizar com o servidor.");
@@ -574,7 +598,7 @@ export default function DesafioDetalheScreen() {
       // Sincronizar com backend
       try {
         const uploadResult = await uploadPhotoMutation.mutateAsync({
-          workerId: "user-001", // TODO: usar ID real do usuário
+          workerId: workerMatricula,
           challengeId: challenge!.id,
           challengeName: challenge!.title,
           photoBase64: `data:image/jpeg;base64,${base64}`,
@@ -584,6 +608,17 @@ export default function DesafioDetalheScreen() {
         });
         
         if (uploadResult.success) {
+          // Atualizar a foto local com a URL do servidor
+          const updatedWithUrl = {
+            ...updatedProgress,
+            photos: updatedProgress.photos.map((p, idx) =>
+              idx === updatedProgress.photos.length - 1
+                ? { ...p, serverUrl: uploadResult.photoUrl }
+                : p
+            )
+          };
+          await AsyncStorage.setItem(`challenge_progress_${challenge?.id}`, JSON.stringify(updatedWithUrl));
+          setProgress(updatedWithUrl);
           Alert.alert("📸 Foto enviada!", "Sua foto foi salva e sincronizada com o servidor.");
         } else {
           Alert.alert("⚠️ Foto salva localmente", "A foto foi salva no dispositivo, mas não foi possível sincronizar com o servidor.");

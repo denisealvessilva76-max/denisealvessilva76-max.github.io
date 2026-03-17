@@ -13,9 +13,11 @@ import {
   bloodPressureRecords,
   gamificationData,
   users,
+  challengePhotos,
 } from "../../drizzle/schema";
 import { eq, desc, gte, and, sql, lte } from "drizzle-orm";
 import { getDb } from "../db";
+import { storagePut } from "../storage";
 
 const router = Router();
 
@@ -1053,6 +1055,77 @@ router.post("/sync-comorbidity", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao sincronizar triagem:", error);
     res.status(500).json({ error: "Erro ao sincronizar triagem" });
+  }
+});
+
+// ========== FOTOS DE DESAFIOS — para o painel admin ==========
+// GET — listar todas as fotos (admin)
+router.get("/challenge-photos", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+    const photos = await db.select().from(challengePhotos)
+      .orderBy(desc(challengePhotos.uploadedAt))
+      .limit(200);
+    res.json({ success: true, data: photos, total: photos.length });
+  } catch (error) {
+    console.error("Erro ao listar fotos:", error);
+    res.status(500).json({ error: "Erro ao listar fotos" });
+  }
+});
+
+// POST — upload de foto de desafio via REST (chamado pelo app)
+router.post("/sync-challenge-photo", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Banco de dados não disponível" });
+    const { matricula, challengeId, challengeName, photoBase64, category, description, uploadedAt } = req.body;
+    if (!matricula || !challengeId || !photoBase64) {
+      return res.status(400).json({ error: "Matrícula, challengeId e foto são obrigatórios" });
+    }
+    const empList = await db.select().from(employees)
+      .where(eq(employees.matricula, matricula.trim())).limit(1);
+    const emp = empList[0];
+    if (!emp) return res.status(404).json({ error: "Funcionário não encontrado" });
+    const workerId = (emp.userId || emp.matricula) as string;
+    // Upload para S3
+    const base64Data = photoBase64.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const ts = Date.now();
+    const fileKey = `challenge-photos/${workerId}/${challengeId}/${ts}.jpg`;
+    const { url } = await storagePut(fileKey, buffer, "image/jpeg");
+    // Salvar no banco
+    const [photo] = await db.insert(challengePhotos).values({
+      workerId,
+      challengeId,
+      challengeName: challengeName || challengeId,
+      photoUrl: url,
+      category: category || "outro",
+      description: description || null,
+      uploadedAt: uploadedAt ? new Date(uploadedAt) : new Date(),
+    }).$returningId();
+    console.log(`[API] Foto de desafio sincronizada: ${emp.name} - ${challengeId}`);
+    res.json({ success: true, photoId: photo.id, photoUrl: url });
+  } catch (error) {
+    console.error("Erro ao sincronizar foto:", error);
+    res.status(500).json({ error: "Erro ao sincronizar foto" });
+  }
+});
+
+// POST — upload de imagem para comunicado (admin)
+router.post("/announcements/upload-image", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { imageBase64, filename } = req.body;
+    if (!imageBase64) return res.status(400).json({ error: "Imagem é obrigatória" });
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const ext = (filename || "image.jpg").split(".").pop() || "jpg";
+    const fileKey = `announcements/${Date.now()}.${ext}`;
+    const { url } = await storagePut(fileKey, buffer, `image/${ext}`);
+    res.json({ success: true, imageUrl: url });
+  } catch (error) {
+    console.error("Erro ao fazer upload de imagem:", error);
+    res.status(500).json({ error: "Erro ao fazer upload de imagem" });
   }
 });
 
