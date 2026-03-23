@@ -68,15 +68,10 @@ async function startServer() {
   // API do Painel SESMT (dados do PostgreSQL)
   app.use("/api/painel", painelApiRoutes);
 
-  // Painel SESMT (arquivo HTML estático)
-  app.get("/painel", (_req, res) => {
-    const painelPath = path.resolve(__dirname, "../../painel-sesmt.html");
-    res.sendFile(painelPath, (err) => {
-      if (err) {
-        res.status(404).json({ error: "Painel não encontrado", path: painelPath });
-      }
-    });
-  });
+  // Painel SESMT (arquivo HTML estático) - rota /painel e /painel.html
+  const painelHtmlPath = path.resolve(__dirname, "../../public/painel.html");
+  app.get("/painel", (_req, res) => res.sendFile(painelHtmlPath));
+  app.get("/painel.html", (_req, res) => res.sendFile(painelHtmlPath));
 
   // Admin routes
   app.use("/api/admin", adminRoutes);
@@ -101,6 +96,22 @@ async function startServer() {
       createContext,
     }),
   );
+
+  // Servir o app web estático (build Expo) - deve vir DEPOIS das rotas de API
+  const webDistPath = path.resolve(__dirname, "../../dist-web");
+  app.use(express.static(webDistPath));
+
+  // Servir arquivos da pasta public (ícones, manifest, sw.js, painel.html)
+  const publicPath = path.resolve(__dirname, "../../public");
+  app.use(express.static(publicPath));
+
+  // SPA fallback - redireciona qualquer rota não encontrada para o index.html do app
+  app.get("*", (_req, res) => {
+    const indexPath = path.resolve(webDistPath, "index.html");
+    res.sendFile(indexPath, (err) => {
+      if (err) res.status(404).send("Not found");
+    });
+  });
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "pnpm install && npx expo export --platform web --output-dir dist-web && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
+  },
+  "deploy": {
+    "startCommand": "NODE_ENV=production node dist/index.js",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
