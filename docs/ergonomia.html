@@ -1,403 +1,450 @@
-<!DOCTYPE html><html  lang="en"><head><title data-rh="true"></title><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><style id="expo-reset">#root,body,html{height:100%}body{overflow:hidden}#root{display:flex}</style><style id="react-native-stylesheet">[stylesheet-group="0"]{}
-body{margin:0;}
-button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0;}
-html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:rgba(0,0,0,0);}
-input::-webkit-search-cancel-button,input::-webkit-search-decoration,input::-webkit-search-results-button,input::-webkit-search-results-decoration{display:none;}
-[stylesheet-group="1"]{}
-.css-11aywtz{-moz-appearance:textfield;-webkit-appearance:none;background-color:rgba(0,0,0,0.00);border-bottom-left-radius:0px;border-bottom-right-radius:0px;border-top-left-radius:0px;border-top-right-radius:0px;border:0 solid black;box-sizing:border-box;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;margin:0px;padding:0px;resize:none;}
-.css-146c3p1{background-color:rgba(0,0,0,0.00);border:0 solid black;box-sizing:border-box;color:rgba(0,0,0,1.00);display:inline;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;list-style:none;margin:0px;padding:0px;position:relative;text-align:start;text-decoration:none;white-space:pre-wrap;word-wrap:break-word;}
-.css-1jxf684{background-color:rgba(0,0,0,0.00);border:0 solid black;box-sizing:border-box;color:inherit;display:inline;font:inherit;list-style:none;margin:0px;padding:0px;position:relative;text-align:inherit;text-decoration:none;white-space:inherit;word-wrap:break-word;}
-.css-9pa8cd{bottom:0px;height:100%;left:0px;opacity:0;position:absolute;right:0px;top:0px;width:100%;z-index:-1;}
-.css-g5y9jx{align-content:flex-start;align-items:stretch;background-color:rgba(0,0,0,0.00);border:0 solid black;box-sizing:border-box;display:flex;flex-basis:auto;flex-direction:column;flex-shrink:0;list-style:none;margin:0px;min-height:0px;min-width:0px;padding:0px;position:relative;text-decoration:none;z-index:0;}
-[stylesheet-group="2"]{}
-.r-11mg6pl{border-bottom-color:rgba(255,255,255,1.00);border-left-color:rgba(255,255,255,1.00);border-right-color:rgba(255,255,255,1.00);border-top-color:rgba(255,255,255,1.00);}
-.r-13awgt0{flex:1;}
-.r-16uyjmq{border-bottom-left-radius:22px;border-bottom-right-radius:22px;border-top-left-radius:22px;border-top-right-radius:22px;}
-.r-1867qdf{border-bottom-left-radius:16px;border-bottom-right-radius:16px;border-top-left-radius:16px;border-top-right-radius:16px;}
-.r-1awa8pu{border-bottom-color:rgba(101,119,134,1.00);border-left-color:rgba(101,119,134,1.00);border-right-color:rgba(101,119,134,1.00);border-top-color:rgba(101,119,134,1.00);}
-.r-1bq2mok{margin:3px;}
-.r-1d4xg89{border-bottom-color:rgba(170,184,194,1.00);border-left-color:rgba(170,184,194,1.00);border-right-color:rgba(170,184,194,1.00);border-top-color:rgba(170,184,194,1.00);}
-.r-1dzdj1l{border-bottom-left-radius:10px;border-bottom-right-radius:10px;border-top-left-radius:10px;border-top-right-radius:10px;}
-.r-1f0042m{border-bottom-left-radius:5px;border-bottom-right-radius:5px;border-top-left-radius:5px;border-top-right-radius:5px;}
-.r-1fuqb1j{border-bottom-left-radius:24px;border-bottom-right-radius:24px;border-top-left-radius:24px;border-top-right-radius:24px;}
-.r-1j16mh1{border-bottom-left-radius:100%;border-bottom-right-radius:100%;border-top-left-radius:100%;border-top-right-radius:100%;}
-.r-1jkafct{border-bottom-left-radius:2px;border-bottom-right-radius:2px;border-top-left-radius:2px;border-top-right-radius:2px;}
-.r-1jyn79y{border-bottom-color:rgba(0,150,136,1.00);border-left-color:rgba(0,150,136,1.00);border-right-color:rgba(0,150,136,1.00);border-top-color:rgba(0,150,136,1.00);}
-.r-1oqcu8e{padding:15px;}
-.r-1pcd2l5{padding:20px;}
-.r-1phboty{border-bottom-style:solid;border-left-style:solid;border-right-style:solid;border-top-style:solid;}
-.r-1q9bdsx{border-bottom-left-radius:12px;border-bottom-right-radius:12px;border-top-left-radius:12px;border-top-right-radius:12px;}
-.r-1qsk4np{overflow-x:clip;overflow-y:clip;}
-.r-1rf8fdq{border-bottom-width:1.5px;border-left-width:1.5px;border-right-width:1.5px;border-top-width:1.5px;}
-.r-1rvyss1{border-bottom-color:rgba(255,255,255,0.20);border-left-color:rgba(255,255,255,0.20);border-right-color:rgba(255,255,255,0.20);border-top-color:rgba(255,255,255,0.20);}
-.r-1slz7xr{padding:14px;}
-.r-1sp51qo{padding:10px;}
-.r-1udh08x{overflow-x:hidden;overflow-y:hidden;}
-.r-1uu6nss{padding:5px;}
-.r-1xfd6ze{border-bottom-left-radius:8px;border-bottom-right-radius:8px;border-top-left-radius:8px;border-top-right-radius:8px;}
-.r-4a18lf{border-bottom-color:rgba(255,0,0,1.00);border-left-color:rgba(255,0,0,1.00);border-right-color:rgba(255,0,0,1.00);border-top-color:rgba(255,0,0,1.00);}
-.r-60ke3l{border-bottom-color:rgba(0,128,0,1.00);border-left-color:rgba(0,128,0,1.00);border-right-color:rgba(0,128,0,1.00);border-top-color:rgba(0,128,0,1.00);}
-.r-6ncur5{border-bottom-left-radius:18px;border-bottom-right-radius:18px;border-top-left-radius:18px;border-top-right-radius:18px;}
-.r-6t2glc{border-bottom-left-radius:40px;border-bottom-right-radius:40px;border-top-left-radius:40px;border-top-right-radius:40px;}
-.r-9x6qib{border-bottom-color:rgba(204,214,221,1.00);border-left-color:rgba(204,214,221,1.00);border-right-color:rgba(204,214,221,1.00);border-top-color:rgba(204,214,221,1.00);}
-.r-akm1g9{padding:36px;}
-.r-crgep1{margin:0px;}
-.r-d045u9{border-bottom-width:2px;border-left-width:2px;border-right-width:2px;border-top-width:2px;}
-.r-d23pfw{padding:24px;}
-.r-edyy15{padding:8px;}
-.r-fx7oqy{border-bottom-color:rgba(0,0,255,1.00);border-left-color:rgba(0,0,255,1.00);border-right-color:rgba(0,0,255,1.00);border-top-color:rgba(0,0,255,1.00);}
-.r-kdyh1x{border-bottom-left-radius:6px;border-bottom-right-radius:6px;border-top-left-radius:6px;border-top-right-radius:6px;}
-.r-krxsd3{display:-webkit-box;}
-.r-nsbfu8{padding:16px;}
-.r-oexghg{border-bottom-color:rgba(255,255,255,0.25);border-left-color:rgba(255,255,255,0.25);border-right-color:rgba(255,255,255,0.25);border-top-color:rgba(255,255,255,0.25);}
-.r-rs99b7{border-bottom-width:1px;border-left-width:1px;border-right-width:1px;border-top-width:1px;}
-.r-t23y2h{border-bottom-left-radius:14px;border-bottom-right-radius:14px;border-top-left-radius:14px;border-top-right-radius:14px;}
-.r-t60dpp{padding:0px;}
-.r-wg31gx{border-bottom-color:rgba(49,53,56,1.00);border-left-color:rgba(49,53,56,1.00);border-right-color:rgba(49,53,56,1.00);border-top-color:rgba(49,53,56,1.00);}
-.r-whuqzp{padding:18px;}
-.r-xoduu5{display:inline-flex;}
-.r-y47klf{border-bottom-left-radius:20px;border-bottom-right-radius:20px;border-top-left-radius:20px;border-top-right-radius:20px;}
-.r-ywje51{margin:auto;}
-.r-z2wwpe{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-top-left-radius:4px;border-top-right-radius:4px;}
-[stylesheet-group="2.1"]{}
-.r-11f147o{padding-bottom:8px;padding-top:8px;}
-.r-11gswi8{padding-left:3px;padding-right:3px;}
-.r-17q4wm6{margin-left:5px;margin-right:5px;}
-.r-184id4b{margin-bottom:12px;margin-top:12px;}
-.r-1d7mnkm{padding-bottom:15px;padding-top:15px;}
-.r-1e084wi{padding-left:0px;padding-right:0px;}
-.r-1mmae3n{padding-bottom:12px;padding-top:12px;}
-.r-1ntr0p{padding-left:5px;padding-right:5px;}
-.r-1rsorjc{padding-left:36px;padding-right:36px;}
-.r-1ubuhtd{padding-left:10px;padding-right:10px;}
-.r-1yd117h{padding-bottom:7px;padding-top:7px;}
-.r-3o4zer{padding-left:12px;padding-right:12px;}
-.r-3pj75a{padding-left:16px;padding-right:16px;}
-.r-cnw61z{padding-bottom:4px;padding-top:4px;}
-.r-cxgwc0{padding-left:24px;padding-right:24px;}
-.r-f8sm7e{margin-left:auto;margin-right:auto;}
-.r-gu64tb{padding-left:14px;padding-right:14px;}
-.r-h0bjfv{padding-left:22px;padding-right:22px;}
-.r-is05cd{padding-left:8px;padding-right:8px;}
-.r-jdiy1a{margin-left:11px;margin-right:11px;}
-.r-jusfrs{margin-left:12px;margin-right:12px;}
-.r-n5f61p{margin-bottom:3px;margin-top:3px;}
-.r-n7gxbd{padding-left:4px;padding-right:4px;}
-.r-rehuqn{padding-bottom:5px;padding-top:5px;}
-.r-u9wvl5{padding-left:20px;padding-right:20px;}
-.r-ugi1tw{padding-left:5%;padding-right:5%;}
-.r-w7s2jr{padding-bottom:16px;padding-top:16px;}
-.r-ytbthy{padding-bottom:10px;padding-top:10px;}
-[stylesheet-group="2.2"]{}
-.r-10s2tm5{left:0%;}
-.r-16o8guy{right:100%;}
-.r-1a11zyx{margin-right:12px;}
-.r-1cwvpvk{margin-left:12px;}
-.r-1e97lx8{margin-right:3px;}
-.r-1euzeng{padding-left:24px;}
-.r-1g4tz6n{margin-right:-14.5px;}
-.r-1h31txp{padding-right:16px;}
-.r-1lhn9r{margin-left:-14.5px;}
-.r-1sqnqi2{margin-left:3px;}
-.r-1vl2501{padding-right:24px;}
-.r-9mo606{margin-right:10px;}
-.r-c59us2{left:-3px;}
-.r-dqe1q{right:0%;}
-.r-qb41rp{margin-right:5px;}
-.r-rci37q{left:100%;}
-.r-uhung1{margin-left:10px;}
-.r-vpmibe{right:-3px;}
-.r-w67my2{padding-left:16px;}
-.r-wizibn{margin-left:5px;}
-[stylesheet-group="3"]{}
-.r-105ug2t{pointer-events:auto!important;}
-.r-10ptun7{height:16px;}
-.r-10v3vxq{transform:scaleX(-1);}
-.r-10x49cs{font-size:10px;}
-.r-10xqauy{padding-top:env(safe-area-inset-top);}
-.r-10yl4k{line-height:21px;}
-.r-117bsoe{margin-bottom:20px;}
-.r-119zq30{border-left-width:4px;}
-.r-11j9u27{visibility:hidden;}
-.r-11mpjr4{background-color:rgba(223,223,223,1.00);}
-.r-11rk87y{padding-bottom:32px;}
-.r-11udlyb{background-color:rgba(0,150,136,1.00);}
-.r-11v9fek{min-width:180px;}
-.r-11yh6sk{overflow-x:hidden;}
-.r-12f6czt{top:17px;}
-.r-12vffkv>* {pointer-events:auto;}
-.r-12vffkv{pointer-events:none!important;}
-.r-132bva{height:180px;}
-.r-132tqjk{letter-spacing:-0.1px;}
-.r-135wba7{line-height:24px;}
-.r-13aq9py{animation-name:r-1iq689l;}
-.r-13hce6t{margin-left:4px;}
-.r-13qz1uu{width:100%;}
-.r-13tjlyg{transition-duration:0.1s;}
-.r-1472mwg{height:24px;}
-.r-14gqq1x{margin-top:4px;}
-.r-14lw9ot{background-color:rgba(255,255,255,1.00);}
-.r-14sbq61{background-color:rgba(33,150,243,1.00);}
-.r-14yzgew{line-height:18px;}
-.r-150rngu{-webkit-overflow-scrolling:touch;}
-.r-15d164r{margin-bottom:10px;}
-.r-15zivkp{margin-bottom:4px;}
-.r-16eto9q{width:12px;}
-.r-16y2uox{flex-grow:1;}
-.r-173mn98{align-self:flex-end;}
-.r-173mzie{transform:scaleY(-1);}
-.r-1777fci{justify-content:center;}
-.r-17bb2tj{animation-duration:0.75s;}
-.r-17leim2{background-repeat:repeat;}
-.r-17s6mgv{justify-content:flex-end;}
-.r-17st2r6{border-bottom-left-radius:32px;}
-.r-17tb59b{opacity:0.7;}
-.r-17tloay{opacity:0.6;}
-.r-17u3ijr{background-color:rgba(155,161,166,0.27);}
-.r-184en5c{z-index:1;}
-.r-18nhz7w{top:-3px;}
-.r-18u1ve8{color:rgba(255,255,255,0.40);}
-.r-18u37iz{flex-direction:row;}
-.r-19oahor{font-size:64px;}
-.r-19qrga8{margin-top:3px;}
-.r-19wmn03{width:20px;}
-.r-19z077z{touch-action:none;}
-.r-1a2p6p6{-webkit-text-decoration-style:solid;text-decoration-style:solid;}
-.r-1abnn5w{animation-play-state:paused;}
-.r-1acpoxo{width:36px;}
-.r-1aiqnjv{font-family:monospace,monospace;}
-.r-1aockid{width:40px;}
-.r-1awozwy{align-items:center;}
-.r-1ay1djp{animation-duration:1s;}
-.r-1b43r93{font-size:14px;}
-.r-1blvdjr{font-size:23px;}
-.r-1bymd8e{margin-top:2px;}
-.r-1c6unfx{forced-color-adjust:none;}
-.r-1c85bru{width:270px;}
-.r-1cad53l{margin-bottom:14px;}
-.r-1cmwbt1{gap:8px;}
-.r-1d2f490{left:0px;}
-.r-1d5kdc7{flex-direction:column-reverse;}
-.r-1dcumfp{border-bottom-right-radius:32px;}
-.r-1ddef8g{-webkit-text-decoration-line:underline;text-decoration-line:underline;}
-.r-1dernwh{height:70%;}
-.r-1dxwd4s{box-shadow:0px 3px 12px rgba(0,0,0,0.07);}
-.r-1ei5mc7{cursor:inherit;}
-.r-1enofrn{font-size:12px;}
-.r-1euycsn{flex-direction:row-reverse;}
-.r-1ewcgjf{box-shadow:0px 1px 3px rgba(0,0,0,0.5);}
-.r-1ey881g{gap:7px;}
-.r-1ff274t{text-align:right;}
-.r-1ffj0ar{background-color:rgba(0,0,0,0.40);}
-.r-1g7fiml{height:30px;}
-.r-1g80hic{opacity:0.8;}
-.r-1ge9hsw{max-width:960px;}
-.r-1ghxqbu{font-variant:tabular-nums;}
-.r-1gkfh8e{font-size:11px;}
-.r-1h0z5md{justify-content:flex-start;}
-.r-1habvwh{align-items:flex-start;}
-.r-1hndl8{box-shadow:0px 2px 4px rgba(239,68,68,0.40);}
-.r-1i10wst{font-size:18px;}
-.r-1i6wzkk{-moz-transition-property:opacity;-webkit-transition-property:opacity;transition-property:opacity;}
-.r-1i71y14{gap:14px;}
-.r-1ikidpy{letter-spacing:0.5px;}
-.r-1iln25a{word-wrap:normal;}
-.r-1inkyih{font-size:17px;}
-.r-1iusvr4{flex-basis:0px;}
-.r-1janqcz{width:16px;}
-.r-1jh0li6{background-color:rgba(241,245,249,1.00);}
-.r-1jj8364{margin-left:auto;}
-.r-1jkjb{margin-left:8px;}
-.r-1kb76zh{margin-right:8px;}
-.r-1kfrs79{font-weight:600;}
-.r-1kihuf0{align-self:center;}
-.r-1ld3bg{top:-4px;}
-.r-1ldzwu0{animation-timing-function:linear;}
-.r-1loqt21{cursor:pointer;}
-.r-1mlwlqe{flex-basis:auto;}
-.r-1mrlafo{background-position:0;}
-.r-1muvv40{animation-iteration-count:infinite;}
-.r-1niwhzg{background-color:rgba(0,0,0,0.00);}
-.r-1nlw0im{bottom:8px;}
-.r-1no09lo{margin-top:28px;}
-.r-1nxhmzv{margin-bottom:28px;}
-.r-1ny4l3l{outline-style:none;}
-.r-1ocf4r9{scroll-snap-type:y mandatory;}
-.r-1onu96p{border-curve:continuous;}
-.r-1or9b2r{height:10px;}
-.r-1oszu61{align-items:stretch;}
-.r-1otgn73{touch-action:manipulation;}
-.r-1p0dtai{bottom:0px;}
-.r-1pi2tsx{height:100%;}
-.r-1pm8pkb{font-family:Courier;}
-.r-1qd0xha{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-.r-1qulhi1{animation-name:r-1pzkwqh;}
-.r-1r4fvd0{color:rgba(82,169,255,1.00);}
-.r-1r74h94{left:8px;}
-.r-1r8g8re{height:36px;}
-.r-1ra0lkn{font-size:30px;}
-.r-1rnoaur{overflow-y:auto;}
-.r-1s2bzr4{margin-top:12px;}
-.r-1sg8ghl{z-index:1000;}
-.r-1ssbvtb{gap:12px;}
-.r-1sxrcry{background-size:auto;}
-.r-1udbk01{text-overflow:ellipsis;}
-.r-1ui5ee8{font-size:32px;}
-.r-1vr29t4{font-weight:800;}
-.r-1w6e6rj{flex-wrap:wrap;}
-.r-1wbh5a2{flex-shrink:1;}
-.r-1wtj0ep{justify-content:space-between;}
-.r-1wyyakw{z-index:-1;}
-.r-1x35g6{font-size:24px;}
-.r-1xcajam{position:fixed;}
-.r-1xku801{box-shadow:0px 2px 6px rgba(0,0,0,0.05);}
-.r-1xnzce8{-moz-user-select:text;-webkit-user-select:text;user-select:text;}
-.r-1xpsq9i{box-shadow:0px 3px 3px rgba(0, 0, 0, 0.33);}
-.r-1xzupcd{width:13px;}
-.r-1yef0xd{animation-name:r-11cv4x;}
-.r-1ygmrgt{padding-top:24px;}
-.r-2eszeu::-webkit-scrollbar{display:none}
-.r-2eszeu{scrollbar-width:none;}
-.r-30o5oe{-moz-appearance:none;-ms-appearance:none;-webkit-appearance:none;appearance:none;}
-.r-356f0p{letter-spacing:0.35px;}
-.r-3mc0re{right:8px;}
-.r-3s2u2q{white-space:nowrap;}
-.r-3ucsff{letter-spacing:0.2px;}
-.r-417010{z-index:0;}
-.r-4gszlv{background-size:cover;}
-.r-4v7adb{height:5px;}
-.r-580adz{gap:5px;}
-.r-5oul0u{margin-bottom:8px;}
-.r-5soawk{width:10px;}
-.r-60vfwk{min-width:1px;}
-.r-633pao>* {pointer-events:none;}
-.r-633pao{pointer-events:none!important;}
-.r-6dt33c{opacity:1;}
-.r-6gpygo{margin-bottom:12px;}
-.r-6taxm2:-ms-input-placeholder{color:var(--placeholderTextColor);opacity:1;}
-.r-6taxm2::-moz-placeholder{color:var(--placeholderTextColor);opacity:1;}
-.r-6taxm2::-webkit-input-placeholder{color:var(--placeholderTextColor);opacity:1;}
-.r-6taxm2::placeholder{color:var(--placeholderTextColor);opacity:1;}
-.r-726pan{width:31px;}
-.r-76blku{height:21px;}
-.r-7cikom{font-size:inherit;}
-.r-7p11b{color:rgba(255,255,255,0.75);}
-.r-7ptqe7{line-height:23px;}
-.r-7q8q6z{cursor:default;}
-.r-8akbws{-webkit-box-orient:vertical;}
-.r-8ay8q1{letter-spacing:0.1px;}
-.r-97e31f{padding-bottom:env(safe-area-inset-bottom);}
-.r-9aw3ui{gap:4px;}
-.r-9daxd3{animation-duration:250ms;}
-.r-a023e6{font-size:15px;}
-.r-adyw6z{font-size:20px;}
-.r-afbznj{letter-spacing:-0.2px;}
-.r-agouwx{transform:translateZ(0);}
-.r-ah5dr5>* {pointer-events:none;}
-.r-ah5dr5{pointer-events:auto!important;}
-.r-am3kiz{color:rgba(255,255,255,0.90);}
-.r-aruset{font-weight:200;}
-.r-b88u0q{font-weight:700;}
-.r-bi4vy9{transform:translateY(100%);}
-.r-bnwqim{position:relative;}
-.r-bt1l66{min-height:20px;}
-.r-buy8e9{overflow-y:hidden;}
-.r-bv2aro{padding-left:env(safe-area-inset-left);}
-.r-bxxif4{box-shadow:0px 2px 6px rgba(0,0,0,0.04);}
-.r-c68hjy{color:rgba(161,161,161,1.00);}
-.r-cpa5s6{scroll-snap-align:start;}
-.r-cqee49{color:rgba(0,0,0,1.00);}
-.r-dkge59{background-color:rgba(170,184,194,1.00);}
-.r-dnmrzs{max-width:100%;}
-.r-dpkc41{background-color:rgba(239,68,68,1.00);}
-.r-dukzhd{right:14px;}
-.r-eafdt9{transition-duration:0.15s;}
-.r-ebwn4k{animation-name:r-q67da2;}
-.r-ehq7j7{background-size:contain;}
-.r-eqz5dr{flex-direction:column;}
-.r-eu3ka{height:40px;}
-.r-fdjqy7{text-align:left;}
-.r-foe95m{letter-spacing:-0.4px;}
-.r-g3mlsw{animation-name:r-t2lo5v;}
-.r-ghxds0{transform:translateY(0%);}
-.r-gtdqiz{position:-webkit-sticky;position:sticky;}
-.r-h0d30l{height:28px;}
-.r-h7zev3{top:14px;}
-.r-hbpseb{line-height:22px;}
-.r-hhvx09{padding-bottom:36px;}
-.r-hxflta{padding-right:env(safe-area-inset-right);}
-.r-icoktb{opacity:0.5;}
-.r-icto9i{letter-spacing:-0.5px;}
-.r-ipm5af{top:0px;}
-.r-jwli3a{color:rgba(255,255,255,1.00);}
-.r-k200y{align-self:flex-start;}
-.r-kemksi{background-color:rgba(0,0,0,1.00);}
-.r-kizejy{color:rgba(155,161,166,1.00);}
-.r-knv0ih{margin-top:8px;}
-.r-l0yud3{min-width:44%;}
-.r-l71dzp{margin-top:14px;}
-.r-legojq{background-color:rgba(255,255,255,0.18);}
-.r-leqjx2{animation-timing-function:cubic-bezier(0.215, 0.61, 0.355, 1);}
-.r-lltvgl{overflow-x:auto;}
-.r-lpb231{height:168px;}
-.r-lrsllp{width:24px;}
-.r-lrvibr{-moz-user-select:none;-webkit-user-select:none;user-select:none;}
-.r-majxgm{font-weight:500;}
-.r-mfh4gg{scroll-snap-type:x mandatory;}
-.r-mhe3cw{z-index:10;}
-.r-mro3nb{background-color:rgba(21,23,24,1.00);}
-.r-n6v787{font-size:13px;}
-.r-nyc15k{font-size:44px;}
-.r-o4n3w5{width:23px;}
-.r-oh4oqc{box-shadow:0px 2px 8px rgba(0,0,0,0.06);}
-.r-ojf8lh{gap:6px;}
-.r-orgf3d{opacity:0;}
-.r-ovu0ai{font-weight:900;}
-.r-q4m81j{text-align:center;}
-.r-qfi6ny{top:30000px;}
-.r-qklmqi{border-bottom-width:1px;}
-.r-qn3fzs{padding-bottom:24px;}
-.r-r5vmyo{z-index:1002;}
-.r-rjixqe{line-height:20px;}
-.r-rs94m5{background-image:url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgdmVyc2lvbj0iMS4xIgogICB2aWV3Qm94PSIwIDAgMSAxIgogICBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWluWU1pbiBtZWV0Ij4KICA8cGF0aAogICAgIGQ9Ik0gMC4wNDAzODA1OSwwLjYyNjc3NjcgMC4xNDY0NDY2MSwwLjUyMDcxMDY4IDAuNDI5Mjg5MzIsMC44MDM1NTMzOSAwLjMyMzIyMzMsMC45MDk2MTk0MSB6IE0gMC4yMTcxNTcyOSwwLjgwMzU1MzM5IDAuODUzNTUzMzksMC4xNjcxNTcyOSAwLjk1OTYxOTQxLDAuMjczMjIzMyAwLjMyMzIyMzMsMC45MDk2MTk0MSB6IgogICAgIGlkPSJyZWN0Mzc4MCIKICAgICBzdHlsZT0iZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lIiAvPgo8L3N2Zz4K");}
-.r-s62m2j{animation-timing-function:cubic-bezier(0.47, 0, 0.745, 0.715);}
-.r-sfbmgh{z-index:9999;}
-.r-so7y2g{line-height:64px;}
-.r-tbmifm{height:12px;}
-.r-tsynxw{text-transform:uppercase;}
-.r-u6sd8q{background-repeat:no-repeat;}
-.r-u8s1d{position:absolute;}
-.r-u92y06{background-color:rgba(255,165,0,1.00);}
-.r-uaa2di{gap:10px;}
-.r-ubezar{font-size:16px;}
-.r-uho16t{font-size:34px;}
-.r-vacyoi{padding-bottom:64px;}
-.r-van48c{caret-color:transparent;}
-.r-vboj7i{top:-7px;}
-.r-vvn4in{background-position:center;}
-.r-vw2c0b{font-weight:bold;}
-.r-wfqgy4{transition-duration:100ms;}
-.r-wr9vkk{margin-bottom:3px;}
-.r-ws9h79{left:4px;}
-.r-x11e5r{font-family:SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-.r-x3cy2q{background-size:100% 100%;}
-.r-xx3c9p{animation-name:r-imtty0;}
-.r-y7v2we{background-color:rgba(32,36,37,1.00);}
-.r-yie26v{z-index:1001;}
-.r-z80fyv{height:20px;}
-.r-zchlnj{right:0px;}
-.r-zl2h9q{margin-bottom:2px;}
-.r-zz5t5d{font-size:28px;}
-@-webkit-keyframes r-11cv4x{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-@-webkit-keyframes r-1iq689l{0%{transform:translateY(0%);}100%{transform:translateY(100%);}}
-@-webkit-keyframes r-1pzkwqh{0%{transform:translateY(100%);}100%{transform:translateY(0%);}}
-@-webkit-keyframes r-imtty0{0%{opacity:0;}100%{opacity:1;}}
-@-webkit-keyframes r-q67da2{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
-@-webkit-keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}
-@keyframes r-11cv4x{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-@keyframes r-1iq689l{0%{transform:translateY(0%);}100%{transform:translateY(100%);}}
-@keyframes r-1pzkwqh{0%{transform:translateY(100%);}100%{transform:translateY(0%);}}
-@keyframes r-imtty0{0%{opacity:0;}100%{opacity:1;}}
-@keyframes r-q67da2{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
-@keyframes r-t2lo5v{0%{opacity:1;}100%{opacity:0;}}</style><script type="module">globalThis.__EXPO_ROUTER_HYDRATE__=true;</script><link rel="preload" href="/_expo/static/css/web-d3d607e3aaa248b0f6cc02aef1d696be.css" as="style"><link rel="stylesheet" href="/_expo/static/css/web-d3d607e3aaa248b0f6cc02aef1d696be.css"></head><body><div id="root"><div class="css-g5y9jx r-13awgt0"><!--$--><div class="css-g5y9jx" style="flex:1;--color-primary:#16A34A;--color-background:#F0FDF4;--color-surface:#FFFFFF;--color-foreground:#0F172A;--color-muted:#64748B;--color-border:#D1FAE5;--color-success:#16A34A;--color-warning:#D97706;--color-error:#DC2626"><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx" style="flex:1"><div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;visibility:hidden"></div><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx r-13awgt0 r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af" style="background-color:rgba(242,242,242,1.00);display:flex"><div class="css-g5y9jx r-13awgt0"><div class="css-g5y9jx r-13awgt0"><!--$--><div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;visibility:hidden"></div><div class="css-g5y9jx r-13awgt0" style="flex-direction:column"><div class="css-g5y9jx r-13awgt0 r-1udh08x"><div class="css-g5y9jx r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af" style="z-index:0"><div class="css-g5y9jx r-13awgt0" style="background-color:rgba(242,242,242,1.00)"><div class="css-g5y9jx r-13awgt0"><!--$--><div class="css-g5y9jx flex-1 bg-background"><div class="css-g5y9jx flex-1" style="padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px"><div class="css-g5y9jx flex-1 p-4"><div class="css-g5y9jx r-150rngu r-eqz5dr r-16y2uox r-1wbh5a2 r-11yh6sk r-1rnoaur r-agouwx r-2eszeu"><div class="css-g5y9jx" style="flex-grow:1"><div class="css-g5y9jx gap-6"><div class="css-g5y9jx gap-2"><div dir="auto" class="css-146c3p1 text-3xl font-bold text-foreground">Ergonomia</div><div dir="auto" class="css-146c3p1 text-base text-muted">Aprenda posturas corretas e alongamentos</div></div><div class="css-g5y9jx flex-row gap-2"><div tabindex="0" class="css-g5y9jx r-1loqt21 r-1otgn73" style="opacity:1"><div class="css-g5y9jx flex-1 py-3 px-4 rounded-lg border bg-primary border-primary"><div dir="auto" class="css-146c3p1 text-center text-sm font-semibold text-white">Alongamentos</div></div></div><div tabindex="0" class="css-g5y9jx r-1loqt21 r-1otgn73" style="opacity:1"><div class="css-g5y9jx flex-1 py-3 px-4 rounded-lg border bg-surface border-border"><div dir="auto" class="css-146c3p1 text-center text-sm font-semibold text-foreground">Posturas</div></div></div><div tabindex="0" class="css-g5y9jx r-1loqt21 r-1otgn73" style="opacity:1"><div class="css-g5y9jx flex-1 py-3 px-4 rounded-lg border bg-surface border-border"><div dir="auto" class="css-146c3p1 text-center text-sm font-semibold text-foreground">Respiração</div></div></div></div><div class="css-g5y9jx gap-3"><div class="css-g5y9jx rounded-2xl bg-surface border border-border p-4 gap-3"><div tabindex="0" class="css-g5y9jx r-1loqt21 r-1otgn73" style="opacity:1"><div class="css-g5y9jx gap-2"><div class="css-g5y9jx flex-row items-center justify-between"><div dir="auto" class="css-146c3p1 flex-1 text-lg font-semibold text-foreground">🧠<!-- --> <!-- -->Alongamento de Pescoço</div><div dir="auto" class="css-146c3p1 text-2xl">▶</div></div><div dir="auto" class="css-146c3p1 text-sm text-muted">Alivie a tensão no pescoço com este alongamento simples</div><div dir="auto" class="css-146c3p1 text-xs text-muted">⏱️ <!-- -->60<!-- -->s • <!-- -->facil</div></div></div></div><div class="css-g5y9jx rounded-2xl bg-surface border border-border p-4 gap-3"><div tabindex="0" class="css-g5y9jx r-1loqt21 r-1otgn73" style="opacity:1"><div class="css-g5y9jx gap-2"><div class="css-g5y9jx flex-row items-center justify-between"><div dir="auto" class="css-146c3p1 flex-1 text-lg font-semibold text-foreground">💪<!-- --> <!-- -->Rotação de Ombros</div><div dir="auto" class="css-146c3p1 text-2xl">▶</div></div><div dir="auto" class="css-146c3p1 text-sm text-muted">Melhore a mobilidade dos ombros com rotações</div><div dir="auto" class="css-146c3p1 text-xs text-muted">⏱️ <!-- -->60<!-- -->s • <!-- -->facil</div></div></div></div><div class="css-g5y9jx rounded-2xl bg-surface border border-border p-4 gap-3"><div tabindex="0" class="css-g5y9jx r-1loqt21 r-1otgn73" style="opacity:1"><div class="css-g5y9jx gap-2"><div class="css-g5y9jx flex-row items-center justify-between"><div dir="auto" class="css-146c3p1 flex-1 text-lg font-semibold text-foreground">🔙<!-- --> <!-- -->Alongamento de Costas</div><div dir="auto" class="css-146c3p1 text-2xl">▶</div></div><div dir="auto" class="css-146c3p1 text-sm text-muted">Alongue as costas e alivie a tensão</div><div dir="auto" class="css-146c3p1 text-xs text-muted">⏱️ <!-- -->45<!-- -->s • <!-- -->facil</div></div></div></div></div><div class="css-g5y9jx rounded-2xl p-4 bg-warning/10 border border-warning gap-2"><div dir="auto" class="css-146c3p1 text-sm font-semibold text-warning">⚠️ Importante</div><div dir="auto" class="css-146c3p1 text-sm text-foreground leading-relaxed">Se sentir dor aguda durante qualquer exercício, pare imediatamente e procure o SESMT.</div></div></div></div></div></div></div></div><!--/$--></div></div></div></div><div class="css-g5y9jx r-1p0dtai r-zchlnj r-1d2f490 r-105ug2t" style="border-right-color:rgba(216,216,216,1.00);border-bottom-color:rgba(216,216,216,1.00);border-left-color:rgba(216,216,216,1.00);padding-right:0px;padding-left:0px;box-shadow:0px -2px 8px rgba(0,0,0,0.06);padding-top:6px;padding-bottom:14px;height:74px;background-color:rgba(255,255,255,1.00);border-top-color:rgba(209,250,229,1.00);border-top-width:0.5px;transform:translateY(0px)"><div class="css-g5y9jx r-1p0dtai r-1d2f490 r-u8s1d r-zchlnj r-ipm5af r-633pao"></div><div role="tablist" class="css-g5y9jx r-13awgt0 r-18u37iz"><div class="css-g5y9jx r-13awgt0" style="border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;overflow-x:visible;overflow-y:visible"><a href="/" role="tab" aria-selected="false" tabindex="0" class="css-g5y9jx r-1otgn73 r-1awozwy r-1onu96p r-eqz5dr r-1h0z5md r-1uu6nss" style="cursor:pointer;flex:1;background-color:rgba(0,0,0,0.00);border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;opacity:1"><div class="css-g5y9jx r-h0d30l r-726pan"><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:0;min-width:25px"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid" style="background-color:rgba(22,163,74,0.13)"><div dir="auto" class="css-146c3p1"></div></div></div><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:1"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid"><div dir="auto" class="css-146c3p1"></div></div></div></div><div dir="auto" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-1niwhzg r-q4m81j" style="color:rgba(100,116,139,1.00);font-family:system-ui, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;;font-size:11px;font-weight:600;margin-top:1px">Home</div></a></div><div class="css-g5y9jx r-13awgt0" style="border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;overflow-x:visible;overflow-y:visible"><a href="/ergonomia" role="tab" aria-selected="true" tabindex="0" class="css-g5y9jx r-1otgn73 r-1awozwy r-1onu96p r-eqz5dr r-1h0z5md r-1uu6nss" style="cursor:pointer;flex:1;background-color:rgba(0,0,0,0.00);border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;opacity:1"><div class="css-g5y9jx r-h0d30l r-726pan"><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:1;min-width:25px"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid" style="background-color:rgba(22,163,74,0.13)"><div dir="auto" class="css-146c3p1"></div></div></div><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:0"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid"><div dir="auto" class="css-146c3p1"></div></div></div></div><div dir="auto" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-1niwhzg r-q4m81j" style="color:rgba(22,163,74,1.00);font-family:system-ui, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;;font-size:11px;font-weight:600;margin-top:1px">Ergonomia</div></a></div><div class="css-g5y9jx r-13awgt0" style="border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;overflow-x:visible;overflow-y:visible"><a href="/saude" role="tab" aria-selected="false" tabindex="0" class="css-g5y9jx r-1otgn73 r-1awozwy r-1onu96p r-eqz5dr r-1h0z5md r-1uu6nss" style="cursor:pointer;flex:1;background-color:rgba(0,0,0,0.00);border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;opacity:1"><div class="css-g5y9jx r-h0d30l r-726pan"><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:0;min-width:25px"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid" style="background-color:rgba(22,163,74,0.13)"><div dir="auto" class="css-146c3p1"></div></div></div><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:1"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid"><div dir="auto" class="css-146c3p1"></div></div></div></div><div dir="auto" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-1niwhzg r-q4m81j" style="color:rgba(100,116,139,1.00);font-family:system-ui, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;;font-size:11px;font-weight:600;margin-top:1px">Saúde</div></a></div><div class="css-g5y9jx r-13awgt0" style="border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;overflow-x:visible;overflow-y:visible"><a href="/comunicados" role="tab" aria-selected="false" tabindex="0" class="css-g5y9jx r-1otgn73 r-1awozwy r-1onu96p r-eqz5dr r-1h0z5md r-1uu6nss" style="cursor:pointer;flex:1;background-color:rgba(0,0,0,0.00);border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;opacity:1"><div class="css-g5y9jx r-h0d30l r-726pan"><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:0;min-width:25px"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid" style="background-color:rgba(22,163,74,0.13)"><div dir="auto" class="css-146c3p1"></div></div></div><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:1"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid"><div dir="auto" class="css-146c3p1"></div></div></div></div><div dir="auto" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-1niwhzg r-q4m81j" style="color:rgba(100,116,139,1.00);font-family:system-ui, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;;font-size:11px;font-weight:600;margin-top:1px">Avisos</div></a></div><div class="css-g5y9jx r-13awgt0" style="border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;overflow-x:visible;overflow-y:visible"><a href="/perfil" role="tab" aria-selected="false" tabindex="0" class="css-g5y9jx r-1otgn73 r-1awozwy r-1onu96p r-eqz5dr r-1h0z5md r-1uu6nss" style="cursor:pointer;flex:1;background-color:rgba(0,0,0,0.00);border-top-left-radius:0px;border-top-right-radius:0px;border-bottom-right-radius:0px;border-bottom-left-radius:0px;opacity:1"><div class="css-g5y9jx r-h0d30l r-726pan"><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:0;min-width:25px"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid" style="background-color:rgba(22,163,74,0.13)"><div dir="auto" class="css-146c3p1"></div></div></div><div class="css-g5y9jx r-1awozwy r-1kihuf0 r-1pi2tsx r-1777fci r-u8s1d r-13qz1uu" style="opacity:1"><div class="css-g5y9jx r-1awozwy r-1dzdj1l r-1g7fiml r-1777fci r-1aockid"><div dir="auto" class="css-146c3p1"></div></div></div></div><div dir="auto" class="css-146c3p1 r-dnmrzs r-1udh08x r-1udbk01 r-3s2u2q r-1iln25a r-1niwhzg r-q4m81j" style="color:rgba(100,116,139,1.00);font-family:system-ui, &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;;font-size:11px;font-weight:600;margin-top:1px">Perfil</div></a></div></div></div></div><!--/$--></div></div></div></div></div></div></div><!--/$--></div></div><script src="/_expo/static/js/web/entry-8e9f9a3a0d39a8f1d31b826577fc3a21.js" defer></script>
-</body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ergonomia & Alongamento — Canteiro Saudável</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--primary:#16a34a;--primary-dark:#15803d;--primary-light:#dcfce7;--bg:#f0fdf4;--surface:#fff;--muted:#64748b;--border:#e2e8f0;--radius:16px;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:#0f172a;min-height:100vh;padding-bottom:80px;}
+
+.topbar{background:linear-gradient(135deg,#14532d,#16a34a);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 4px 16px rgba(21,128,61,.3);}
+.back-btn{background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer;}
+.topbar h1{color:white;font-size:18px;font-weight:700;flex:1;}
+.voice-toggle{background:rgba(255,255,255,.2);border:none;color:white;padding:6px 12px;border-radius:10px;font-size:13px;cursor:pointer;}
+
+.content{padding:20px;}
+
+/* Active exercise */
+.active-card{background:linear-gradient(135deg,#14532d,#16a34a);border-radius:var(--radius);padding:24px;color:white;margin-bottom:20px;display:none;}
+.active-card.show{display:block;}
+.ex-name{font-size:20px;font-weight:800;margin-bottom:8px;}
+.ex-instruction{font-size:15px;line-height:1.7;opacity:.95;margin-bottom:20px;min-height:60px;}
+.timer-ring{display:flex;justify-content:center;margin:16px 0;}
+.timer-svg{width:120px;height:120px;}
+.timer-text{font-size:32px;font-weight:900;fill:white;text-anchor:middle;dominant-baseline:middle;}
+.timer-track{fill:none;stroke:rgba(255,255,255,.2);stroke-width:8;}
+.timer-bar{fill:none;stroke:white;stroke-width:8;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:283;transform:rotate(-90deg);transform-origin:60px 60px;transition:stroke-dashoffset .5s linear;}
+.phase-label{text-align:center;font-size:13px;opacity:.8;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase;}
+.ex-controls{display:flex;gap:10px;justify-content:center;}
+.btn-ctrl{padding:12px 20px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-skip{background:rgba(255,255,255,.2);color:white;}
+.btn-pause{background:white;color:#15803d;}
+.btn-stop{background:rgba(255,0,0,.25);color:white;}
+.step-indicator{text-align:center;font-size:12px;opacity:.75;margin-top:12px;}
+
+/* Category tabs */
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:20px;padding-bottom:4px;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.cat-tab.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+/* Exercise cards */
+.ex-grid{display:flex;flex-direction:column;gap:12px;}
+.ex-card{background:white;border-radius:var(--radius);padding:18px;border:1px solid var(--border);display:flex;gap:16px;align-items:flex-start;cursor:pointer;transition:all .2s;}
+.ex-card:hover{border-color:var(--primary);box-shadow:0 4px 16px rgba(22,163,74,.15);}
+.ex-emoji{font-size:40px;flex-shrink:0;width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:var(--primary-light);border-radius:14px;}
+.ex-info{flex:1;}
+.ex-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.ex-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
+.ex-meta{display:flex;gap:10px;font-size:12px;}
+.ex-badge{background:var(--primary-light);color:var(--primary-dark);padding:3px 10px;border-radius:20px;font-weight:600;}
+.ex-start{background:var(--primary);color:white;border:none;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-around;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--muted);font-size:11px;padding:6px 12px;border-radius:10px;}
+.nav-item.active{color:var(--primary);}
+.nav-icon{font-size:22px;}
+
+/* Toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#15803d;color:white;padding:12px 24px;border-radius:20px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:200;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <h1>🤸 Ergonomia & Alongamento</h1>
+  <button class="voice-toggle" id="voice-btn" onclick="toggleVoice()">🔊 Narração</button>
+</div>
+
+<div class="content">
+
+  <!-- Exercício ativo -->
+  <div class="active-card" id="active-card">
+    <div class="ex-name" id="active-name">Exercício</div>
+    <div class="phase-label" id="phase-label">PREPARAR</div>
+    <div class="ex-instruction" id="active-instruction">Preparando...</div>
+    <div class="timer-ring">
+      <svg class="timer-svg" viewBox="0 0 120 120">
+        <circle class="timer-track" cx="60" cy="60" r="45"/>
+        <circle class="timer-bar" id="timer-bar" cx="60" cy="60" r="45"/>
+        <text class="timer-text" id="timer-text" x="60" y="60">--</text>
+      </svg>
+    </div>
+    <div class="step-indicator" id="step-indicator"></div>
+    <div class="ex-controls">
+      <button class="btn-ctrl btn-skip" onclick="nextStep()">⏭ Próximo</button>
+      <button class="btn-ctrl btn-pause" id="pause-btn" onclick="togglePause()">⏸ Pausar</button>
+      <button class="btn-ctrl btn-stop" onclick="stopExercise()">✕ Parar</button>
+    </div>
+  </div>
+
+  <!-- Filtros de categoria -->
+  <div class="cat-tabs">
+    <div class="cat-tab active" onclick="filterCat('todos',this)">Todos</div>
+    <div class="cat-tab" onclick="filterCat('pescoço',this)">Pescoço</div>
+    <div class="cat-tab" onclick="filterCat('ombros',this)">Ombros</div>
+    <div class="cat-tab" onclick="filterCat('coluna',this)">Coluna</div>
+    <div class="cat-tab" onclick="filterCat('braços',this)">Braços / Pulsos</div>
+    <div class="cat-tab" onclick="filterCat('pernas',this)">Pernas</div>
+    <div class="cat-tab" onclick="filterCat('completo',this)">Sequência Completa</div>
+  </div>
+
+  <div class="ex-grid" id="ex-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="bottom-nav">
+  <a class="nav-item" href="health-check.html"><span class="nav-icon">🏠</span>Home</a>
+  <a class="nav-item" href="hydration-tracker.html"><span class="nav-icon">💧</span>Água</a>
+  <a class="nav-item" href="blood-pressure-history.html"><span class="nav-icon">🩺</span>Pressão</a>
+  <a class="nav-item active"><span class="nav-icon">🤸</span>Exercício</a>
+  <a class="nav-item" href="respiracao-guiada.html"><span class="nav-icon">🧘</span>Respiração</a>
+</div>
+
+<script>
+// ===== EXERCÍCIOS =====
+const EXERCISES = [
+  {
+    id:'pescoco1', cat:'pescoço', emoji:'🧎', title:'Inclinação Lateral do Pescoço',
+    desc:'Alivia tensão cervical causada por postura de trabalho.',
+    duration:'2 min', parts:'Pescoço · Cervical',
+    steps:[
+      {phase:'PREPARAR',text:'Fique de pé com a coluna reta. Solte os ombros e respire fundo.',sec:5},
+      {phase:'LADO DIREITO',text:'Incline lentamente a cabeça para o lado direito, aproximando a orelha do ombro. Sinta o alongamento no lado esquerdo do pescoço. Não force.',sec:20},
+      {phase:'CENTRO',text:'Retorne lentamente ao centro. Mantenha os ombros baixos e relaxados.',sec:5},
+      {phase:'LADO ESQUERDO',text:'Agora incline a cabeça para o lado esquerdo, aproximando a orelha do ombro. Respire normalmente e sinta o alongamento.',sec:20},
+      {phase:'REPITA',text:'Retorne ao centro. Vamos repetir o movimento. Respire fundo antes de começar.',sec:5},
+      {phase:'LADO DIREITO',text:'Incline novamente para o lado direito. Desta vez você pode aprofundar um pouco mais o alongamento.',sec:20},
+      {phase:'FINALIZANDO',text:'Retorne ao centro devagar. Gire levemente o pescoço fazendo círculos suaves. Muito bem!',sec:10},
+    ]
+  },
+  {
+    id:'pescoco2', cat:'pescoço', emoji:'🔄', title:'Rotação Suave do Pescoço',
+    desc:'Aumenta mobilidade e diminui rigidez cervical.',
+    duration:'1 min 30 s', parts:'Pescoço · Cervical',
+    steps:[
+      {phase:'PREPARAR',text:'Fique de pé ou sentado com a coluna ereta. Solte toda a tensão dos ombros.',sec:5},
+      {phase:'OLHAR DIREITA',text:'Vire lentamente a cabeça para a direita, tentando olhar sobre o ombro. Mantenha por alguns segundos.',sec:15},
+      {phase:'CENTRO',text:'Retorne ao centro com calma. Não faça movimentos bruscos.',sec:5},
+      {phase:'OLHAR ESQUERDA',text:'Agora vire a cabeça para a esquerda. Olhe sobre o ombro esquerdo. Respire suavemente.',sec:15},
+      {phase:'REPITA',text:'Retorne ao centro. Vamos repetir mais uma vez cada lado.',sec:5},
+      {phase:'DIREITA',text:'Vire para a direita novamente. Desta vez expire ao virar.',sec:15},
+      {phase:'ESQUERDA',text:'Centro e agora esquerda. Expire e sinta o alongamento.',sec:15},
+      {phase:'FINALIZAR',text:'Centro. Relaxe completamente. Exercício concluído!',sec:5},
+    ]
+  },
+  {
+    id:'ombros1', cat:'ombros', emoji:'💪', title:'Elevação e Relaxamento de Ombros',
+    desc:'Libera tensão acumulada nos ombros durante cargas e esforço.',
+    duration:'1 min', parts:'Ombros · Trapézio',
+    steps:[
+      {phase:'PREPARAR',text:'Fique em pé com os braços relaxados ao lado do corpo. Respire fundo.',sec:5},
+      {phase:'ELEVAR',text:'Eleve os dois ombros juntos em direção às orelhas, como se você fosse dar uma de que não sabe de nada. Mantenha a posição.',sec:5},
+      {phase:'SOLTAR',text:'Solte de uma vez! Deixe os ombros caírem completamente. Sinta o alívio.',sec:5},
+      {phase:'REPITA 2X',text:'Vamos repetir. Eleve os ombros... segure... e solte! Respire fundo em cada repetição.',sec:10},
+      {phase:'CÍRCULOS',text:'Agora faça círculos lentos para frente com os ombros. Movimentos grandes e fluidos.',sec:10},
+      {phase:'CÍRCULOS',text:'Agora para trás. Peito aberto, ombros indo para trás e para baixo.',sec:10},
+      {phase:'FINALIZAR',text:'Parabenss! Solte os ombros e respire. Exercício finalizado.',sec:5},
+    ]
+  },
+  {
+    id:'ombros2', cat:'ombros', emoji:'🙆', title:'Alongamento Cruzado dos Ombros',
+    desc:'Excelente para quem carrega peso ou trabalha com braços elevados.',
+    duration:'2 min', parts:'Ombros · Deltoides',
+    steps:[
+      {phase:'PREPARAR',text:'Fique em pé com postura ereta. Respire fundo e solte os ombros.',sec:5},
+      {phase:'BRAÇO DIREITO',text:'Leve o braço direito cruzado na frente do peito. Use a mão esquerda para pressionar suavemente o cotovelo direito contra o peito. Sinta o alongamento.',sec:20},
+      {phase:'TROCAR',text:'Relaxe o braço direito. Agora preparamos o braço esquerdo.',sec:5},
+      {phase:'BRAÇO ESQUERDO',text:'Leve o braço esquerdo cruzado na frente do peito. Use a mão direita para pressionar o cotovelo. Sinta o alongamento no ombro esquerdo.',sec:20},
+      {phase:'REPITA',text:'Vamos fazer mais uma vez cada lado.',sec:5},
+      {phase:'DIREITO',text:'Braço direito cruzado. Pressione suavemente. Mantenha a respiração calma e profunda.',sec:20},
+      {phase:'ESQUERDO',text:'Troca. Braço esquerdo cruzado. Expire ao pressionar.',sec:20},
+      {phase:'FINALIZAR',text:'Solte e balance os braços levemente. Muito bem! Exercício concluído.',sec:5},
+    ]
+  },
+  {
+    id:'coluna1', cat:'coluna', emoji:'🧍', title:'Extensão e Flexão da Coluna',
+    desc:'Fundamental para quem carrega peso ou fica muito tempo curvado.',
+    duration:'2 min', parts:'Lombar · Dorsal',
+    steps:[
+      {phase:'PREPARAR',text:'Fique em pé com os pés na largura dos ombros. Joelhos levemente flexionados. Respire fundo.',sec:5},
+      {phase:'INCLINAR',text:'Incline lentamente o tronco para frente, deixando os braços pendurados. Não force. Apenas sinta o peso relaxar a coluna. Joelhos levemente dobrados.',sec:15},
+      {phase:'SUBIR',text:'Suba devagar, vértebra por vértebra, a cabeça vem por último. Imagine estar "desenrolando" a coluna.',sec:10},
+      {phase:'EXTENSÃO',text:'Com as mãos na cintura, incline levemente o tronco para trás. Abra o peito e olhe para cima. Só um pouco, sem forçar.',sec:10},
+      {phase:'CENTRO',text:'Volte ao centro. Respire fundo. Ótimo! Vamos repetir.',sec:5},
+      {phase:'INCLINAR',text:'Incline para frente novamente. Braços soltos. Deixe a gravidade trabalhar. Respire normalmente.',sec:15},
+      {phase:'SUBIR',text:'Suba devagar. Coluna se erguendo suavemente. Cabeça por último.',sec:10},
+      {phase:'FINALIZAR',text:'Ao centro. Dê uma pequena torção para cada lado. Parabéns!',sec:10},
+    ]
+  },
+  {
+    id:'coluna2', cat:'coluna', emoji:'🔀', title:'Torção Lateral da Coluna',
+    desc:'Alivia a lombar e melhora a mobilidade rotacional.',
+    duration:'1 min 30 s', parts:'Lombar · Oblíquos',
+    steps:[
+      {phase:'PREPARAR',text:'Sente-se com a coluna ereta ou fique em pé. Braços relaxados.',sec:5},
+      {phase:'GIRAR DIREITA',text:'Gire lentamente o tronco para a direita, usando os braços para ajudar. Olhe sobre o ombro direito. Mantenha.',sec:15},
+      {phase:'CENTRO',text:'Retorne devagar ao centro. Não faça movimentos bruscos.',sec:5},
+      {phase:'GIRAR ESQUERDA',text:'Agora gire para a esquerda. Olhe sobre o ombro esquerdo. Mantenha a posição.',sec:15},
+      {phase:'CENTRO',text:'Centro novamente. Respire. Vamos repetir.',sec:5},
+      {phase:'DIREITA',text:'Direita outra vez. Aprofunde um pouco mais se puder.',sec:15},
+      {phase:'ESQUERDA',text:'Esquerda. Expire ao girar. Mantenha.',sec:15},
+      {phase:'FINALIZAR',text:'Centro. Relaxe completamente. Exercício finalizado com sucesso!',sec:5},
+    ]
+  },
+  {
+    id:'bracos1', cat:'braços', emoji:'🙏', title:'Alongamento de Pulsos e Antebraços',
+    desc:'Essencial para quem usa ferramentas manuais ou esforço repetitivo.',
+    duration:'1 min 30 s', parts:'Pulsos · Antebraço',
+    steps:[
+      {phase:'PREPARAR',text:'Estenda o braço direito à frente com a palma voltada para cima. Respire fundo.',sec:5},
+      {phase:'PULSO DIREITO',text:'Com a mão esquerda, puxe suavemente os dedos da mão direita para baixo. Sinta o alongamento no antebraço. Não force.',sec:20},
+      {phase:'TROCAR',text:'Relaxe. Agora prepare o braço esquerdo estendido.',sec:5},
+      {phase:'PULSO ESQUERDO',text:'Puxe os dedos da mão esquerda para baixo com a mão direita. Sinta o alongamento no antebraço esquerdo.',sec:20},
+      {phase:'INVERTER',text:'Agora vamos inverter. Mão direita estendida com a palma para baixo.',sec:5},
+      {phase:'DIREITO INVERSO',text:'Puxe os dedos da mão direita para cima desta vez. Sente diferente? É o outro grupo muscular.',sec:20},
+      {phase:'FINALIZAR',text:'Relaxe e chacoalhe os pulsos levemente. Excelente!',sec:5},
+    ]
+  },
+  {
+    id:'pernas1', cat:'pernas', emoji:'🦵', title:'Alongamento de Panturrilhas e Isquiotibiais',
+    desc:'Para quem fica muito tempo em pé ou sobe escadas e andaimes.',
+    duration:'2 min', parts:'Panturrilha · Coxa',
+    steps:[
+      {phase:'PREPARAR',text:'Fique em pé perto de uma parede se precisar de apoio. Respire fundo.',sec:5},
+      {phase:'PANTURRILHA DIR',text:'Dê um passo para trás com o pé direito. Pressione o calcanhar no chão e incline o corpo levemente para frente. Sinta o alongamento na panturrilha direita.',sec:20},
+      {phase:'TROCAR',text:'Troca! Pé direito para frente e esquerdo para trás.',sec:5},
+      {phase:'PANTURRILHA ESQ',text:'Pressione o calcanhar esquerdo no chão. Incline para frente. Sinta a panturrilha esquerda sendo alongada.',sec:20},
+      {phase:'ISQUIOTIBIAL',text:'Agora, pé direito um pouco à frente. Incline o tronco para frente com a coluna reta até sentir a parte de trás da coxa. Sem dobrar o joelho.',sec:15},
+      {phase:'TROCAR',text:'Troca para a perna esquerda à frente.',sec:5},
+      {phase:'ISQUIOTIBIAL ESQ',text:'Coluna reta, incline para frente. Sinta a parte de trás da coxa esquerda. Respire.',sec:15},
+      {phase:'FINALIZAR',text:'Volte ao centro. Balance as pernas suavemente. Ótimo trabalho!',sec:5},
+    ]
+  },
+  {
+    id:'completo1', cat:'completo', emoji:'⭐', title:'Sequência Completa — 5 Minutos',
+    desc:'Rotina completa para usar no intervalo. Cobre pescoço, ombros, coluna e pernas.',
+    duration:'5 min', parts:'Corpo todo',
+    steps:[
+      {phase:'INÍCIO',text:'Vamos começar! Esta sequência dura 5 minutos. Fique em pé com a coluna ereta. Respire fundo três vezes.',sec:8},
+      {phase:'PESCOÇO — DIR',text:'Incline a cabeça para o lado direito. Orelha ao ombro. Sinta o lado esquerdo do pescoço sendo alongado.',sec:15},
+      {phase:'PESCOÇO — ESQ',text:'Volte ao centro e agora incline para a esquerda. Mantenha e respire.',sec:15},
+      {phase:'OMBROS — ELEVAR',text:'Eleve ambos os ombros até as orelhas. Segure 3 segundos. E solte! Repita mais uma vez.',sec:12},
+      {phase:'OMBROS — CÍRCULOS',text:'Faça círculos lentos com os ombros para frente e para trás.',sec:12},
+      {phase:'COLUNA — FRENTE',text:'Incline o tronco para frente com joelhos levemente dobrados. Deixe os braços pendurar e relaxe a coluna.',sec:15},
+      {phase:'SUBIR DEVAGAR',text:'Suba lentamente, vértebra por vértebra. A cabeça é a última a subir.',sec:10},
+      {phase:'TORÇÃO DIR',text:'Gire o tronco para a direita. Olhe sobre o ombro. Mantenha.',sec:12},
+      {phase:'TORÇÃO ESQ',text:'Centro e agora esquerda. Olhe sobre o ombro esquerdo.',sec:12},
+      {phase:'BRAÇO DIR',text:'Braço direito cruzado na frente do peito. Use a mão esquerda no cotovelo. Sinta o ombro direito.',sec:15},
+      {phase:'BRAÇO ESQ',text:'Agora o esquerdo cruzado. Use a mão direita no cotovelo.',sec:15},
+      {phase:'PANTURRILHA',text:'Passo à frente com o pé esquerdo. Calcanhar direito no chão. Sinta a panturrilha.',sec:15},
+      {phase:'TROCAR',text:'Troca! Pé direito à frente, calcanhar esquerdo no chão.',sec:15},
+      {phase:'RESPIRAR',text:'Perfeito! Para finalizar: inspire fundo levantando os braços. Expire soltando tudo. Repita duas vezes.',sec:15},
+      {phase:'CONCLUÍDO',text:'Parabéns! Você completou a sequência completa de alongamento. Você está pronto para continuar o dia!',sec:8},
+    ]
+  }
+];
+
+// ===== STATE =====
+let voiceEnabled = true;
+let currentExercise = null;
+let currentStepIdx = 0;
+let timer = null;
+let timeLeft = 0;
+let isPaused = false;
+let synth = window.speechSynthesis;
+let currentCategory = 'todos';
+
+// ===== VOICE =====
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+  const btn = document.getElementById('voice-btn');
+  btn.textContent = voiceEnabled ? '🔊 Narração' : '🔇 Mudo';
+  if (!voiceEnabled && synth) synth.cancel();
+}
+
+function speak(text) {
+  if (!voiceEnabled || !synth) return;
+  synth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'pt-BR';
+  utt.rate = 0.88;
+  utt.pitch = 1.0;
+  utt.volume = 1.0;
+  // Try to find a Portuguese voice
+  const voices = synth.getVoices();
+  const ptVoice = voices.find(v => v.lang.startsWith('pt'));
+  if (ptVoice) utt.voice = ptVoice;
+  synth.speak(utt);
+}
+
+// ===== RENDER EXERCISES =====
+function renderExercises(cat) {
+  const grid = document.getElementById('ex-grid');
+  const list = cat === 'todos' ? EXERCISES : EXERCISES.filter(e => e.cat === cat);
+  grid.innerHTML = list.map(ex => `
+    <div class="ex-card" onclick="startExercise('${ex.id}')">
+      <div class="ex-emoji">${ex.emoji}</div>
+      <div class="ex-info">
+        <div class="ex-title">${ex.title}</div>
+        <div class="ex-desc">${ex.desc}</div>
+        <div class="ex-meta">
+          <span class="ex-badge">⏱ ${ex.duration}</span>
+          <span class="ex-badge">🎯 ${ex.parts}</span>
+        </div>
+      </div>
+      <button class="ex-start" onclick="event.stopPropagation();startExercise('${ex.id}')">Iniciar</button>
+    </div>
+  `).join('');
+}
+
+function filterCat(cat, el) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderExercises(cat);
+}
+
+// ===== EXERCISE ENGINE =====
+function startExercise(id) {
+  const ex = EXERCISES.find(e => e.id === id);
+  if (!ex) return;
+  currentExercise = ex;
+  currentStepIdx = 0;
+  isPaused = false;
+  document.getElementById('active-card').classList.add('show');
+  document.getElementById('active-name').textContent = ex.emoji + ' ' + ex.title;
+  document.getElementById('active-card').scrollIntoView({behavior:'smooth'});
+  runStep();
+}
+
+function runStep() {
+  if (!currentExercise) return;
+  const steps = currentExercise.steps;
+  if (currentStepIdx >= steps.length) { finishExercise(); return; }
+
+  const step = steps[currentStepIdx];
+  timeLeft = step.sec;
+
+  document.getElementById('phase-label').textContent = step.phase;
+  document.getElementById('active-instruction').textContent = step.text;
+  document.getElementById('step-indicator').textContent =
+    `Etapa ${currentStepIdx + 1} de ${steps.length}`;
+
+  speak(step.text);
+  startTimer(step.sec);
+}
+
+function startTimer(seconds) {
+  clearInterval(timer);
+  timeLeft = seconds;
+  updateTimerUI();
+
+  timer = setInterval(() => {
+    if (isPaused) return;
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      // Announce next step
+      const steps = currentExercise.steps;
+      if (currentStepIdx + 1 < steps.length) {
+        currentStepIdx++;
+        runStep();
+      } else {
+        finishExercise();
+      }
+    }
+    // Warn at 3 seconds remaining
+    if (timeLeft === 3 && currentStepIdx < currentExercise.steps.length - 1) {
+      setTimeout(() => speak('Próximo...'), 100);
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const step = currentExercise?.steps[currentStepIdx];
+  if (!step) return;
+  const total = step.sec;
+  const pct = timeLeft / total;
+  const circumference = 283;
+  const offset = circumference * (1 - pct);
+
+  document.getElementById('timer-text').textContent = timeLeft;
+  document.getElementById('timer-bar').style.strokeDashoffset = offset;
+}
+
+function nextStep() {
+  clearInterval(timer);
+  if (synth) synth.cancel();
+  currentStepIdx++;
+  runStep();
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('pause-btn');
+  btn.textContent = isPaused ? '▶ Continuar' : '⏸ Pausar';
+  if (isPaused) {
+    if (synth) synth.cancel();
+  } else {
+    const step = currentExercise?.steps[currentStepIdx];
+    if (step) speak(step.text);
+  }
+}
+
+function stopExercise() {
+  clearInterval(timer);
+  if (synth) synth.cancel();
+  currentExercise = null;
+  currentStepIdx = 0;
+  isPaused = false;
+  document.getElementById('active-card').classList.remove('show');
+  document.getElementById('pause-btn').textContent = '⏸ Pausar';
+}
+
+function finishExercise() {
+  clearInterval(timer);
+  document.getElementById('timer-text').textContent = '✓';
+  document.getElementById('active-instruction').textContent = '🎉 Exercício concluído! Muito bem!';
+  document.getElementById('phase-label').textContent = 'CONCLUÍDO';
+  speak('Exercício concluído! Muito bem! Você está cuidando da sua saúde.');
+  showToast('🎉 Exercício concluído!');
+  setTimeout(stopExercise, 4000);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  renderExercises('todos');
+  // Load voices
+  if (synth) {
+    synth.getVoices();
+    speechSynthesis.onvoiceschanged = () => synth.getVoices();
+  }
+});
+</script>
+</body>
+</html>
