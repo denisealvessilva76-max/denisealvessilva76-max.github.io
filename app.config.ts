@@ -41,7 +41,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.0.0",
+  version: "1.0.29",
   description: "Aplicativo de saúde ocupacional para reduzir absenteísmo em canteiros de obras",
   orientation: "portrait",
   icon: "./assets/images/icon.png",

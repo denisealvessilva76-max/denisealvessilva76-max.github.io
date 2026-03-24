@@ -145,8 +145,8 @@ export default function EmployeeRegisterScreen() {
 
   return (
     <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="gap-6">
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <View className="gap-6 pb-8">
           {/* Header */}
           <View className="gap-2">
             <Text className="text-3xl font-bold text-foreground">👷 Bem-vindo!</Text>

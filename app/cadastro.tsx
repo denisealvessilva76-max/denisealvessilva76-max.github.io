@@ -134,10 +134,11 @@ export default function CadastroScreen() {
   return (
     <ScreenContainer className="bg-background">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 p-6">
+        <View className="flex-1 px-6 py-4">
           {/* Header */}
           <View className="items-center mb-8 mt-4">
             <Text className="text-3xl font-bold text-foreground mb-2">
@@ -348,7 +349,7 @@ export default function CadastroScreen() {
 
             {/* Botão Cadastrar */}
             <TouchableOpacity
-              className="bg-primary rounded-lg px-6 py-4 mt-4"
+              className="bg-primary rounded-lg px-6 py-4 mt-6 mb-3"
               onPress={handleCadastro}
               disabled={loading}
             >
@@ -363,10 +364,10 @@ export default function CadastroScreen() {
 
             {/* Link para Login */}
             <TouchableOpacity
-              className="mt-4"
+              className="mt-2 mb-8"
               onPress={() => router.push("/login")}
             >
-              <Text className="text-primary text-center">
+              <Text className="text-primary text-center text-sm">
                 Já tem cadastro? Faça login
               </Text>
             </TouchableOpacity>
