@@ -3444,6 +3444,208 @@ async function deleteConteudo(id) {
 
 // Botão nova publicação (registrado no DOMContentLoaded)
 
+
+// ========== COMUNICADOS (Firebase) ==========
+let annImageBase64 = null;
+let annImageFilename = null;
+
+function handleAnnImageSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande. Máx. 5MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        annImageBase64 = e.target.result;
+        annImageFilename = file.name;
+        const preview = document.getElementById('ann-image-preview');
+        const placeholder = document.getElementById('ann-image-placeholder');
+        const removeBtn = document.getElementById('ann-image-remove');
+        const area = document.getElementById('ann-image-upload-area');
+        if (preview) { preview.src = annImageBase64; preview.style.display = 'block'; }
+        if (placeholder) placeholder.style.display = 'none';
+        if (removeBtn) removeBtn.style.display = 'inline-block';
+        if (area) area.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeAnnImage() {
+    annImageBase64 = null; annImageFilename = null;
+    const preview = document.getElementById('ann-image-preview');
+    const placeholder = document.getElementById('ann-image-placeholder');
+    const removeBtn = document.getElementById('ann-image-remove');
+    const area = document.getElementById('ann-image-upload-area');
+    const fileInput = document.getElementById('ann-image-file');
+    if (preview) { preview.style.display = 'none'; preview.src = ''; }
+    if (placeholder) placeholder.style.display = 'block';
+    if (removeBtn) removeBtn.style.display = 'none';
+    if (area) area.classList.remove('has-image');
+    if (fileInput) fileInput.value = '';
+}
+
+async function saveAnnouncement() {
+    const title = document.getElementById('ann-title')?.value.trim();
+    const body = document.getElementById('ann-body')?.value.trim();
+    const category = document.getElementById('ann-category')?.value;
+    const expiresAt = document.getElementById('ann-expires')?.value;
+    const feedback = document.getElementById('ann-feedback');
+
+    if (!title || !body) {
+        if (feedback) { feedback.style.color = '#EF4444'; feedback.textContent = 'Título e mensagem são obrigatórios.'; }
+        return;
+    }
+    if (feedback) { feedback.style.color = '#64748b'; feedback.textContent = 'Publicando...'; }
+
+    const post = {
+        title, body, category,
+        imageUrl: annImageBase64 || null,
+        expiresAt: expiresAt || null,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser?.name || currentUser?.email || 'Admin',
+        active: true
+    };
+
+    try {
+        if (database) {
+            await database.ref('canteiro-saudavel/announcements').push(post);
+        }
+        if (feedback) { feedback.style.color = '#22C55E'; feedback.textContent = '✅ Comunicado publicado!'; }
+        document.getElementById('ann-title').value = '';
+        document.getElementById('ann-body').value = '';
+        if (document.getElementById('ann-expires')) document.getElementById('ann-expires').value = '';
+        removeAnnImage();
+        setTimeout(() => {
+            const fc = document.getElementById('announcement-form-container');
+            if (fc) fc.style.display = 'none';
+            if (feedback) feedback.textContent = '';
+            loadAnnouncements();
+        }, 1500);
+    } catch(e) {
+        if (feedback) { feedback.style.color = '#EF4444'; feedback.textContent = 'Erro: ' + e.message; }
+    }
+}
+
+async function loadAnnouncements() {
+    const container = document.getElementById('announcements-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-muted">Carregando comunicados...</p>';
+
+    try {
+        if (!database) throw new Error('Firebase não conectado');
+        const snap = await database.ref('canteiro-saudavel/announcements').orderByChild('createdAt').once('value');
+        const val = snap.val() || {};
+        const list = Object.entries(val)
+            .map(([id, v]) => ({ id, ...v }))
+            .filter(v => v.active !== false)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        if (!list.length) {
+            container.innerHTML = '<p class="text-muted">Nenhum comunicado publicado ainda.</p>';
+            return;
+        }
+
+        const categoryColors = { urgente:'#EF4444', informativo:'#3B82F6', saude:'#22C55E', desafio:'#F59E0B', geral:'#6B7280' };
+        const categoryLabels = { urgente:'🚨 Urgente', informativo:'ℹ️ Informativo', saude:'💚 Saúde', desafio:'🏆 Desafio', geral:'📢 Geral' };
+
+        container.innerHTML = list.map(ann => {
+            const color = categoryColors[ann.category] || '#6B7280';
+            const label = categoryLabels[ann.category] || ann.category || 'Geral';
+            const date = ann.createdAt ? new Date(ann.createdAt).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+            const expires = ann.expiresAt ? `<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;">⏰ Expira: ${new Date(ann.expiresAt).toLocaleDateString('pt-BR')}</span>` : '';
+            const img = ann.imageUrl ? `<img src="${ann.imageUrl}" alt="Imagem" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin:10px 0;" onerror="this.style.display='none'">` : '';
+            return `<div style="background:white;border-radius:16px;border:1px solid var(--border);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <span style="background:${color}18;color:${color};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">${label}</span>
+                        ${expires}
+                    </div>
+                    <button onclick="deleteAnnouncement('${ann.id}')" style="background:#FEE2E2;color:#EF4444;border:none;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:13px;">🗑️ Remover</button>
+                </div>
+                <h3 style="font-size:16px;font-weight:700;margin-bottom:8px;">${ann.title}</h3>
+                ${img}
+                <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:8px;">${ann.body}</p>
+                <div style="font-size:12px;color:var(--muted-light);display:flex;gap:12px;">
+                    <span>📅 ${date}</span>
+                    <span>👤 ${ann.createdBy || 'Admin'}</span>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        container.innerHTML = `<p style="color:#EF4444;">Erro ao carregar: ${e.message}</p>`;
+    }
+}
+
+async function deleteAnnouncement(id) {
+    if (!confirm('Remover este comunicado?')) return;
+    try {
+        if (database) await database.ref('canteiro-saudavel/announcements/' + id).update({ active: false });
+        loadAnnouncements();
+    } catch(e) { alert('Erro: ' + e.message); }
+}
+
+// ========== FOTOS DOS DESAFIOS (Firebase) ==========
+async function loadChallengePhotos() {
+    const grid = document.getElementById('challenge-photos-grid');
+    if (!grid) return;
+    grid.innerHTML = '<p style="color:var(--muted);">Carregando fotos...</p>';
+
+    try {
+        if (!database) throw new Error('Firebase não conectado');
+        const snap = await database.ref('canteiro-saudavel/challengePhotos').orderByChild('uploadedAt').limitToLast(50).once('value');
+        const val = snap.val() || {};
+        const photos = Object.values(val).sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+
+        // Populate filter
+        const filterSel = document.getElementById('photos-filter-challenge');
+        if (filterSel) {
+            const challenges = [...new Set(photos.map(p => p.challengeName).filter(Boolean))];
+            const currentVal = filterSel.value;
+            filterSel.innerHTML = '<option value="">Todos os desafios</option>' +
+                challenges.map(ch => `<option value="${ch}" ${currentVal===ch?'selected':''}>${ch}</option>`).join('');
+        }
+
+        const filtered = filterSel?.value ? photos.filter(p => p.challengeName === filterSel.value) : photos;
+
+        if (!filtered.length) {
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);">
+                <div style="font-size:48px;margin-bottom:12px;">📷</div>
+                <p>Nenhuma foto enviada ainda.</p>
+                <p style="font-size:13px;margin-top:6px;">As fotos aparecerão aqui quando os trabalhadores enviarem pelo app.</p>
+            </div>`;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(photo => {
+            const date = photo.uploadedAt ? new Date(photo.uploadedAt).toLocaleDateString('pt-BR') : '';
+            return `<div style="background:white;border-radius:12px;overflow:hidden;border:1px solid var(--border);cursor:pointer;" onclick="openLightbox('${photo.photoUrl}','${(photo.challengeName||'').replace(/'/g,"\'")}')">
+                <img src="${photo.photoUrl}" alt="Foto desafio" loading="lazy" style="width:100%;height:160px;object-fit:cover;" onerror="this.parentElement.innerHTML='<div style=\'height:160px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;\'>Sem imagem</div>'">
+                <div style="padding:10px;">
+                    <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:2px;">${photo.challengeName || 'Desafio'}</div>
+                    <div style="font-size:11px;color:var(--muted);">${photo.workerName || 'Trabalhador'} · ${date}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        grid.innerHTML = `<p style="color:var(--error);">Erro ao carregar fotos: ${e.message}</p>`;
+    }
+}
+
+function openLightbox(src, caption) {
+    const existing = document.querySelector('.lightbox-overlay');
+    if (existing) existing.remove();
+    const lb = document.createElement('div');
+    lb.className = 'lightbox-overlay';
+    lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+    lb.innerHTML = `<div style="position:relative;max-width:90%;max-height:90vh;">
+        <span style="position:absolute;top:-40px;right:0;color:white;font-size:28px;cursor:pointer;padding:8px;" onclick="this.closest('.lightbox-overlay').remove()">×</span>
+        <img src="${src}" style="max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain;">
+        ${caption ? `<p style="color:rgba(255,255,255,.85);text-align:center;margin-top:10px;font-size:14px;">${caption}</p>` : ''}
+    </div>`;
+    lb.addEventListener('click', (e) => { if (e.target === lb) lb.remove(); });
+    document.body.appendChild(lb);
+}
+
+
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
