@@ -1,372 +1,610 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canteiro Saudável</title>
-    <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#15803d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Canteiro Saudável</title>
+<link rel="manifest" href="manifest.json">
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;width:100%;}
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    background: linear-gradient(160deg, #14532d 0%, #166534 40%, #15803d 65%, #16a34a 100%);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+/* ===== BODY ===== */
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  background:linear-gradient(165deg,#052e16 0%,#14532d 30%,#166534 60%,#15803d 85%,#16a34a 100%);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  position:relative;overflow-x:hidden;
 }
 
-.login-card {
-    background: white;
-    border-radius: 28px;
-    padding: 48px 40px;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.15);
+/* Bolhas decorativas de fundo */
+body::before,body::after{
+  content:'';position:fixed;border-radius:50%;
+  background:rgba(255,255,255,.04);pointer-events:none;
+}
+body::before{width:400px;height:400px;top:-100px;right:-100px;}
+body::after{width:300px;height:300px;bottom:-80px;left:-80px;}
+
+/* ===== TELA DE CARREGAMENTO ===== */
+#splash{
+  position:fixed;inset:0;
+  background:linear-gradient(165deg,#052e16,#15803d);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;transition:opacity .4s ease;
+}
+#splash.fade{opacity:0;pointer-events:none;}
+#splash.gone{display:none;}
+.splash-icon{font-size:64px;margin-bottom:20px;animation:bounce 1.2s ease-in-out infinite;}
+.splash-title{color:white;font-size:22px;font-weight:800;letter-spacing:-.3px;}
+.splash-sub{color:rgba(255,255,255,.6);font-size:14px;margin-top:6px;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+/* ===== CARD PRINCIPAL ===== */
+.card{
+  background:white;border-radius:28px;
+  padding:40px 32px;
+  width:100%;max-width:400px;
+  box-shadow:0 24px 64px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.2);
+  position:relative;z-index:1;
+  animation:slideUp .4s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== LOGO ===== */
+.logo{text-align:center;margin-bottom:28px;}
+.logo-icon{font-size:48px;display:block;margin-bottom:10px;}
+.logo h1{font-size:24px;color:#15803d;font-weight:900;letter-spacing:-.5px;margin-bottom:4px;}
+.logo p{color:#64748b;font-size:13px;}
+
+/* ===== ABAS ===== */
+.tabs{
+  display:flex;background:#f1f5f9;
+  border-radius:14px;padding:4px;
+  margin-bottom:24px;gap:4px;
+}
+.tab{
+  flex:1;padding:11px 8px;border:none;
+  background:transparent;border-radius:11px;
+  font-size:14px;font-weight:600;color:#64748b;
+  cursor:pointer;transition:all .2s;
+}
+.tab.active{background:white;color:#15803d;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+
+/* ===== SEÇÕES ===== */
+.sec{display:none;}
+.sec.on{display:block;}
+
+/* ===== FORM ===== */
+.field{margin-bottom:16px;}
+.field label{
+  display:block;font-size:12px;font-weight:700;
+  color:#374151;margin-bottom:6px;
+  text-transform:uppercase;letter-spacing:.4px;
+}
+.field input,.field select{
+  width:100%;padding:14px 16px;
+  border:1.5px solid #e2e8f0;border-radius:13px;
+  font-size:15px;color:#0f172a;
+  background:#f8fffe;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+  appearance:none;-webkit-appearance:none;
+}
+.field input:focus,.field select:focus{
+  outline:none;border-color:#16a34a;
+  background:white;
+  box-shadow:0 0 0 3px rgba(22,163,74,.12);
+}
+.field input.invalid{border-color:#ef4444;background:#fff5f5;}
+.field input.valid{border-color:#16a34a;background:#f0fdf4;}
+
+/* hint abaixo do campo */
+.field-hint{font-size:11px;color:#94a3b8;margin-top:5px;padding-left:2px;}
+.field-hint.err{color:#ef4444;}
+.field-hint.ok{color:#16a34a;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ===== BOTÃO PRINCIPAL ===== */
+.btn-main{
+  width:100%;padding:16px;border:none;border-radius:14px;
+  font-size:16px;font-weight:800;cursor:pointer;
+  background:linear-gradient(135deg,#22c55e 0%,#16a34a 60%,#15803d 100%);
+  color:white;letter-spacing:.2px;
+  box-shadow:0 4px 16px rgba(22,163,74,.4);
+  transition:transform .15s,box-shadow .15s,opacity .15s;
+  margin-top:8px;
+}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(22,163,74,.5);}
+.btn-main:active{transform:scale(.98);box-shadow:none;}
+.btn-main:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ===== MENSAGENS ===== */
+.alert{
+  border-radius:12px;padding:12px 15px;
+  font-size:13px;line-height:1.5;
+  margin-top:14px;display:none;
+  border-left:4px solid;
+}
+.alert.show{display:flex;gap:10px;align-items:flex-start;}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.alert-text{flex:1;}
+.alert.err{background:#fee2e2;color:#b91c1c;border-color:#ef4444;}
+.alert.ok {background:#dcfce7;color:#15803d;border-color:#16a34a;}
+.alert.warn{background:#fef3c7;color:#92400e;border-color:#f59e0b;}
+.alert.info{background:#e0f2fe;color:#0369a1;border-color:#0ea5e9;}
+
+/* ===== SPINNER ===== */
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{
+  width:17px;height:17px;
+  border:2.5px solid rgba(255,255,255,.35);
+  border-top-color:white;
+  border-radius:50%;
+  animation:spin .65s linear infinite;
+  display:inline-block;vertical-align:middle;
+  margin-right:8px;
 }
 
-.logo {
-    text-align: center;
-    margin-bottom: 36px;
-}
+/* ===== RODAPÉ ===== */
+.footer{text-align:center;margin-top:18px;font-size:11px;color:#cbd5e1;line-height:1.6;}
 
-.logo-icon {
-    font-size: 56px;
-    margin-bottom: 12px;
-    display: block;
+/* ===== RESPONSIVO ===== */
+@media(max-width:380px){
+  .card{padding:32px 22px;}
+  .grid2{grid-template-columns:1fr;}
 }
-
-.logo h1 {
-    font-size: 28px;
-    color: #16a34a;
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    margin-bottom: 6px;
-}
-
-.logo p {
-    color: #64748b;
-    font-size: 14px;
-}
-
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #0f172a;
-    font-size: 14px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 13px 16px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 15px;
-    transition: all 0.2s;
-    background: #f8fffe;
-    color: #0f172a;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #16a34a;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
-}
-
-.btn-login {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 60%, #15803d 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(22,163,74,0.35);
-    margin-top: 8px;
-    letter-spacing: 0.2px;
-}
-
-.btn-login:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(22,163,74,0.45);
-}
-
-.btn-login:active {
-    transform: scale(0.98);
-}
-
-.btn-login:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.error-box {
-    margin-top: 14px;
-    padding: 12px 16px;
-    background: #FEE2E2;
-    color: #b91c1c;
-    border-radius: 10px;
-    font-size: 14px;
-    display: none;
-    border-left: 3px solid #ef4444;
-}
-
-.loading-box {
-    margin-top: 14px;
-    padding: 12px 16px;
-    background: #dcfce7;
-    color: #15803d;
-    border-radius: 10px;
-    font-size: 14px;
-    display: none;
-    text-align: center;
-}
-
-.divider {
-    text-align: center;
-    margin: 24px 0 20px;
-    position: relative;
-}
-
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: #e2e8f0;
-}
-
-.divider span {
-    background: white;
-    padding: 0 12px;
-    color: #94a3b8;
-    font-size: 13px;
-    position: relative;
-}
-
-.btn-register {
-    width: 100%;
-    padding: 13px;
-    background: white;
-    color: #16a34a;
-    border: 2px solid #16a34a;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    display: block;
-    text-align: center;
-}
-
-.btn-register:hover {
-    background: #dcfce7;
-}
-
-.footer-text {
-    text-align: center;
-    margin-top: 24px;
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-/* Loading spinner */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 8px;
-}
-    </style>
+</style>
 </head>
 <body>
 
-<div class="login-card">
-    <div class="logo">
-        <span class="logo-icon">🌱</span>
-        <h1>Canteiro Saudável</h1>
-        <p>Acesse sua conta de funcionário</p>
-    </div>
-
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
-    </div>
-
-    <div class="form-group">
-        <label for="password">Senha</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-    </div>
-
-    <button class="btn-login" id="btn-entrar" onclick="handleLogin()">Entrar</button>
-
-    <div class="error-box" id="error-box"></div>
-    <div class="loading-box" id="loading-box">
-        <span class="spinner"></span> Verificando credenciais...
-    </div>
-
-    <div class="divider"><span>ou</span></div>
-
-    <a class="btn-register" href="employee-register.html">Criar conta de funcionário</a>
-
-    <p class="footer-text">🔒 Acesso exclusivo para trabalhadores cadastrados</p>
+<!-- Splash / verificando sessão -->
+<div id="splash">
+  <div class="splash-icon">🌱</div>
+  <div class="splash-title">Canteiro Saudável</div>
+  <div class="splash-sub" id="splash-msg">Verificando acesso...</div>
 </div>
+
+<!-- Card principal -->
+<div class="card" id="card" style="display:none;">
+
+  <div class="logo">
+    <span class="logo-icon">🌱</span>
+    <h1>Canteiro Saudável</h1>
+    <p>Saúde e bem-estar no canteiro de obras</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tb-entrar" onclick="aba('entrar')">Entrar</button>
+    <button class="tab" id="tb-cad" onclick="aba('cadastro')">Cadastrar</button>
+  </div>
+
+  <!-- ── ABA ENTRAR ── -->
+  <div class="sec on" id="sec-entrar">
+    <div class="field">
+      <label>Matrícula</label>
+      <input type="text" id="ent-mat"
+        placeholder="Ex: 3450002"
+        inputmode="numeric" maxlength="10"
+        autocomplete="off" spellcheck="false"
+        oninput="validarMatriculaInput('ent-mat','ent-mat-hint')">
+      <div class="field-hint" id="ent-mat-hint">Digite o número do seu crachá</div>
+    </div>
+    <button class="btn-main" id="btn-entrar" onclick="entrar()">Entrar</button>
+    <div class="alert" id="alerta-entrar">
+      <span class="alert-icon"></span>
+      <span class="alert-text"></span>
+    </div>
+    <div class="footer">Acesso exclusivo para trabalhadores cadastrados</div>
+  </div>
+
+  <!-- ── ABA CADASTRAR ── -->
+  <div class="sec" id="sec-cadastro">
+    <div class="field">
+      <label>Nome completo *</label>
+      <input type="text" id="cad-nome" placeholder="João da Silva"
+        autocomplete="name" oninput="limparAlerta('alerta-cad')">
+    </div>
+    <div class="field">
+      <label>Matrícula *</label>
+      <input type="text" id="cad-mat"
+        placeholder="Ex: 3450002"
+        inputmode="numeric" maxlength="10"
+        autocomplete="off" spellcheck="false"
+        oninput="validarMatriculaInput('cad-mat','cad-mat-hint')">
+      <div class="field-hint" id="cad-mat-hint">Número do crachá (3450002 em diante)</div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Turno *</label>
+        <select id="cad-turno">
+          <option value="">Selecione</option>
+          <option value="Diurno">☀️ Diurno</option>
+          <option value="Noturno">🌙 Noturno</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Função *</label>
+        <select id="cad-funcao">
+          <option value="">Selecione</option>
+          <option>Pedreiro</option>
+          <option>Servente</option>
+          <option>Carpinteiro</option>
+          <option>Armador</option>
+          <option>Encanador</option>
+          <option>Eletricista</option>
+          <option>Pintor</option>
+          <option>Mestre de Obras</option>
+          <option>Técnico de Segurança</option>
+          <option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Altura (cm)</label>
+        <input type="number" id="cad-altura" placeholder="175" min="140" max="220">
+      </div>
+      <div class="field">
+        <label>Peso (kg)</label>
+        <input type="number" id="cad-peso" placeholder="75" min="40" max="200">
+      </div>
+    </div>
+    <div class="field">
+      <label>Tipo de trabalho</label>
+      <select id="cad-trabalho">
+        <option value="Moderado">Moderado</option>
+        <option value="Pesado">Pesado / Intenso</option>
+        <option value="Leve">Leve</option>
+      </select>
+    </div>
+    <button class="btn-main" id="btn-cad" onclick="cadastrar()">Criar minha conta</button>
+    <div class="alert" id="alerta-cad">
+      <span class="alert-icon"></span>
+      <span class="alert-text"></span>
+    </div>
+  </div>
+
+</div><!-- /card -->
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
-// ===== CONFIGURAÇÃO FIREBASE =====
-const firebaseConfig = {
-    apiKey: "AIzaSyB32S5Eac0guxy1herefub70AIAGkgF1Rw",
-    authDomain: "canteiro-saudavel.firebaseapp.com",
-    databaseURL: "https://canteiro-saudavel-default-rtdb.firebaseio.com",
-    projectId: "canteiro-saudavel",
-    storageBucket: "canteiro-saudavel.firebasestorage.app",
-    messagingSenderId: "37768857073",
-    appId: "1:37768857073:web:3e62666713391869813050",
+'use strict';
+
+// ═══════════════════════════════════════════════
+//  CONFIGURAÇÃO FIREBASE
+// ═══════════════════════════════════════════════
+const FB_CONFIG = {
+  apiKey:            'AIzaSyB32S5Eac0guxy1herefub70AIAGkgF1Rw',
+  authDomain:        'canteiro-saudavel.firebaseapp.com',
+  databaseURL:       'https://canteiro-saudavel-default-rtdb.firebaseio.com',
+  projectId:         'canteiro-saudavel',
+  storageBucket:     'canteiro-saudavel.firebasestorage.app',
+  messagingSenderId: '37768857073',
+  appId:             '1:37768857073:web:3e62666713391869813050'
 };
 
-let auth = null;
-let database = null;
-
+let db = null;
 try {
-    firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    database = firebase.database();
-} catch(e) {
-    console.warn('Firebase init error:', e);
+  firebase.initializeApp(FB_CONFIG);
+  db = firebase.database();
+} catch(e) { console.warn('[Firebase] Init error:', e.message); }
+
+// ═══════════════════════════════════════════════
+//  CONSTANTES
+// ═══════════════════════════════════════════════
+const SESSION_KEY   = 'cs_sessao_v1';
+const SESSION_DAYS  = 90;                  // Sessão válida por 90 dias
+const MAT_MIN       = 3450002;             // Menor matrícula válida
+const MAT_REGEX     = /^\d{7,10}$/;       // 7 a 10 dígitos
+const HOME_PAGE     = 'health-check.html';
+
+// ═══════════════════════════════════════════════
+//  SESSÃO PERSISTENTE
+// ═══════════════════════════════════════════════
+function salvarSessao(usuario) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      ...usuario,
+      _savedAt: Date.now()
+    }));
+  } catch(e) {}
 }
 
-// ===== VERIFICAR SE JÁ ESTÁ LOGADO =====
-document.addEventListener('DOMContentLoaded', () => {
-    // Escutar estado de autenticação
-    if (auth) {
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // Já logado → redirecionar para tela principal
-                window.location.href = 'health-check.html';
-            }
-        });
+function lerSessao() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || !s.uid || !s.matricula) return null;
+    const diasPassados = (Date.now() - (s._savedAt || 0)) / 86400000;
+    if (diasPassados > SESSION_DAYS) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return s;
+  } catch(e) { return null; }
+}
+
+function limparSessao() {
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem('employee_user');
+}
+
+// ═══════════════════════════════════════════════
+//  INICIALIZAÇÃO — verificar sessão ao abrir
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  const splash = document.getElementById('splash');
+  const card   = document.getElementById('card');
+  const msg    = document.getElementById('splash-msg');
+
+  const sessao = lerSessao();
+
+  if (sessao) {
+    msg.textContent = 'Bem-vindo de volta, ' + sessao.nome.split(' ')[0] + '!';
+
+    // Tentar validar sessão no Firebase (com timeout de 4s)
+    let irParaHome = true;
+
+    if (db) {
+      try {
+        const snap = await Promise.race([
+          db.ref('canteiro-saudavel/employees/' + sessao.uid).once('value'),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+        ]);
+        irParaHome = snap.exists();
+        if (!irParaHome) limparSessao();
+      } catch(e) {
+        // Timeout ou sem internet — usa sessão local mesmo
+        irParaHome = true;
+      }
     }
 
-    // Permitir login com Enter
-    document.getElementById('password').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
-    document.getElementById('email').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
+    if (irParaHome) {
+      // Atualizar sessão com dados mais recentes
+      sessionStorage.setItem('employee_user', JSON.stringify(sessao));
+      // Fade e redirecionar
+      splash.classList.add('fade');
+      setTimeout(() => { window.location.href = HOME_PAGE; }, 400);
+      return;
+    }
+  }
+
+  // Sem sessão — mostrar tela de login
+  splash.classList.add('fade');
+  setTimeout(() => {
+    splash.classList.add('gone');
+    card.style.display = 'block';
+  }, 400);
+
+  // Atalho de teclado
+  document.getElementById('ent-mat').addEventListener('keydown', e => {
+    if (e.key === 'Enter') entrar();
+  });
 });
 
-// ===== LOGIN =====
-async function handleLogin() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const errorBox = document.getElementById('error-box');
-    const loadingBox = document.getElementById('loading-box');
-    const btn = document.getElementById('btn-entrar');
+// ═══════════════════════════════════════════════
+//  ABAS
+// ═══════════════════════════════════════════════
+function aba(qual) {
+  document.getElementById('tb-entrar').classList.toggle('active', qual === 'entrar');
+  document.getElementById('tb-cad').classList.toggle('active',    qual === 'cadastro');
+  document.getElementById('sec-entrar').classList.toggle('on',    qual === 'entrar');
+  document.getElementById('sec-cadastro').classList.toggle('on',  qual === 'cadastro');
+  limparAlerta('alerta-entrar');
+  limparAlerta('alerta-cad');
+}
 
-    // Limpar estados
-    errorBox.style.display = 'none';
-    loadingBox.style.display = 'none';
+// ═══════════════════════════════════════════════
+//  VALIDAÇÃO DE MATRÍCULA
+// ═══════════════════════════════════════════════
+function validarMatricula(val) {
+  val = val.trim();
+  if (!val)              return { ok: false, msg: '' };
+  if (!/^\d+$/.test(val)) return { ok: false, msg: 'Somente números.' };
+  if (val.length < 7)    return { ok: false, msg: 'Matrícula muito curta (mínimo 7 dígitos).' };
+  if (val.length > 10)   return { ok: false, msg: 'Matrícula muito longa.' };
+  if (parseInt(val) < MAT_MIN) return { ok: false, msg: `Matrícula inválida (mínimo: ${MAT_MIN}).` };
+  return { ok: true, msg: '✓ Matrícula válida' };
+}
 
-    // Validação básica
-    if (!email) {
-        showError('Por favor, informe seu email.');
-        return;
+function validarMatriculaInput(inputId, hintId) {
+  const val  = document.getElementById(inputId).value;
+  const hint = document.getElementById(hintId);
+  const r    = validarMatricula(val);
+  if (!val) {
+    hint.textContent = 'Digite o número do seu crachá';
+    hint.className = 'field-hint';
+    document.getElementById(inputId).classList.remove('valid','invalid');
+    return;
+  }
+  hint.textContent = r.msg;
+  hint.className   = 'field-hint ' + (r.ok ? 'ok' : 'err');
+  document.getElementById(inputId).classList.toggle('valid',   r.ok);
+  document.getElementById(inputId).classList.toggle('invalid', !r.ok);
+}
+
+// ═══════════════════════════════════════════════
+//  ALERTAS
+// ═══════════════════════════════════════════════
+const ICONS = { err:'⚠️', ok:'✅', warn:'⚠️', info:'ℹ️' };
+
+function mostrarAlerta(id, tipo, texto) {
+  const el = document.getElementById(id);
+  el.className = 'alert show ' + tipo;
+  el.querySelector('.alert-icon').textContent = ICONS[tipo] || 'ℹ️';
+  el.querySelector('.alert-text').textContent = texto;
+}
+
+function limparAlerta(id) {
+  const el = document.getElementById(id);
+  if (el) el.className = 'alert';
+}
+
+// ═══════════════════════════════════════════════
+//  BOTÃO: estados de loading
+// ═══════════════════════════════════════════════
+function setBtnCarregando(id, sim, textoNormal) {
+  const b = document.getElementById(id);
+  b.disabled = sim;
+  b.innerHTML = sim ? '<span class="spin"></span>Aguarde...' : textoNormal;
+}
+
+// ═══════════════════════════════════════════════
+//  ENTRAR
+// ═══════════════════════════════════════════════
+async function entrar() {
+  const mat = document.getElementById('ent-mat').value.trim();
+  limparAlerta('alerta-entrar');
+
+  // Validar formato
+  const v = validarMatricula(mat);
+  if (!v.ok) {
+    mostrarAlerta('alerta-entrar', 'err',
+      mat ? v.msg : 'Digite sua matrícula para entrar.');
+    document.getElementById('ent-mat').focus();
+    return;
+  }
+
+  setBtnCarregando('btn-entrar', true, 'Entrar');
+
+  try {
+    if (!db) throw new Error('sem_conexao');
+
+    // Buscar matrícula no Firebase
+    const snap = await db.ref('canteiro-saudavel/employees')
+      .orderByChild('matricula')
+      .equalTo(mat)
+      .once('value');
+
+    const val = snap.val();
+
+    if (!val) {
+      // Matrícula não encontrada
+      mostrarAlerta('alerta-entrar', 'warn',
+        'Matrícula não encontrada. Você ainda não tem cadastro? Clique em "Cadastrar" para criar sua conta.');
+      setBtnCarregando('btn-entrar', false, 'Entrar');
+      return;
     }
-    if (!password) {
-        showError('Por favor, informe sua senha.');
-        return;
-    }
 
-    // Mostrar carregando
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Entrando...';
-    loadingBox.style.display = 'block';
+    // Login bem-sucedido
+    const uid = Object.keys(val)[0];
+    const emp = { uid, ...val[uid] };
 
-    // Tentar login via Firebase Auth
-    if (auth) {
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-            // onAuthStateChanged vai redirecionar automaticamente
-        } catch (firebaseError) {
-            // Se Firebase Auth falhar, tentar login via banco de dados
-            await loginViaDatabase(email, password);
-        }
+    // Atualizar último acesso
+    db.ref('canteiro-saudavel/employees/' + uid)
+      .update({ ultimoAcesso: new Date().toISOString() })
+      .catch(() => {});
+
+    // Salvar sessão persistente (90 dias)
+    salvarSessao(emp);
+    sessionStorage.setItem('employee_user', JSON.stringify(emp));
+
+    mostrarAlerta('alerta-entrar', 'ok', 'Olá, ' + emp.nome.split(' ')[0] + '! Entrando...');
+    setTimeout(() => { window.location.href = HOME_PAGE; }, 700);
+
+  } catch(e) {
+    if (e.message === 'sem_conexao') {
+      mostrarAlerta('alerta-entrar', 'err',
+        'Sem conexão com o servidor. Verifique sua internet e tente novamente.');
     } else {
-        // Firebase não disponível - tentar via banco de dados
-        await loginViaDatabase(email, password);
+      mostrarAlerta('alerta-entrar', 'err',
+        'Erro ao conectar. Tente novamente em alguns instantes.');
     }
-
-    // Restaurar botão se não redirecionou
-    btn.disabled = false;
-    btn.innerHTML = 'Entrar';
-    loadingBox.style.display = 'none';
+    setBtnCarregando('btn-entrar', false, 'Entrar');
+  }
 }
 
-// Login alternativo: buscar funcionário no Realtime Database
-async function loginViaDatabase(email, password) {
-    if (!database) {
-        showError('Serviço temporariamente indisponível. Tente novamente em instantes.');
-        return;
-    }
-    try {
-        const snapshot = await database.ref('canteiro-saudavel/employees').once('value');
-        const employees = snapshot.val() || {};
-        let found = null;
-        Object.entries(employees).forEach(([uid, emp]) => {
-            if (emp.email === email && emp.password === password) {
-                found = { uid, ...emp };
-            }
-        });
-        if (found) {
-            // Salvar sessão localmente
-            sessionStorage.setItem('employee_user', JSON.stringify(found));
-            localStorage.setItem('employee_uid', found.uid);
-            window.location.href = 'health-check.html';
-        } else {
-            showError('Email ou senha incorretos. Verifique seus dados e tente novamente.');
-        }
-    } catch (e) {
-        showError('Erro ao conectar. Verifique sua internet e tente novamente.');
-        console.error(e);
-    }
-}
+// ═══════════════════════════════════════════════
+//  CADASTRAR
+// ═══════════════════════════════════════════════
+async function cadastrar() {
+  const nome    = document.getElementById('cad-nome').value.trim();
+  const mat     = document.getElementById('cad-mat').value.trim();
+  const turno   = document.getElementById('cad-turno').value;
+  const funcao  = document.getElementById('cad-funcao').value;
+  const altura  = document.getElementById('cad-altura').value;
+  const peso    = document.getElementById('cad-peso').value;
+  const trab    = document.getElementById('cad-trabalho').value;
 
-function showError(msg) {
-    const errorBox = document.getElementById('error-box');
-    const btn = document.getElementById('btn-entrar');
-    errorBox.textContent = '⚠️ ' + msg;
-    errorBox.style.display = 'block';
-    document.getElementById('loading-box').style.display = 'none';
-    btn.disabled = false;
-    btn.innerHTML = 'Entrar';
+  limparAlerta('alerta-cad');
+
+  // Validações
+  if (!nome || nome.length < 3) {
+    mostrarAlerta('alerta-cad','err','Informe seu nome completo.'); return;
+  }
+  const v = validarMatricula(mat);
+  if (!v.ok) {
+    mostrarAlerta('alerta-cad','err', mat ? v.msg : 'Informe sua matrícula.'); return;
+  }
+  if (!turno)  { mostrarAlerta('alerta-cad','err','Selecione o turno.'); return; }
+  if (!funcao) { mostrarAlerta('alerta-cad','err','Selecione sua função.'); return; }
+
+  setBtnCarregando('btn-cad', true, 'Criar minha conta');
+
+  try {
+    if (!db) throw new Error('sem_conexao');
+
+    // Verificar unicidade da matrícula
+    const check = await db.ref('canteiro-saudavel/employees')
+      .orderByChild('matricula')
+      .equalTo(mat)
+      .once('value');
+
+    if (check.val()) {
+      // Matrícula já cadastrada
+      mostrarAlerta('alerta-cad', 'warn',
+        'Esta matrícula já está cadastrada. Use a aba "Entrar" para acessar sua conta.');
+      setBtnCarregando('btn-cad', false, 'Criar minha conta');
+      return;
+    }
+
+    // Criar registro no Firebase
+    const newRef  = db.ref('canteiro-saudavel/employees').push();
+    const uid     = newRef.key;
+    const agora   = new Date().toISOString();
+
+    const empData = {
+      uid,
+      nome,
+      matricula:    mat,
+      turno,
+      funcao:       funcao || null,
+      altura:       altura ? parseFloat(altura) : null,
+      peso:         peso   ? parseFloat(peso)   : null,
+      tipoTrabalho: trab,
+      cadastradoEm: agora,
+      ultimoAcesso: agora,
+      ativo:        true
+    };
+
+    await newRef.set(empData);
+
+    // Logar automaticamente
+    salvarSessao(empData);
+    sessionStorage.setItem('employee_user', JSON.stringify(empData));
+
+    mostrarAlerta('alerta-cad', 'ok', 'Conta criada! Bem-vindo, ' + nome.split(' ')[0] + '!');
+    setTimeout(() => { window.location.href = HOME_PAGE; }, 1000);
+
+  } catch(e) {
+    if (e.message === 'sem_conexao') {
+      mostrarAlerta('alerta-cad','err','Sem conexão. Verifique sua internet.');
+    } else {
+      mostrarAlerta('alerta-cad','err','Erro ao cadastrar. Tente novamente.');
+    }
+    setBtnCarregando('btn-cad', false, 'Criar minha conta');
+  }
 }
 </script>
-
 </body>
 </html>
