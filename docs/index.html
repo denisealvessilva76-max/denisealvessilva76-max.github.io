@@ -229,20 +229,8 @@ body::after{width:300px;height:300px;bottom:-80px;left:-80px;}
         </select>
       </div>
       <div class="field">
-        <label>Função *</label>
-        <select id="cad-funcao">
-          <option value="">Selecione</option>
-          <option>Pedreiro</option>
-          <option>Servente</option>
-          <option>Carpinteiro</option>
-          <option>Armador</option>
-          <option>Encanador</option>
-          <option>Eletricista</option>
-          <option>Pintor</option>
-          <option>Mestre de Obras</option>
-          <option>Técnico de Segurança</option>
-          <option>Outro</option>
-        </select>
+        <label>Função</label>
+        <input type="text" id="cad-funcao" placeholder="Ex: Pedreiro, Servente, Carpinteiro..." autocomplete="organization-title">
       </div>
     </div>
     <div class="grid2">
@@ -547,7 +535,7 @@ async function cadastrar() {
     mostrarAlerta('alerta-cad','err', mat ? v.msg : 'Informe sua matrícula.'); return;
   }
   if (!turno)  { mostrarAlerta('alerta-cad','err','Selecione o turno.'); return; }
-  if (!funcao) { mostrarAlerta('alerta-cad','err','Selecione sua função.'); return; }
+  // funcao é opcional
 
   setBtnCarregando('btn-cad', true, 'Criar minha conta');
 
