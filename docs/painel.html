@@ -2001,14 +2001,11 @@ async function apiRequest(path, options = {}) {
 /** Tenta login na API PostgreSQL. Retorna true se bem-sucedido. */
 async function tryApiLogin(email, password) {
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
         const data = await fetch(`${API_BASE}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
-            signal: controller.signal,
-        }).then(r => { clearTimeout(timeoutId); return r.json(); });
+        }).then(r => r.json());
         if (data.success && data.token) {
             apiToken = data.token;
             localStorage.setItem('api_token', data.token);
@@ -2246,8 +2243,8 @@ function loadEmployeesDataFirebase() {
                 const emp = data[matricula];
                 return {
                     matricula,
-                    name: emp.nome || emp.profile?.name || emp.name || 'Sem nome',
-                    cargo: emp.funcao || emp.profile?.cargo || emp.cargo || '-',
+                    name: emp.profile?.name || emp.name || 'Sem nome',
+                    cargo: emp.profile?.cargo || emp.cargo || '-',
                     turno: emp.profile?.turno || emp.turno || '-',
                     email: emp.profile?.email || emp.email || '',
                     hydration: emp.hydration || emp.water || {},
@@ -2312,9 +2309,14 @@ function login(email, password) {
 
 function logout() {
     currentUser = null;
+    apiToken = null;
+    useApiMode = false;
     localStorage.removeItem('admin_user');
-    if (unsubscribe) unsubscribe();
-    showLogin();
+    localStorage.removeItem('api_token');
+    localStorage.removeItem('api_user');
+    try { if (unsubscribe) unsubscribe(); } catch(e){}
+    // Redirect to force clean state
+    window.location.href = 'painel.html';
 }
 
 function checkAuth() {
@@ -2347,14 +2349,28 @@ function showDashboard() {
 
 // ========== CARREGAMENTO DE DADOS (API + Firebase fallback) ==========
 function loadEmployeesData() {
-    // Limpar tokens de API morta (Railway desativado)
-    localStorage.removeItem('api_token');
-    localStorage.removeItem('api_user');
-    apiToken = null;
-    useApiMode = false;
-    // Carregar direto do Firebase
-    updateDataSourceBadge();
-    loadEmployeesDataFirebase();
+    // Verificar se já temos token da API
+    const savedToken = localStorage.getItem('api_token');
+    if (savedToken) {
+        apiToken = savedToken;
+        useApiMode = true;
+    }
+
+    if (useApiMode && apiToken) {
+        loadFromApi().then(() => updateDataSourceBadge());
+    } else {
+        // Tentar API primeiro, depois Firebase
+        tryApiLogin(currentUser.email, currentUser._rawPassword || '')
+            .then(ok => {
+                if (ok) {
+                    loadFromApi().then(() => updateDataSourceBadge());
+                } else {
+                    useApiMode = false;
+                    updateDataSourceBadge();
+                    loadEmployeesDataFirebase();
+                }
+            });
+    }
 }
 
 function loadRewardsData() {
@@ -3259,15 +3275,7 @@ function formatTime(date) {
 }
 
 function showLoading(show) {
-    const overlay = document.getElementById('loading-overlay');
-    if (!overlay) return;
-    overlay.style.display = show ? 'flex' : 'none';
-    if (show) {
-        clearTimeout(window._loadTimer);
-        window._loadTimer = setTimeout(() => { overlay.style.display = 'none'; }, 8000);
-    } else {
-        clearTimeout(window._loadTimer);
-    }
+    document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
 }
 
 function emptyState(icon, text) {
