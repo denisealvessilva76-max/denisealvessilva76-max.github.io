@@ -2001,11 +2001,14 @@ async function apiRequest(path, options = {}) {
 /** Tenta login na API PostgreSQL. Retorna true se bem-sucedido. */
 async function tryApiLogin(email, password) {
     try {
+        const _ctrl = new AbortController();
+        const _tid = setTimeout(() => _ctrl.abort(), 3000);
         const data = await fetch(`${API_BASE}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
-        }).then(r => r.json());
+            signal: _ctrl.signal,
+        }).then(r => { clearTimeout(_tid); return r.json(); });
         if (data.success && data.token) {
             apiToken = data.token;
             localStorage.setItem('api_token', data.token);
@@ -3275,7 +3278,15 @@ function formatTime(date) {
 }
 
 function showLoading(show) {
-    document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    const overlay = document.getElementById('loading-overlay');
+    if (!overlay) return;
+    overlay.style.display = show ? 'flex' : 'none';
+    if (show) {
+        clearTimeout(window._loadTimer);
+        window._loadTimer = setTimeout(() => { overlay.style.display = 'none'; }, 8000);
+    } else {
+        clearTimeout(window._loadTimer);
+    }
 }
 
 function emptyState(icon, text) {
