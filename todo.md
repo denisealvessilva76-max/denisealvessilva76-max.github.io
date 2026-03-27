@@ -3224,15 +3224,20 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [ ] Integração com sistema de pontos
 
 ### Biblioteca de Vídeos Educativos 📚
-- [ ] Hook useVideoLibrary
-- [ ] Vídeos: Exercícios de alongamento
-- [ ] Vídeos: Técnicas de respiração
-- [ ] Vídeos: Ergonomia no trabalho
-- [ ] Vídeos: Alimentação saudável
-- [ ] Sistema de categorias
-- [ ] Ganhar pontos por assistir
-- [ ] Rastreamento de vídeos assistidos
-- [ ] Recomendações personalizadas
+- [x] Hook useVideoLibrary
+- [x] Vídeos: Exercícios de alongamento (3 vídeos)
+- [x] Vídeos: Técnicas de respiração (3 vídeos)
+- [x] Vídeos: Ergonomia no trabalho (3 vídeos)
+- [x] Vídeos: Alimentação saudável (3 vídeos)
+- [x] Vídeos: Segurança (2 vídeos)
+- [x] Vídeos: Saúde Mental (2 vídeos)
+- [x] Sistema de categorias (6 categorias)
+- [x] Ganhar pontos por assistir (50-100 pontos)
+- [x] Rastreamento de vídeos assistidos
+- [x] Recomendações personalizadas
+- [x] Busca e filtros por dificuldade
+- [x] Sistema de favoritos
+- [x] Progresso do usuário
 - [ ] Tela de biblioteca no app
 
 ### Backup Automático Diário 💾
