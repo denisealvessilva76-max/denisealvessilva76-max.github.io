@@ -79,10 +79,34 @@ export function useHydration() {
     /**
    * Registrar consumo de água
    */
+  const calculateDailyGoal = async (): Promise<number> => {
+    try {
+      const profileStr = await AsyncStorage.getItem("worker_profile");
+      if (!profileStr) return 2000; // meta padrão
+      
+      const profile = JSON.parse(profileStr);
+      const peso = parseFloat(profile.peso) || 70;
+      const altura = parseFloat(profile.altura) || 170;
+      const tipoTrabalho = profile.tipoTrabalho || "moderado";
+      
+      // Fórmula: 35ml por kg de peso
+      let metaBase = peso * 35;
+      
+      // Ajuste por tipo de trabalho
+      if (tipoTrabalho === "pesado") metaBase *= 1.5; // +50% para trabalho pesado
+      else if (tipoTrabalho === "leve") metaBase *= 0.8; // -20% para trabalho leve
+      
+      return Math.round(metaBase);
+    } catch (error) {
+      console.error("Erro ao calcular meta diária:", error);
+      return 2000;
+    }
+  };
+
   const logWaterIntake = async (glassesConsumed: number = 1): Promise<boolean> => {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const waterPerGlass = 150; // ml (padrão de canteiro de obras)
+      const waterPerGlass = 180; // ml (copo da obra)
       const waterIntake = glassesConsumed * waterPerGlass;
       console.log(`[Hydration] Registrando: ${glassesConsumed} copos = ${waterIntake}ml`);
 
@@ -106,8 +130,14 @@ export function useHydration() {
 
       await saveHydrationData(updatedData);
 
+      // Atualizar meta diária se necessário
+      const newDailyGoal = await calculateDailyGoal();
+      if (newDailyGoal !== reminderSettings.dailyGoal) {
+        await saveReminderSettings({ ...reminderSettings, dailyGoal: newDailyGoal });
+      }
+      
       // Verificar se atingiu a meta diária
-      if (updatedEntry.waterIntake >= reminderSettings.dailyGoal) {
+      if (updatedEntry.waterIntake >= newDailyGoal) {
         await sendDailyGoalNotification(updatedEntry.waterIntake);
       }
 
@@ -282,16 +312,15 @@ export function useHydration() {
     await updateReminderSettings({ dailyGoal: newGoal });
   };
 
-  return {
+    return {
     hydrationData,
     isLoading,
     reminderSettings,
     logWaterIntake,
-    sendHydrationReminder,
     getTodayHydration,
     getHydrationHistory,
-    getDailyProgress,
-    updateReminderSettings,
     setDailyGoal,
+    sendHydrationReminder,
+    calculateDailyGoal,
   };
 }

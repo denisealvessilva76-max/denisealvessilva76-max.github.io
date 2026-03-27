@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { useHealthData } from "@/hooks/use-health-data";
+import { useHydration } from "@/hooks/use-hydration";
 import { useGamification } from "@/hooks/use-gamification";
 import { usePersonalDashboard } from "@/hooks/use-personal-dashboard";
 import { CheckInStatus } from "@/lib/types";
@@ -45,6 +46,7 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const { addCheckIn, getTodayCheckIn, checkIns } = useHealthData();
+  const { hydrationData } = useHydration();
   const { stats: gamificationStats } = useGamification(checkIns);
   const { stats: dashboardStats, refresh } = usePersonalDashboard();
   const [todayCheckIn, setTodayCheckIn] = useState(getTodayCheckIn());
@@ -103,7 +105,9 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
+        contentContainerStyle={{ flexGrow: 1 }}
       >
+        {/* HEADER */}
         <View style={[styles.header, { backgroundColor: colors.primary }]}>
           <View style={styles.headerTop}>
             <View style={{ flex: 1 }}>
@@ -197,7 +201,7 @@ export default function HomeScreen() {
               </View>
               <View style={[styles.statBox, { backgroundColor: "#DCFCE7" }]}>
                 <Text style={[styles.statValue, { color: "#16A34A" }]}>
-                  {(((dashboardStats.hydration as any).todayTotal || 0) / 1000).toFixed(1)}L
+                  {(Object.values(hydrationData)[0]?.waterIntake || 0) / 1000}L
                 </Text>
                 <Text style={[styles.statLabel, { color: colors.muted }]}>Água hoje</Text>
               </View>

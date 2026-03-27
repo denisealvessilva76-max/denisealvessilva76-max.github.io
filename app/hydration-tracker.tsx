@@ -18,11 +18,11 @@ interface UserProfile {
 export default function HydrationTrackerScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { logWaterIntake, getTodayHydration, getDailyProgress, setDailyGoal, reminderSettings, hydrationData } =
+  const { logWaterIntake, getTodayHydration, setDailyGoal, reminderSettings, hydrationData } =
     useHydration();
   // Matrícula é usada internamente pelo use-hydration via AsyncStorage
   const [todayData, setTodayData] = useState(getTodayHydration());
-  const [progress, setProgress] = useState(getDailyProgress());
+  const [progress, setProgress] = useState(0);
   const [isLogging, setIsLogging] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -38,9 +38,12 @@ export default function HydrationTrackerScreen() {
 
   // Atualizar quando hydrationData mudar
   useEffect(() => {
-    setTodayData(getTodayHydration());
-    setProgress(getDailyProgress());
-  }, [hydrationData]);
+    const today = getTodayHydration();
+    setTodayData(today);
+    if (today && reminderSettings.dailyGoal > 0) {
+      setProgress((today.waterIntake / reminderSettings.dailyGoal) * 100);
+    }
+  }, [hydrationData, reminderSettings]);
 
   const loadUserProfile = async () => {
     try {
@@ -127,8 +130,11 @@ export default function HydrationTrackerScreen() {
         // O use-hydration já sincroniza com Firebase automaticamente
         // Forçar atualização imediata do estado local
         setTimeout(() => {
-          setTodayData(getTodayHydration());
-          setProgress(getDailyProgress());
+          const today = getTodayHydration();
+          setTodayData(today);
+          if (today && reminderSettings.dailyGoal > 0) {
+            setProgress((today.waterIntake / reminderSettings.dailyGoal) * 100);
+          }
         }, 200);
         Alert.alert("Sucesso", `${glasses} copo(s) de água registrado(s)!`);
       } else {

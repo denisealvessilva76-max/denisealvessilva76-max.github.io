@@ -7,6 +7,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { Card } from "@/components/ui/card";
 import { Badge, getPressureBadgeVariant, getPressureLabel } from "@/components/ui/badge";
 import { useHealthData } from "@/hooks/use-health-data";
+import { useHydration } from "@/hooks/use-hydration";
 import { useAdminNotifications } from "@/hooks/use-admin-notifications";
 import { SYMPTOMS } from "@/lib/types";
 import * as Haptics from "expo-haptics";
@@ -15,8 +16,11 @@ export default function SaudeScreen() {
   const router = useRouter();
   const { addPressureReading, addSymptomReport, classifyPressure, getLatestPressure, pressureReadings } = useHealthData();
   const { sendPainNotification } = useAdminNotifications();
+  const { hydrationData, logWaterIntake } = useHydration();
   const [matricula, setMatricula] = useState<string>("");
   const { syncBloodPressure, syncSymptoms } = useFirebaseSync({ matricula, enabled: !!matricula });
+  const [waterAmount, setWaterAmount] = useState("");
+  const [showHydrationForm, setShowHydrationForm] = useState(false);
 
   // Carregar matrícula do AsyncStorage
   useEffect(() => {
@@ -50,43 +54,32 @@ export default function SaudeScreen() {
     }
 
     if (glicemia > 0) {
-      if (glicemia >= 100 && glicemia < 126) riscos.push("Glicemia de jejum alterada (pré-diabetes) — monitore a alimentação");
-      else if (glicemia >= 126) riscos.push("Glicemia elevada — possível diabetes, procure avaliação médica");
+      if (glicemia > 200) { riscos.push("Glicemia elevada — risco de diabetes"); imcColor = "#EF4444"; }
+      else if (glicemia > 126) { riscos.push("Glicemia acima do normal — recomenda-se avaliação médica"); }
     }
 
-    if (latestPressure) {
-      const cls = classifyPressure(latestPressure.systolic, latestPressure.diastolic);
-      if (cls === "hipertensao") riscos.push("Pressão arterial elevada — risco cardiovascular aumentado");
-      else if (cls === "pre-hipertensao") riscos.push("Pressão arterial limítrofe — atenção à alimentação e estresse");
-    }
-
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setTriagemResultado({ imc: Math.round(imc * 10) / 10, imcClass, imcColor, riscos });
+    setTriagemResultado({ imc, imcClass, imcColor, riscos });
   };
 
+  // Pressão Arterial
+  const [showPressureForm, setShowPressureForm] = useState(false);
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-  const [showPressureForm, setShowPressureForm] = useState(false);
-  const [showSymptomDetails, setShowSymptomDetails] = useState(false);
-  const [symptomDetails, setSymptomDetails] = useState("");
-  const [symptomIntensity, setSymptomIntensity] = useState<"leve" | "moderada" | "forte">("leve");
   const [latestPressure, setLatestPressure] = useState(getLatestPressure());
-  const [latestClassification, setLatestClassification] = useState(
-    latestPressure ? classifyPressure(latestPressure.systolic, latestPressure.diastolic) : null
-  );
+  const [latestClassification, setLatestClassification] = useState<'normal' | 'pre-hipertensao' | 'hipertensao' | null>(null);
 
   useEffect(() => {
-    const latest = getLatestPressure();
+        const latest = getLatestPressure();
     setLatestPressure(latest);
     if (latest) {
-      setLatestClassification(classifyPressure(latest.systolic, latest.diastolic));
+      const classification = classifyPressure(latest.systolic, latest.diastolic);
+      setLatestClassification(classification as any);
     }
   }, [pressureReadings]);
 
   const handleAddPressure = async () => {
     if (!systolic || !diastolic) {
-      Alert.alert("Erro", "Preencha os valores de pressão arterial");
+      Alert.alert("Erro", "Preencha ambos os valores de pressão");
       return;
     }
 
@@ -94,7 +87,7 @@ export default function SaudeScreen() {
     const dia = parseInt(diastolic);
 
     if (sys <= 0 || dia <= 0) {
-      Alert.alert("Erro", "Os valores devem ser maiores que zero");
+      Alert.alert("Erro", "Valores de pressão devem ser maiores que 0");
       return;
     }
 
@@ -159,6 +152,35 @@ export default function SaudeScreen() {
     router.push("/respiracao-guiada");
   };
 
+  const handleAddWater = async () => {
+    const amount = parseInt(waterAmount);
+    if (!waterAmount || amount <= 0) {
+      Alert.alert("Erro", "Digite uma quantidade válida de água (em ml)");
+      return;
+    }
+    await logWaterIntake();
+    setWaterAmount("");
+    setShowHydrationForm(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Sucesso", `${amount}ml de água registrado!`);
+  };
+
+  const getTodayHydration = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return hydrationData[today]?.waterIntake || 0;
+  };
+
+  const handleAddCup = async () => {
+    await logWaterIntake(1);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  // Sintomas
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const [showSymptomDetails, setShowSymptomDetails] = useState(false);
+  const [symptomDetails, setSymptomDetails] = useState("");
+  const [symptomIntensity, setSymptomIntensity] = useState("leve");
+
   return (
     <ScreenContainer className="p-4">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
@@ -184,8 +206,8 @@ export default function SaudeScreen() {
                   </View>
                   {latestClassification && (
                     <Badge
-                      variant={getPressureBadgeVariant(latestClassification)}
-                      label={getPressureLabel(latestClassification)}
+                      variant={getPressureBadgeVariant(latestClassification as 'normal' | 'pre-hipertensao' | 'hipertensao')}
+                      label={getPressureLabel(latestClassification as 'normal' | 'pre-hipertensao' | 'hipertensao')}
                     />
                   )}
                 </View>
@@ -198,75 +220,50 @@ export default function SaudeScreen() {
                 <>
                   <TouchableOpacity
                     className="bg-primary rounded-lg py-3 active:opacity-80"
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setShowPressureForm(true);
-                    }}
+                    onPress={() => setShowPressureForm(true)}
                   >
-                    <Text className="text-center font-semibold text-white">
-                      + Registrar Pressão
-                    </Text>
+                    <Text className="text-center font-semibold text-white">+ Registrar Pressão</Text>
                   </TouchableOpacity>
-                  {pressureReadings.length > 0 && (
-                    <TouchableOpacity
-                      className="bg-surface border border-primary rounded-lg py-2 active:opacity-80"
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        router.push("/blood-pressure-history");
-                      }}
-                    >
-                      <Text className="text-center font-semibold text-primary">
-                        📊 Ver Histórico Completo
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                 </>
               ) : (
-              <View className="gap-3 p-3 bg-surface rounded-lg border border-border">
-                <View className="flex-row gap-2">
-                  <View className="flex-1">
-                    <Text className="text-xs text-muted mb-1">Sistólica</Text>
+                <View className="gap-2">
+                  <View className="flex-row gap-2">
                     <TextInput
-                      className="bg-background border border-border rounded-lg p-2 text-foreground"
-                      placeholder="120"
+                      className="flex-1 border border-border rounded-lg p-3 text-foreground"
+                      placeholder="Sistólica"
                       placeholderTextColor="#687076"
                       keyboardType="number-pad"
                       value={systolic}
                       onChangeText={setSystolic}
                     />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-xs text-muted mb-1">Diastólica</Text>
                     <TextInput
-                      className="bg-background border border-border rounded-lg p-2 text-foreground"
-                      placeholder="80"
+                      className="flex-1 border border-border rounded-lg p-3 text-foreground"
+                      placeholder="Diastólica"
                       placeholderTextColor="#687076"
                       keyboardType="number-pad"
                       value={diastolic}
                       onChangeText={setDiastolic}
                     />
                   </View>
+                  <View className="flex-row gap-2">
+                    <TouchableOpacity
+                      className="flex-1 bg-primary rounded-lg py-3 active:opacity-80"
+                      onPress={handleAddPressure}
+                    >
+                      <Text className="text-center font-semibold text-white">Confirmar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="flex-1 bg-border rounded-lg py-3 active:opacity-80"
+                      onPress={() => {
+                        setShowPressureForm(false);
+                        setSystolic("");
+                        setDiastolic("");
+                      }}
+                    >
+                      <Text className="text-center font-semibold text-foreground">Cancelar</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-
-                <View className="flex-row gap-2">
-                  <TouchableOpacity
-                    className="flex-1 bg-primary rounded-lg py-2 active:opacity-80"
-                    onPress={handleAddPressure}
-                  >
-                    <Text className="text-center font-semibold text-white">Salvar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    className="flex-1 bg-surface border border-border rounded-lg py-2 active:opacity-80"
-                    onPress={() => {
-                      setShowPressureForm(false);
-                      setSystolic("");
-                      setDiastolic("");
-                    }}
-                  >
-                    <Text className="text-center font-semibold text-foreground">Cancelar</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
               )}
             </View>
           </Card>
@@ -274,98 +271,81 @@ export default function SaudeScreen() {
           {/* Seção de Sintomas */}
           <Card className="gap-4">
             <Text className="text-lg font-semibold text-foreground">Sintomas</Text>
-            <Text className="text-sm text-muted">Selecione os sintomas que está sentindo:</Text>
+            <Text className="text-sm text-muted">Você está sentindo algo?</Text>
 
-            <View className="gap-2">
-              {SYMPTOMS.map((symptom) => (
-                <Pressable
-                  key={symptom.id}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    handleToggleSymptom(symptom.id);
-                  }}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
-                >
-                  <View
-                    className={`flex-row items-center gap-3 p-3 rounded-lg border ${
-                      selectedSymptoms.includes(symptom.id)
-                        ? "bg-primary/10 border-primary"
-                        : "bg-surface border-border"
-                    }`}
-                  >
-                    <View
-                      className={`w-5 h-5 rounded border-2 items-center justify-center ${
-                        selectedSymptoms.includes(symptom.id)
-                          ? "bg-primary border-primary"
-                          : "border-border"
-                      }`}
-                    >
-                      {selectedSymptoms.includes(symptom.id) && (
-                        <Text className="text-white text-xs font-bold">✓</Text>
-                      )}
-                    </View>
-                    <Text className="flex-1 text-foreground">{symptom.label}</Text>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-
-            {selectedSymptoms.length > 0 && !showSymptomDetails && (
-              <TouchableOpacity
-                className="bg-primary rounded-lg py-3 active:opacity-80"
-                onPress={handleContinueToDetails}
-              >
-                <Text className="text-center font-semibold text-white">
-                  Continuar
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            {showSymptomDetails && (
-              <View className="gap-4 mt-4 p-4 bg-surface rounded-lg border border-border">
-                <Text className="text-base font-semibold text-foreground">Detalhes do Sintoma</Text>
-                
+            {!showSymptomDetails ? (
+              <>
                 <View className="gap-2">
-                  <Text className="text-sm text-muted">Intensidade:</Text>
-                  <View className="flex-row gap-2">
-                    {["leve", "moderada", "forte"].map((intensity) => (
-                      <Pressable
-                        key={intensity}
-                        onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          setSymptomIntensity(intensity as any);
+                  {SYMPTOMS.map((symptom) => (
+                    <Pressable
+                      key={symptom.id}
+                      onPress={() => handleToggleSymptom(symptom.id)}
+                      style={({ pressed }) => [
+                        {
+                          backgroundColor: selectedSymptoms.includes(symptom.id) ? "#0a7ea4" : "#f5f5f5",
+                          opacity: pressed ? 0.7 : 1,
+                          paddingVertical: 12,
+                          paddingHorizontal: 12,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: selectedSymptoms.includes(symptom.id) ? "#0a7ea4" : "#E5E7EB",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          color: selectedSymptoms.includes(symptom.id) ? "white" : "#11181C",
+                          fontWeight: "500",
                         }}
-                        style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                       >
-                        <View
-                          className={`px-4 py-2 rounded-lg border ${
-                            symptomIntensity === intensity
-                              ? "bg-primary border-primary"
-                              : "bg-background border-border"
+                        {selectedSymptoms.includes(symptom.id) ? "✓ " : ""}{symptom.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                {selectedSymptoms.length > 0 && (
+                  <TouchableOpacity
+                    className="bg-primary rounded-lg py-3 active:opacity-80"
+                    onPress={handleContinueToDetails}
+                  >
+                    <Text className="text-center font-semibold text-white">Continuar</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <View className="gap-3">
+                <View>
+                  <Text className="text-sm font-semibold text-foreground mb-2">Intensidade</Text>
+                  <View className="flex-row gap-2">
+                    {["leve", "moderada", "forte"].map((level) => (
+                      <TouchableOpacity
+                        key={level}
+                        onPress={() => setSymptomIntensity(level)}
+                        className={`flex-1 rounded-lg py-2 ${
+                          symptomIntensity === level ? "bg-primary" : "bg-border"
+                        }`}
+                      >
+                        <Text
+                          className={`text-center text-sm font-semibold ${
+                            symptomIntensity === level ? "text-white" : "text-foreground"
                           }`}
                         >
-                          <Text
-                            className={`text-sm font-medium ${
-                              symptomIntensity === intensity ? "text-white" : "text-foreground"
-                            }`}
-                          >
-                            {intensity.charAt(0).toUpperCase() + intensity.slice(1)}
-                          </Text>
-                        </View>
-                      </Pressable>
+                          {level.charAt(0).toUpperCase() + level.slice(1)}
+                        </Text>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 </View>
 
-                <View className="gap-2">
-                  <Text className="text-sm text-muted">Descreva o que está sentindo:</Text>
+                <View>
+                  <Text className="text-sm font-semibold text-foreground mb-2">Detalhes (opcional)</Text>
                   <TextInput
-                    className="bg-background border border-border rounded-lg p-3 text-foreground min-h-[100px]"
-                    placeholder="Ex: Dor nas costas ao carregar peso, começou hoje de manhã..."
+                    className="border border-border rounded-lg p-3 text-foreground"
+                    placeholder="Descreva os sintomas..."
                     placeholderTextColor="#687076"
                     multiline
-                    numberOfLines={4}
-                    textAlignVertical="top"
+                    numberOfLines={3}
                     value={symptomDetails}
                     onChangeText={setSymptomDetails}
                   />
@@ -376,84 +356,63 @@ export default function SaudeScreen() {
                     className="flex-1 bg-primary rounded-lg py-3 active:opacity-80"
                     onPress={handleReportSymptoms}
                   >
-                    <Text className="text-center font-semibold text-white">
-                      Enviar Relato
-                    </Text>
+                    <Text className="text-center font-semibold text-white">Reportar</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    className="flex-1 bg-surface border border-border rounded-lg py-3 active:opacity-80"
+                    className="flex-1 bg-border rounded-lg py-3 active:opacity-80"
                     onPress={() => {
                       setShowSymptomDetails(false);
+                      setSelectedSymptoms([]);
                       setSymptomDetails("");
                       setSymptomIntensity("leve");
                     }}
                   >
-                    <Text className="text-center font-semibold text-foreground">
-                      Voltar
-                    </Text>
+                    <Text className="text-center font-semibold text-foreground">Cancelar</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             )}
           </Card>
 
-          {/* Seção de Triagem de Saúde */}
+          {/* Seção de Triagem de Comorbidades */}
           <Card className="gap-4">
-            <View className="flex-row items-center justify-between">
-              <View>
-                <Text className="text-lg font-semibold text-foreground">🧑‍⚕️ Triagem de Saúde</Text>
-                <Text className="text-xs text-muted">IMC, glicemia e riscos de comorbidades</Text>
-              </View>
+            <Text className="text-lg font-semibold text-foreground">Triagem de Saúde</Text>
+
+            {!showTriagem ? (
               <TouchableOpacity
-                className="bg-primary/10 px-3 py-1 rounded-lg active:opacity-80"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setShowTriagem(!showTriagem);
-                  setTriagemResultado(null);
-                }}
+                className="bg-primary rounded-lg py-3 active:opacity-80"
+                onPress={() => setShowTriagem(true)}
               >
-                <Text className="text-primary text-sm font-medium">{showTriagem ? "Fechar" : "Iniciar"}</Text>
+                <Text className="text-center font-semibold text-white">Iniciar Triagem</Text>
               </TouchableOpacity>
-            </View>
+            ) : (
+              <View className="gap-3">
+                <TextInput
+                  className="border border-border rounded-lg p-3 text-foreground"
+                  placeholder="Altura (cm)"
+                  placeholderTextColor="#687076"
+                  keyboardType="number-pad"
+                  value={triagemAltura}
+                  onChangeText={setTriagemAltura}
+                />
 
-            {showTriagem && (
-              <View className="gap-4">
-                <View className="flex-row gap-2">
-                  <View className="flex-1">
-                    <Text className="text-xs text-muted mb-1">Peso (kg)</Text>
-                    <TextInput
-                      className="bg-surface border border-border rounded-lg p-2 text-foreground"
-                      placeholder="70"
-                      placeholderTextColor="#687076"
-                      keyboardType="decimal-pad"
-                      value={triagemPeso}
-                      onChangeText={setTriagemPeso}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-xs text-muted mb-1">Altura (cm)</Text>
-                    <TextInput
-                      className="bg-surface border border-border rounded-lg p-2 text-foreground"
-                      placeholder="170"
-                      placeholderTextColor="#687076"
-                      keyboardType="number-pad"
-                      value={triagemAltura}
-                      onChangeText={setTriagemAltura}
-                    />
-                  </View>
-                </View>
+                <TextInput
+                  className="border border-border rounded-lg p-3 text-foreground"
+                  placeholder="Peso (kg)"
+                  placeholderTextColor="#687076"
+                  keyboardType="number-pad"
+                  value={triagemPeso}
+                  onChangeText={setTriagemPeso}
+                />
 
-                <View>
-                  <Text className="text-xs text-muted mb-1">Glicemia de jejum (mg/dL) — opcional</Text>
-                  <TextInput
-                    className="bg-surface border border-border rounded-lg p-2 text-foreground"
-                    placeholder="Ex: 95"
-                    placeholderTextColor="#687076"
-                    keyboardType="number-pad"
-                    value={triagemGlicemia}
-                    onChangeText={setTriagemGlicemia}
-                  />
-                </View>
+                <TextInput
+                  className="border border-border rounded-lg p-3 text-foreground"
+                  placeholder="Glicemia (mg/dL)"
+                  placeholderTextColor="#687076"
+                  keyboardType="number-pad"
+                  value={triagemGlicemia}
+                  onChangeText={setTriagemGlicemia}
+                />
 
                 <TouchableOpacity
                   className="bg-primary rounded-lg py-3 active:opacity-80"
@@ -499,6 +458,125 @@ export default function SaudeScreen() {
                 )}
               </View>
             )}
+          </Card>
+
+          {/* Seção de Hidratação */}
+          <Card className="gap-5">
+            {/* Título */}
+            <View className="gap-2">
+              <Text className="text-2xl font-bold text-foreground">💧 Hidratação</Text>
+              <Text className="text-xs text-muted">Mantenha-se hidratado ao longo do dia</Text>
+            </View>
+            
+            {/* Garrafinha Visual com Gradiente */}
+            <View className="items-center gap-4">
+              {/* Garrafinha 3D */}
+              <View className="relative items-center">
+                {/* Sombra */}
+                <View className="absolute -bottom-2 w-28 h-2 bg-black/10 rounded-full blur-md" />
+                
+                {/* Garrafa */}
+                <View className="relative w-28 h-48 rounded-b-3xl overflow-hidden border-4 border-primary shadow-lg" style={{ elevation: 8 }}>
+                  {/* Fundo branco */}
+                  <View className="absolute inset-0 bg-white/20" />
+                  
+                  {/* Água com gradiente */}
+                  <View 
+                    className="absolute bottom-0 w-full bg-gradient-to-t from-blue-400 via-blue-300 to-cyan-300" 
+                    style={{ 
+                      height: `${Math.min((getTodayHydration() / 2800) * 100, 100)}%`,
+                      opacity: 0.85
+                    }}
+                  />
+                  
+                  {/* Brilho na água */}
+                  {getTodayHydration() > 0 && (
+                    <View className="absolute top-2 left-2 w-2 h-8 bg-white/40 rounded-full" />
+                  )}
+                  
+                  {/* Percentual */}
+                  <View className="absolute inset-0 items-center justify-center">
+                    <Text className="text-4xl font-black text-primary drop-shadow-lg">
+                      {Math.round((getTodayHydration() / 2800) * 100)}%
+                    </Text>
+                  </View>
+                </View>
+                
+                {/* Tampa da garrafa */}
+                <View className="w-20 h-3 bg-primary rounded-t-lg border-2 border-primary" />
+              </View>
+              
+              {/* Info */}
+              <View className="items-center gap-2">
+                <View className="flex-row items-baseline gap-1">
+                  <Text className="text-3xl font-black text-primary">{(getTodayHydration() / 1000).toFixed(1)}</Text>
+                  <Text className="text-lg font-semibold text-muted">L</Text>
+                </View>
+                <View className="flex-row gap-2 items-center">
+                  <View className="h-1 flex-1 bg-border rounded-full overflow-hidden" style={{ width: 120 }}>
+                    <View 
+                      className="h-full bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full" 
+                      style={{ width: `${Math.min((getTodayHydration() / 2800) * 100, 100)}%` }}
+                    />
+                  </View>
+                  <Text className="text-xs font-semibold text-muted">2,8L</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Botões de Copos Interativos */}
+            <View className="gap-4">
+              <View className="gap-2">
+                <Text className="text-sm font-bold text-foreground text-center">Clique nos copos para beber</Text>
+                <Text className="text-xs text-muted text-center font-semibold">Cada copo = 180ml</Text>
+              </View>
+              
+              {/* Grid de Copos */}
+              <View className="flex-row flex-wrap gap-3 justify-center">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={handleAddCup}
+                    activeOpacity={0.6}
+                    className="items-center gap-1"
+                  >
+                    {/* Copo */}
+                    <View className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-400 items-center justify-center shadow-md border-2 border-blue-300" style={{ elevation: 5 }}>
+                      <Text className="text-3xl">🥤</Text>
+                    </View>
+                    {/* Label */}
+                    <Text className="text-xs font-semibold text-primary">+180ml</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Status */}
+            <View className="gap-2 p-4 bg-white/60 rounded-2xl border border-blue-200">
+              {getTodayHydration() >= 2800 ? (
+                <View className="gap-2">
+                  <Text className="text-sm font-bold text-success text-center">Parabéns!</Text>
+                  <Text className="text-xs text-foreground text-center leading-relaxed">
+                    Você atingiu a meta de hidratação do dia! Continue hidratado!
+                  </Text>
+                </View>
+              ) : (
+                <View className="gap-2">
+                  <Text className="text-sm font-bold text-primary text-center">Continue!</Text>
+                  <Text className="text-xs text-foreground text-center leading-relaxed">
+                    Faltam {((2800 - getTodayHydration()) / 1000).toFixed(1)}L para atingir sua meta diária.
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Dica */}
+            <View className="gap-2 p-3 bg-yellow-100 rounded-xl border border-yellow-300">
+              <Text className="text-xs font-bold text-yellow-800">Dica de Saúde</Text>
+              <Text className="text-xs text-yellow-900 leading-relaxed">
+                Beba água regularmente ao longo do dia. A hidratação adequada melhora a concentração, reduz a fadiga e previne doenças ocupacionais.
+              </Text>
+            </View>
           </Card>
 
           {/* Seção de Saúde Mental */}
