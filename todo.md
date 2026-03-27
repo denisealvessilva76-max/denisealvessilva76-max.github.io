@@ -316,6 +316,55 @@
 
 ---
 
+## FASE 1: Melhorias Críticas (Implementação em Progresso)
+
+### Sistema de Notificações Push 📱
+- [x] Configurar Expo Notifications
+- [x] Implementar hook useNotifications
+- [ ] Notificação: Hora de beber água (a cada 2h)
+- [ ] Notificação: Lembrete de check-in diário (8h)
+- [ ] Notificação: Novo desafio disponível
+- [ ] Notificação: Pressão alta detectada (>140/90)
+- [ ] Notificação: Conquista desbloqueada
+- [ ] Tela de configuração de notificações
+
+### Gráficos e Estatísticas 📊
+- [x] Instalar Chart.js/Plotly
+- [x] Gráfico: Evolução de pontos (últimos 30 dias)
+- [x] Gráfico: Hidratação semanal
+- [x] Gráfico: Pressão arterial (tendência)
+- [x] Comparação: Eu vs média geral
+- [ ] Dashboard Admin com gráficos em tempo real
+- [ ] Evolução de check-ins por mês
+- [ ] Mapa de calor de sintomas
+- [ ] Ranking de participação
+
+### Sistema de Pontos Anti-Abuso ⭐
+- [x] Limitar CHECK-IN: 1x/dia = 10 pontos
+- [x] Bloquear duplicatas de check-in
+- [x] Limitar HIDRATAÇÃO: Máx 8 copos/dia
+- [x] Cooldown: 30min entre copos
+- [x] Pontos decrescentes hidratação (5→3→0)
+- [x] Limitar PRESSÃO: Máx 3x/dia
+- [x] Cooldown: 4h entre medições
+- [x] Pontos decrescentes pressão (10→5→2→0)
+- [x] Limitar DESAFIOS: 1x por desafio/dia, máx 5/dia
+- [x] Detecção de padrões suspeitos
+- [x] Teto mensal: 4.000 pontos
+- [x] Recompensas automáticas (<5k pontos)
+- [x] Recompensas com aprovação admin (≥5k pontos)
+- [x] Log de auditoria completo
+- [x] Relatórios de pontos
+
+### Modo Offline 📴
+- [x] Implementar AsyncStorage para dados locais
+- [x] Sincronização automática quando conectar
+- [x] Indicador visual offline/online
+- [x] Fila de sincronização
+- [x] Tratamento de conflitos de dados
+
+---
+
 ## Seção de Dicas de Saúde (Nova Funcionalidade)
 - [x] Criar tipos para artigos e vídeos
 - [x] Buscar vídeos reais sobre ergonomia na construção civil (8 vídeos do YouTube)
