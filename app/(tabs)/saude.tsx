@@ -66,7 +66,7 @@ export default function SaudeScreen() {
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [latestPressure, setLatestPressure] = useState(getLatestPressure());
-  const [latestClassification, setLatestClassification] = useState<'normal' | 'pre-hipertensao' | 'hipertensao' | null>(null);
+  const [latestClassification, setLatestClassification] = useState<string | null>(null);
 
   useEffect(() => {
         const latest = getLatestPressure();
@@ -206,8 +206,8 @@ export default function SaudeScreen() {
                   </View>
                   {latestClassification && (
                     <Badge
-                      variant={getPressureBadgeVariant(latestClassification as 'normal' | 'pre-hipertensao' | 'hipertensao')}
-                      label={getPressureLabel(latestClassification as 'normal' | 'pre-hipertensao' | 'hipertensao')}
+                      variant={getPressureBadgeVariant((latestClassification || 'normal') as 'normal' | 'pre-hipertensao' | 'hipertensao')}
+                      label={getPressureLabel((latestClassification || 'normal') as 'normal' | 'pre-hipertensao' | 'hipertensao')}
                     />
                   )}
                 </View>

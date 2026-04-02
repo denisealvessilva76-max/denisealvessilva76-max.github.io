@@ -3238,7 +3238,7 @@ Adicionar guia sonoro (Text-to-Speech) para instruir funcionários durante exerc
 - [x] Busca e filtros por dificuldade
 - [x] Sistema de favoritos
 - [x] Progresso do usuário
-- [ ] Tela de biblioteca no app
+- [x] Tela de biblioteca no app (app/video-library.tsx)
 
 ### Backup Automático Diário 💾
 - [x] Hook useAutoBackup com sincronização Firebase
