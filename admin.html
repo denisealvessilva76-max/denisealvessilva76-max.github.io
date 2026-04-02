@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canteiro Saudável - Painel Admin</title>
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: #0a7ea4;
+            font-size: 28px;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .auth-section input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .auth-section button {
+            padding: 8px 16px;
+            background: #0a7ea4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .auth-section button:hover {
+            background: #0a6fa4;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            background: #0a7ea4;
+            color: white;
+            border-color: #0a7ea4;
+        }
+
+        .tab-button:hover {
+            background: #e0e0e0;
+        }
+
+        .tab-button.active:hover {
+            background: #0a6fa4;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0a7ea4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #0a7ea4;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #0a7ea4;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .error {
+            background: #fee;
+            border-left-color: #f00;
+            color: #c00;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: #0a7ea4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .refresh-btn:hover {
+            background: #0a6fa4;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .image-thumb {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌱 Canteiro Saudável - Painel Admin</h1>
+            <div class="auth-section">
+                <input type="email" id="email" placeholder="Email" value="admin@canteiro.com">
+                <input type="password" id="password" placeholder="Senha" value="admin123">
+                <button onclick="login()">Login</button>
+                <button onclick="logout()" style="background: #999;">Logout</button>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-button" onclick="switchTab('employees')">👥 Funcionários</button>
+            <button class="tab-button" onclick="switchTab('health')">❤️ Saúde</button>
+            <button class="tab-button" onclick="switchTab('hydration')">💧 Hidratação</button>
+            <button class="tab-button" onclick="switchTab('challenges')">🏆 Desafios</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <button class="refresh-btn" onclick="loadDashboard()">🔄 Atualizar</button>
+            <div class="stats" id="stats"></div>
+            <div id="dashboard-content"></div>
+        </div>
+
+        <!-- Employees -->
+        <div id="employees" class="tab-content">
+            <button class="refresh-btn" onclick="loadEmployees()">🔄 Atualizar</button>
+            <div id="employees-content"></div>
+        </div>
+
+        <!-- Health -->
+        <div id="health" class="tab-content">
+            <button class="refresh-btn" onclick="loadHealth()">🔄 Atualizar</button>
+            <div id="health-content"></div>
+        </div>
+
+        <!-- Hydration -->
+        <div id="hydration" class="tab-content">
+            <button class="refresh-btn" onclick="loadHydration()">🔄 Atualizar</button>
+            <div id="hydration-content"></div>
+        </div>
+
+        <!-- Challenges -->
+        <div id="challenges" class="tab-content">
+            <button class="refresh-btn" onclick="loadChallenges()">🔄 Atualizar</button>
+            <div id="challenges-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyB32S5Eac0guxy1herefub70AIAGkgF1Rw",
+            authDomain: "canteiro-saudavel.firebaseapp.com",
+            projectId: "canteiro-saudavel",
+            storageBucket: "canteiro-saudavel.firebasestorage.app",
+            messagingSenderId: "37768857073",
+            appId: "1:37768857073:web:3e62666713391869813050"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        let isLoggedIn = false;
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (email === 'admin@canteiro.com' && password === 'admin123') {
+                isLoggedIn = true;
+                localStorage.setItem('adminLoggedIn', 'true');
+                alert('Login realizado com sucesso!');
+                loadDashboard();
+            } else {
+                alert('Email ou senha inválidos!');
+            }
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            localStorage.removeItem('adminLoggedIn');
+            alert('Logout realizado!');
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load content
+            if (tabName === 'dashboard') loadDashboard();
+            else if (tabName === 'employees') loadEmployees();
+            else if (tabName === 'health') loadHealth();
+            else if (tabName === 'hydration') loadHydration();
+            else if (tabName === 'challenges') loadChallenges();
+        }
+
+        function loadDashboard() {
+            if (!isLoggedIn) {
+                document.getElementById('dashboard-content').innerHTML = '<div class="empty">Faça login para ver o dashboard</div>';
+                return;
+            }
+
+            const content = document.getElementById('dashboard-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+
+            db.collection('employees').get().then((snapshot) => {
+                const employees = snapshot.size;
+                let totalHealth = 0;
+                let totalHydration = 0;
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.health) totalHealth++;
+                    if (data.hydration) totalHydration++;
+                });
+
+                const statsHtml = `
+                    <div class="stat-card">
+                        <h4>Total de Funcionários</h4>
+                        <div class="number">${employees}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Registros de Saúde</h4>
+                        <div class="number">${totalHealth}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Registros de Hidratação</h4>
+                        <div class="number">${totalHydration}</div>
+                    </div>
+                `;
+
+                document.getElementById('stats').innerHTML = statsHtml;
+                content.innerHTML = '<div class="card"><h3>Dashboard</h3><p>Dados carregados com sucesso! Total de funcionários: ' + employees + '</p></div>';
+            }).catch(error => {
+                content.innerHTML = `<div class="card error">Erro ao carregar dashboard: ${error.message}</div>`;
+            });
+        }
+
+        function loadEmployees() {
+            if (!isLoggedIn) {
+                document.getElementById('employees-content').innerHTML = '<div class="empty">Faça login para ver funcionários</div>';
+                return;
+            }
+
+            const content = document.getElementById('employees-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+
+            db.collection('employees').get().then((snapshot) => {
+                if (snapshot.empty) {
+                    content.innerHTML = '<div class="empty">Nenhum funcionário cadastrado</div>';
+                    return;
+                }
+
+                let html = '<table class="table"><thead><tr><th>Matrícula</th><th>Nome</th><th>Turno</th><th>Função</th><th>Status</th></tr></thead><tbody>';
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const status = data.lastLogin ? 'Online' : 'Offline';
+                    const statusClass = data.lastLogin ? 'status-online' : 'status-offline';
+
+                    html += `
+                        <tr>
+                            <td>${data.matricula || 'N/A'}</td>
+                            <td>${data.name || 'N/A'}</td>
+                            <td>${data.shift || 'N/A'}</td>
+                            <td>${data.role || 'N/A'}</td>
+                            <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                content.innerHTML = html;
+            }).catch(error => {
+                content.innerHTML = `<div class="card error">Erro ao carregar funcionários: ${error.message}</div>`;
+            });
+        }
+
+        function loadHealth() {
+            if (!isLoggedIn) {
+                document.getElementById('health-content').innerHTML = '<div class="empty">Faça login para ver saúde</div>';
+                return;
+            }
+
+            const content = document.getElementById('health-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+
+            db.collection('employees').get().then((snapshot) => {
+                if (snapshot.empty) {
+                    content.innerHTML = '<div class="empty">Nenhum registro de saúde</div>';
+                    return;
+                }
+
+                let html = '<div class="grid">';
+                let hasHealth = false;
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.health) {
+                        hasHealth = true;
+                        html += `
+                            <div class="card">
+                                <h3>${data.name || data.matricula}</h3>
+                                <p><strong>Matrícula:</strong> ${data.matricula}</p>
+                                <p><strong>Pressão:</strong> ${data.health.bloodPressure || 'N/A'}</p>
+                                <p><strong>Sintomas:</strong> ${data.health.symptoms ? data.health.symptoms.join(', ') : 'Nenhum'}</p>
+                                <p><strong>Última atualização:</strong> ${data.health.lastUpdate || 'N/A'}</p>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += '</div>';
+                content.innerHTML = hasHealth ? html : '<div class="empty">Nenhum registro de saúde</div>';
+            }).catch(error => {
+                content.innerHTML = `<div class="card error">Erro ao carregar saúde: ${error.message}</div>`;
+            });
+        }
+
+        function loadHydration() {
+            if (!isLoggedIn) {
+                document.getElementById('hydration-content').innerHTML = '<div class="empty">Faça login para ver hidratação</div>';
+                return;
+            }
+
+            const content = document.getElementById('hydration-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+
+            db.collection('employees').get().then((snapshot) => {
+                if (snapshot.empty) {
+                    content.innerHTML = '<div class="empty">Nenhum registro de hidratação</div>';
+                    return;
+                }
+
+                let html = '<div class="grid">';
+                let hasHydration = false;
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.hydration) {
+                        hasHydration = true;
+                        const today = new Date().toISOString().split('T')[0];
+                        const todayHydration = data.hydration[today] || {};
+
+                        html += `
+                            <div class="card">
+                                <h3>${data.name || data.matricula}</h3>
+                                <p><strong>Matrícula:</strong> ${data.matricula}</p>
+                                <p><strong>Água hoje:</strong> ${(todayHydration.waterIntake || 0) / 1000}L</p>
+                                <p><strong>Meta:</strong> 2.8L</p>
+                                <p><strong>Progresso:</strong> ${Math.round(((todayHydration.waterIntake || 0) / 2800) * 100)}%</p>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += '</div>';
+                content.innerHTML = hasHydration ? html : '<div class="empty">Nenhum registro de hidratação</div>';
+            }).catch(error => {
+                content.innerHTML = `<div class="card error">Erro ao carregar hidratação: ${error.message}</div>`;
+            });
+        }
+
+        function loadChallenges() {
+            if (!isLoggedIn) {
+                document.getElementById('challenges-content').innerHTML = '<div class="empty">Faça login para ver desafios</div>';
+                return;
+            }
+
+            const content = document.getElementById('challenges-content');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+
+            db.collection('challenges').get().then((snapshot) => {
+                if (snapshot.empty) {
+                    content.innerHTML = '<div class="empty">Nenhum desafio</div>';
+                    return;
+                }
+
+                let html = '<div class="grid">';
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    html += `
+                        <div class="card">
+                            <h3>${data.name || 'Desafio'}</h3>
+                            <p><strong>Funcionário:</strong> ${data.employeeName || 'N/A'}</p>
+                            <p><strong>Status:</strong> ${data.status || 'Pendente'}</p>
+                            <p><strong>Data:</strong> ${data.date || 'N/A'}</p>
+                            ${data.photoUrl ? `<img src="${data.photoUrl}" alt="Foto" class="image-thumb">` : ''}
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                content.innerHTML = html;
+            }).catch(error => {
+                content.innerHTML = `<div class="card error">Erro ao carregar desafios: ${error.message}</div>`;
+            });
+        }
+
+        // Auto-login on page load
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('adminLoggedIn')) {
+                isLoggedIn = true;
+                loadDashboard();
+            }
+        });
+    </script>
+</body>
+</html>
